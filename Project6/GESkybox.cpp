@@ -27,13 +27,13 @@ GESkybox::GESkybox(GEGraphicsContext* gc, GERenderingContext* rc)
 
 
 	size_t vertexSize = sizeof(GESkyboxVertex) * vertices.size();
-	vbo = new GEVertexBuffer(gc, vertexSize, vertices.data());
+	vbo = std::make_unique<GEVertexBuffer>(gc, vertexSize, vertices.data());
 
 	size_t indexSize = sizeof(indices[0]) * indices.size();
-	ibo = new GEIndexBuffer(gc, indexSize, indices.data());
+	ibo = std::make_unique<GEIndexBuffer>(gc, indexSize, indices.data());
 
 	size_t transformBufferSize = sizeof(GESkyboxTransform);
-	transformBuffer = new GEUniformBuffer(gc, rc->imageCount, transformBufferSize);
+	transformBuffer = std::make_unique<GEUniformBuffer>(gc, rc->imageCount, transformBufferSize);
 
 	const char* filenames[6];
 	filenames[0] = "textures/negz.jpg";
@@ -43,15 +43,15 @@ GESkybox::GESkybox(GEGraphicsContext* gc, GERenderingContext* rc)
 	filenames[4] = "textures/posx.jpg";
 	filenames[5] = "textures/negx.jpg";
 
-	cubemap = new GETexture(gc, filenames);
+	cubemap = std::make_unique<GETexture>(gc, filenames);
 
 	std::vector<GEUniformBuffer*> ubos(1);
-	ubos[0] = transformBuffer;
+	ubos[0] = transformBuffer.get();
 
 	std::vector<GETexture*> tex(1);
-	tex[0] = cubemap;
+	tex[0] = cubemap.get();
 
-	dset = new GEDescriptorSet(gc, rc, ubos, tex);
+	dset = std::make_unique<GEDescriptorSet>(gc, rc, ubos, tex);
 }
 
 //
@@ -67,11 +67,6 @@ void GESkybox::destroy(GEGraphicsContext* gc)
 	cubemap->destroy(gc);
 	dset->destroy(gc);
 
-	delete vbo;
-	delete ibo;
-	delete transformBuffer;
-	delete cubemap;
-	delete dset;
 }
 
 //

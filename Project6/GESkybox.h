@@ -22,7 +22,7 @@ class GESkybox
 protected:
 	std::vector<GESkyboxVertex> vertices;
 	std::vector<uint16_t> indices;
-	GETexture* cubemap;
+	std::unique_ptr<GETexture> cubemap;
 
 public:
 	GESkybox(GEGraphicsContext* gc, GERenderingContext* rc);
@@ -31,9 +31,9 @@ public:
 	void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
 
 private:
-	GEVertexBuffer* vbo;
-	GEIndexBuffer* ibo;
-	GEUniformBuffer* transformBuffer;
-	GEDescriptorSet* dset;
+	std::unique_ptr<GEVertexBuffer> vbo;
+	std::unique_ptr<GEIndexBuffer> ibo;
+	std::unique_ptr<GEUniformBuffer> transformBuffer;
+	std::unique_ptr<GEDescriptorSet> dset;
 };
 

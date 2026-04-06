@@ -16,13 +16,14 @@
 //
 void GEApplication::run()
 {
-	this->window = initWindow();
+	// Usamos reset para que el unique_ptr tome el control del puntero devuelto
+	this->window.reset(initWindow());
 	this->windowPos = initWindowPos();
-	this->gc = new GEGraphicsContext(window);
-	this->dc = new GEDrawingContext(this->gc, this->windowPos);
-	this->cc = new GECommandContext(this->gc, this->dc->getImageCount());
+	this->gc = std::make_unique<GEGraphicsContext>(window.get());
+	this->dc = std::make_unique <GEDrawingContext>(this->gc.get(), this->windowPos);
+	this->cc = std::make_unique < GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
-	this->scene = new GEScene(gc, dc, cc);
+	this->scene = std::make_unique <GEScene>(gc.get(), dc.get(), cc.get());
 
 	mainLoop();
 
@@ -46,14 +47,6 @@ GLFWwindow* GEApplication::initWindow()
 	glfwSetCursorPosCallback(w, cursorPositionCallback);
 	glfwSetMouseButtonCallback(w, mouseButtonCallback);
 
-	/*
-	GLFWimage images[2];
-	images[0].pixels = stbi_load("C:/GameEngine/Icon/toy.png", &images[0].width, &images[0].height, 0, 4); 
-	images[1].pixels = stbi_load("C:/GameEngine/Icon/toy_small.png", &images[1].width, &images[1].height, 0, 4);
-	glfwSetWindowIcon(window, 2, images);
-	stbi_image_free(images[0].pixels);
-	stbi_image_free(images[1].pixels);
-	*/
 
 	return w;
 }
@@ -70,8 +63,8 @@ GEWindowPosition GEApplication::initWindowPos()
 
 	GEWindowPosition wp = {};
 	wp.fullScreen = false;
-	glfwGetWindowSize(window, &wp.width, &wp.height);
-	glfwGetWindowPos(window, &wp.Xpos, &wp.Ypos);
+	glfwGetWindowSize(window.get(), &wp.width, &wp.height);
+	glfwGetWindowPos(window.get(), &wp.Xpos, &wp.Ypos);
 	wp.screenWidth = mode->width;
 	wp.screenHeight = mode->height;
 	return wp;
@@ -85,7 +78,7 @@ GEWindowPosition GEApplication::initWindowPos()
 //
 void GEApplication::mainLoop()
 {
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window.get()))
 	{
 		glfwPollEvents();
 		draw();
@@ -99,10 +92,10 @@ void GEApplication::mainLoop()
 //
 void GEApplication::draw()
 {
-	dc->waitForNextImage(gc);
-	scene->update(gc, dc->getCurrentImage());
-	dc->submitGraphicsCommands(gc, cc->commandBuffers);
-	dc->submitPresentCommands(gc);
+	dc->waitForNextImage(gc.get());
+	scene->update(gc.get(), dc->getCurrentImage());
+	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
+	dc->submitPresentCommands(gc.get());
 }
 
 //
@@ -112,16 +105,16 @@ void GEApplication::draw()
 //
 void GEApplication::cleanup()
 {
-	vkDeviceWaitIdle(gc->device); // ESPERA A LA GPU ANTES DE DESTRUIR NADA
+	if(gc) vkDeviceWaitIdle(gc->device); // ESPERA A LA GPU ANTES DE DESTRUIR NADA
 
-	scene->destroy(gc);
-	cc->destroy(gc);
-	dc->destroy(gc);
+	if(scene) scene->destroy(gc.get());
+	if(cc) cc->destroy(gc.get());
+	if(dc) dc->destroy(gc.get());
 	//delete scene;
 	//delete cc;
 	//delete dc;
 	//delete gc;
-	glfwDestroyWindow(window);
+	//glfwDestroyWindow(window.get());
 	glfwTerminate();
 }
 
@@ -134,17 +127,17 @@ void GEApplication::swapFullScreen()
 {
 	if (!windowPos.fullScreen)
 	{
-		glfwGetWindowSize(window, &windowPos.width, &windowPos.height);
-		glfwGetWindowPos(window, &windowPos.Xpos, &windowPos.Ypos);
+		glfwGetWindowSize(window.get(), &windowPos.width, &windowPos.height);
+		glfwGetWindowPos(window.get(), &windowPos.Xpos, &windowPos.Ypos);
 		windowPos.fullScreen = true;
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		glfwSetWindowMonitor(window.get(), monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 	}
 	else
 	{
 		windowPos.fullScreen = false;
-		glfwSetWindowMonitor(window, nullptr, windowPos.Xpos, windowPos.Ypos, windowPos.width, windowPos.height, NULL);
+		glfwSetWindowMonitor(window.get(), nullptr, windowPos.Xpos, windowPos.Ypos, windowPos.width, windowPos.height, NULL);
 	}
 }
 
@@ -212,17 +205,17 @@ void GEApplication::resize()
 	#endif
 	if (!windowPos.fullScreen)
 	{
-		glfwGetWindowSize(window, &windowPos.width, &windowPos.height);
-		glfwGetWindowPos(window, &windowPos.Xpos, &windowPos.Ypos);
+		glfwGetWindowSize(window.get(), &windowPos.width, &windowPos.height);
+		glfwGetWindowPos(window.get(), &windowPos.Xpos, &windowPos.Ypos);
 	}
 
-	dc->recreate(gc, windowPos);
-	cc->destroy(gc);
+	dc->recreate(gc.get(), windowPos);
+	cc->destroy(gc.get());
 	// delete cc;
 
-	this->cc = new GECommandContext(this->gc, this->dc->getImageCount());
+	this->cc = std::make_unique<GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
-	scene->recreate(gc, dc, cc);
+	scene->recreate(gc.get(), dc.get(), cc.get());
 
 	double aspect;
 	if (!windowPos.fullScreen) aspect = (double)this->windowPos.width / (double)this->windowPos.height;

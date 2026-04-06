@@ -141,12 +141,6 @@
     <ClCompile Include="GESkybox.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="F22_Raptor_pieces.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="F22_Raptor.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="GEAgua.cpp">
       <Filter>Archivos de origen\GEComputeShader</Filter>
     </ClCompile>
@@ -276,12 +270,6 @@
       <Filter>Archivos de encabezado\GEStructs</Filter>
     </ClInclude>
     <ClInclude Include="GESkybox.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="F22_Raptor_pieces.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="F22_Raptor.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="commonDebug.h">

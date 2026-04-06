@@ -139,8 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="F22_Raptor.cpp" />
-    <ClCompile Include="F22_Raptor_pieces.cpp" />
     <ClCompile Include="GEAgua.cpp" />
     <ClCompile Include="GEApplication.cpp" />
     <ClCompile Include="GECamera.cpp" />
@@ -178,8 +176,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commonDebug.h" />
-    <ClInclude Include="F22_Raptor.h" />
-    <ClInclude Include="F22_Raptor_pieces.h" />
     <ClInclude Include="GEAgua.h" />
     <ClInclude Include="GEApplication.h" />
     <ClInclude Include="GECamera.h" />

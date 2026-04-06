@@ -11,6 +11,13 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+// Estructura para decirle a unique_ptr cómo borrar la ventana de GLFW
+struct GLFWWindowDeleter {
+	void operator()(GLFWwindow* window) const {
+		if (window) glfwDestroyWindow(window);
+	}
+};
+
 //
 // CLASE: GEApplication
 //
@@ -22,12 +29,12 @@ public:
 	void run();
 
 private:
-	GLFWwindow* window;
+	std::unique_ptr < GLFWwindow, GLFWWindowDeleter> window;
 	GEWindowPosition windowPos;
-	GEGraphicsContext* gc;
-	GEDrawingContext* dc;
-	GECommandContext* cc;
-	GEScene* scene;
+	std::unique_ptr<GEGraphicsContext> gc;
+	std::unique_ptr<GEDrawingContext> dc;
+	std::unique_ptr<GECommandContext> cc;
+	std::unique_ptr<GEScene> scene;
 
 	// Métodos principales
 	GLFWwindow* initWindow();
