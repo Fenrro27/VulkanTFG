@@ -10,5 +10,5 @@
 class GEIcosahedron : public GEFigure
 {
 public:
-	GEIcosahedron(float r);
+	explicit GEIcosahedron(float r);
 };

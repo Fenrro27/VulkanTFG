@@ -6,7 +6,7 @@
 class GEAgua : public GEParticlesSystem
 {
 public:
-    GEAgua(uint32_t particleCount = 100);
+    explicit GEAgua(uint32_t particleCount = 100);
 };
 
 #endif

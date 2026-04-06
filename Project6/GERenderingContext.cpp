@@ -607,10 +607,10 @@ VkShaderModule GERenderingContext::createShaderModule(GEGraphicsContext* gc, con
 //
 std::vector<char> GERenderingContext::getFileFromResource(int resource)
 {
-	HRSRC shaderHandle = FindResource(NULL, MAKEINTRESOURCE(resource), RT_HTML);
-	HGLOBAL shaderGlobal = LoadResource(NULL, shaderHandle);
+	HRSRC shaderHandle = FindResource(nullptr, MAKEINTRESOURCE(resource), RT_HTML);
+	HGLOBAL shaderGlobal = LoadResource(nullptr, shaderHandle);
 	LPCTSTR shaderPtr = static_cast<LPCTSTR>(LockResource(shaderGlobal));
-	DWORD shaderSize = SizeofResource(NULL, shaderHandle);
+	DWORD shaderSize = SizeofResource(nullptr, shaderHandle);
 
 	std::vector<char> shader(shaderSize);
 	memcpy(shader.data(), shaderPtr, shaderSize);

@@ -23,7 +23,7 @@ private:
 	VkPhysicalDeviceMemoryProperties memProperties;
 
 public:
-	GEGraphicsContext(GLFWwindow* window);
+	explicit GEGraphicsContext(GLFWwindow* window);
 	~GEGraphicsContext();
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	VkFormat findDepthFormat();

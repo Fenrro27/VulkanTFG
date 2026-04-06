@@ -5,6 +5,6 @@ class GEFuego : public GEParticlesSystem
 {
 
 public:
-	GEFuego(uint32_t particleCount = 100);
+	explicit GEFuego(uint32_t particleCount = 100);
 };
 

@@ -10,6 +10,6 @@
 class GEPyramid : public GEFigure
 {
 public:
-	GEPyramid(float s);
+	explicit GEPyramid(float s);
 };
 

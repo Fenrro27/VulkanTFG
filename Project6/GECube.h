@@ -10,6 +10,6 @@
 class GECube : public GEFigure
 {
 public:
-	GECube(float s);
+	explicit GECube(float s);
 };
 

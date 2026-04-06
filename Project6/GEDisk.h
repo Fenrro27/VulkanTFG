@@ -10,6 +10,6 @@
 class GEDisk : public GEFigure
 {
 public:
-	GEDisk(int p, int m, float r0, float r1);
+	explicit GEDisk(int p, int m, float r0, float r1);
 };
 
