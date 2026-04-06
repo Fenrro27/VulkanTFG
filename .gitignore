@@ -1,0 +1,65 @@
+# --- Visual Studio ---
+.vs/
+*.sln.dotsettings.user
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# --- Directorios de Compilación y Salida ---
+# Bloquea todas las carpetas de salida de MSBuild
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bin/
+obj/
+
+# --- Archivos generados por el Compilador/Linker ---
+*.exe
+*.pdb
+*.ilk
+*.aps
+*.res
+*.idb
+*.obj
+*.iobj
+*.ipdb
+*.tlog
+*.lastbuildstate
+*.recipe
+*.log
+
+# --- VS Code ---
+.vscode/
+# Si quieres guardar tus tareas de compilación de VS Code, 
+# comenta la línea de arriba y usa estas:
+# .vscode/*.log
+# .vscode/launch.json
+
+# --- CMake ---
+CMakeFiles/
+CMakeCache.txt
+CMakeConfigureLog.yaml
+cmake_install.cmake
+install/
+generated/
+ZERO_CHECK.*
+ALL_BUILD.*
+
+# --- Shaders compilados ---
+# Los archivos .spv son binarios generados por glslangValidator
+*.spv
+
+# --- Dependencias y Herramientas ---
+# Es buena práctica no subir las librerías externas si puedes 
+# descargarlas (vcpkg) o si son muy pesadas. 
+# Si quieres mantenerlas en el repo, borra estas líneas:
+# /Tools/
+# /Projects/ProjectTFG/Tools/
+
+# --- Otros ---
+.DS_Store
+Thumbs.db
+vcpkg.applocal.log

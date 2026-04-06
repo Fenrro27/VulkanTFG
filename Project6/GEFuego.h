@@ -1,0 +1,10 @@
+#pragma once
+#include "GEParticlesSystem.h"
+
+class GEFuego : public GEParticlesSystem
+{
+
+public:
+	GEFuego(uint32_t particleCount = 100);
+};
+
