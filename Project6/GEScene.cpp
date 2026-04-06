@@ -34,7 +34,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	aspect_ratio(aspect);
 
 	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent());
-	rc = new GERenderingContext(gc, dc, skybox_config);
+	rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
 
 	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent());
 	rc->addGraphicsPipeline(gc, scene_config);
@@ -42,19 +42,19 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent());
 	rc->addGraphicsPipeline(gc, particle_Config);
 
-	this->camera = new GECamera();
+	this->camera = std::make_unique <GECamera>();
 	this->camera->setPosition(glm::vec3(0.0f, 10.0f, 300.0f));
 	this->camera->setMoveStep(0.0f);
 
 	rc->setActivePipeline(SKYBOX_PIPELINE);
-	this->skybox = new GESkybox(gc, rc);
+	this->skybox = std::make_unique<GESkybox>(gc, rc.get());
 
 	rc->setActivePipeline(SCENE_PIPELINE);
 
 	textures.resize(3);
-	textures[0] = new GETexture(gc, "textures/stone.jpg");
-	textures[1] = new GETexture(gc, "textures/moon.jpg");
-	textures[2] = new GETexture(gc, "textures/wood.jpg");
+	textures[0] = std::make_unique<GETexture>(gc, "textures/stone.jpg");
+	textures[1] = std::make_unique<GETexture>(gc, "textures/moon.jpg");
+	textures[2] = std::make_unique<GETexture>(gc, "textures/wood.jpg");
 
 	GELight light = {};
 	light.Ldir = glm::normalize(glm::vec3(1.0f, -0.8f, -0.7f));
@@ -69,27 +69,23 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	groundMat.Shininess = 16.0f;
 
 
-	GEFigure* ground = new GEGround(50.0f, 50.0f);
-	ground->setTexture(textures[2]);
-	ground->initialize(gc, rc);
+	std::unique_ptr<GEFigure> ground = std::make_unique<GEGround>(50.0f, 50.0f);
+	ground->setTexture(textures[2].get()); // Obtiene el puntero crudo del unique_ptr
+	ground->initialize(gc, rc.get());
 	ground->setMaterial(groundMat);
 	ground->setLight(light);
 
 
-	figures.resize(1);
-	figures[0] = ground;
+	figures.push_back(std::move(ground));
 
 	
-	
-	//Compute shadedr
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
-	particleCompute = new GEComputeShader(gc,
-		IDR_COMPUTE_PARTICLES, dc->getImageCount());
+	particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
 	
-	particleSystem.push_back(new GEHumo(100));
-	particleSystem.push_back(new GEFuego(50));
-	particleSystem.push_back(new GEAgua(1000));
+	particleSystem.push_back(std::make_unique<GEHumo>(100));
+	particleSystem.push_back(std::make_unique<GEFuego>(50));
+	particleSystem.push_back(std::make_unique<GEAgua>(1000));
 
 	
 	GEMaterial particle1Mat = {};
@@ -98,23 +94,23 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particle1Mat.Ks = glm::vec3(0.05f, 0.05f, 0.05f);
 	particle1Mat.Shininess = 2.0f;
 
-	particleSystem[0]->initialize(gc, rc, new GETexture(gc, "textures/smoke.png"));
+	particleSystem[0]->initialize(gc, rc.get(), new GETexture(gc, "textures/smoke.png"));
 	particleSystem[0]->translate(glm::vec3(-25.0f, 0.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0]);
+	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 
-	particleSystem[1]->initialize(gc, rc, new GETexture(gc, "textures/fire.png"));
+	particleSystem[1]->initialize(gc, rc.get(), new GETexture(gc, "textures/fire.png"));
 	particleSystem[1]->translate(glm::vec3(0.0f, 0.0f, 0.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1]);
+	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
-	particleSystem[2]->initialize(gc, rc, new GETexture(gc, "textures/pngwing.com.png"));
+	particleSystem[2]->initialize(gc, rc.get(), new GETexture(gc, "textures/pngwing.com.png"));
 	particleSystem[2]->translate(glm::vec3(25.0f, 0.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2]);
+	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 
 
@@ -129,25 +125,14 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 void GEScene::destroy(GEGraphicsContext* gc)
 {
 	particleCompute->destroy(gc);
-	delete particleCompute;
-
 	rc->destroy(gc);
-	delete rc;
-
 	skybox->destroy(gc);
-	delete skybox;
-
 	for (auto& figure: figures)
 	{
-		figure->destroy(gc); 
-		delete figure;
+		figure->destroy(gc);
 	}
-
-	
-
 	for (auto& ps: particleSystem) {
 		ps->destroy(gc);
-		delete ps;
 	}
 	particleSystem.clear();
 
@@ -162,7 +147,7 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 {
 	rc->destroy(gc);
 	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent());
-	this->rc = new GERenderingContext(gc, dc, skybox_config);
+	this->rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
 
 	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent());
 	this->rc->addGraphicsPipeline(gc, scene_config);
@@ -280,7 +265,7 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				// --- 1. FASE DE CÓMPUTO (PARTÍCULAS) ---
 				for (size_t s = 0; s < particleSystem.size(); s++)
 				{
-					GEParticlesSystem* ps = particleSystem[s]; 
+						auto& ps = particleSystem[s]; 
 						uint32_t particleCount = ps->getParticlesCount(); 
 						uint32_t groupCount = (particleCount + 255) / 256; 
 

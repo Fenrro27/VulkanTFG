@@ -29,18 +29,18 @@
 class GEScene
 {
 private:
-	GERenderingContext* rc;
-	GESkybox* skybox;
-	//GEObject* plane; 
-	std::vector<GEFigure*> figures;
-	std::vector<GETexture*> textures;
-	GECamera* camera;
-	glm::mat4 projection;
+	std::unique_ptr<GERenderingContext> rc;
+	std::unique_ptr<GESkybox> skybox;
+	std::unique_ptr<GECamera> camera;
+	std::unique_ptr<GEComputeShader> particleCompute;
 
-	//compute shader
-	GEComputeShader* particleCompute;
-	std::vector<GEParticlesSystem*> particleSystem;
-	//std::vector<GETexture*> particleTextures;
+	//GEObject* plane; 
+	std::vector<std::unique_ptr<GEFigure>> figures;
+	std::vector< std::unique_ptr<GEParticlesSystem>> particleSystem;
+	
+	std::vector< std::shared_ptr<GETexture>> textures;
+
+	glm::mat4 projection;
 	uint32_t particleCount = 10000;
 
 

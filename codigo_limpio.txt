@@ -1444,8 +1444,6 @@ FILE: Project6\GEDescriptorSet.cpp
 
 GEDescriptorSet::GEDescriptorSet(GEGraphicsContext* gc, GERenderingContext* rc, std::vector<GEUniformBuffer*> ubos, std::vector<GETexture*> tex)
 {
-	std::cout << "DEBUG: Creando DescriptorSet. Pipeline activa en RC: %d | Layout: %p | Buffers: %zu | Texturas: %zu\n" <<
-		rc->getActivePipeline() << ", " << (void*)rc->getActiveDescriptorSetLayout() << ", " << ubos.size()<<", "<< tex.size() << std::endl;
 
 	uint32_t bufferCount = (uint32_t)ubos.size();
 	uint32_t textureCount = (uint32_t)tex.size();
@@ -3624,7 +3622,7 @@ void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc
 	pboA = new GEParticleBuffer(gc, vertexSize, particles.data());
 	pboB = new GEParticleBuffer(gc, vertexSize, nullptr);
 
-	if (indices.empty()) { 
+	if (!indices.empty()) { 
 		size_t indexSize = sizeof(indices[0]) * indices.size();
 		ibo = new GEIndexBuffer(gc, indexSize, indices.data());
 	}
@@ -3694,7 +3692,7 @@ void GEParticlesSystem::addCommands(VkCommandBuffer commandBuffer, VkPipelineLay
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(pboA->buffer), &offset);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
 
-	if (indices.empty() ) {
+	if (!indices.empty() ) {
 		vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT16);
 		vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
 	}
