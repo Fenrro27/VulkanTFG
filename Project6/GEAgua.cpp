@@ -1,7 +1,9 @@
 #include "GEAgua.h"
+#include <random>
 
 GEAgua::GEAgua(uint32_t particleCount) : GEParticlesSystem()
 {
+	srand(static_cast<unsigned int>(time(0)));
     // Supongamos que el tipo 2 es Agua en tu Compute Shader
     emitterParams.particleType = 2;
 
