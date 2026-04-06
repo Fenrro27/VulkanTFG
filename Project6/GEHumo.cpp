@@ -1,10 +1,23 @@
 #include "GEHumo.h"
+#include <random>
 
 
 
 
 GEHumo::GEHumo(uint32_t particleCount) : GEParticlesSystem()
 {
+	// 1. Usamos 'static' para que el generador se inicialice una sola vez 
+	  // y no en cada instancia de GEAgua.
+	static std::random_device rd;
+	static std::mt19937 gen(rd());
+
+	// 2. Definimos distribuciones para los rangos específicos que necesitas
+	// En lugar de (distr % 100) / 100.0f, usamos un rango [0.0, 1.0]
+	std::uniform_real_distribution<float> distTTL(2.0f, 6.0f); 
+	std::uniform_real_distribution<float> distPercent(0.0f, 1.0f);
+
+
+
 	// Configurar valores de Humo para la emision de particulas
 	emitterParams.particleType = 0; // 0 = Humo
 	emitterParams.emitterPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -25,8 +38,8 @@ GEHumo::GEHumo(uint32_t particleCount) : GEParticlesSystem()
 		p.size = 2.0f;
 		p.activeTTL = 1;
 
-		p.ttl = ((rand() % 40) / 10.0f) + 2.0f;
-		p.currentTtl = p.ttl * ((rand() % 100) / 100.0f);
+		p.ttl = distTTL(gen);
+		p.currentTtl = p.ttl * distPercent(gen);
 
 		this->addParticle(p);
 	}
