@@ -64,23 +64,25 @@ void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc
 //
 void GEParticlesSystem::destroy(GEGraphicsContext* gc)
 {
-	pboA->destroy(gc);
-	transformBuffer->destroy(gc);
-	materialBuffer->destroy(gc);
-	lightBuffer->destroy(gc);
-	dset->destroy(gc);
+	if (pboA) pboA->destroy(gc);
+	if (pboB) pboB->destroy(gc);
+	if (ibo) ibo->destroy(gc);
+	if (transformBuffer) transformBuffer->destroy(gc);
+	if (materialBuffer) materialBuffer->destroy(gc);
+	if (lightBuffer) lightBuffer->destroy(gc);
+	if (emitterParamsBuffer) emitterParamsBuffer->destroy(gc);
+	if (dset) dset->destroy(gc);
 
-	if (ibo) { // compute shader
-		ibo->destroy(gc);
-	}
-
-	if (emitterParamsBuffer) {
-		emitterParamsBuffer->destroy(gc);
-	}
-
-	if (pboB) {
-		pboB->destroy(gc);
-	}
+	// Resetemos los unique_ptr para que ya no apunten a nada
+	// Esto evita que intenten borrar de nuevo al cerrarse la app
+	pboA.reset();
+	pboB.reset();
+	ibo.reset();
+	transformBuffer.reset();
+	materialBuffer.reset();
+	lightBuffer.reset();
+	emitterParamsBuffer.reset();
+	dset.reset();
 
 
 }

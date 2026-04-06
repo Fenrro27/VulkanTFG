@@ -33,13 +33,13 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	double aspect = (double)extent.width / (double)extent.height;
 	aspect_ratio(aspect);
 
-	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent());
+	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent()).get();
 	rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
 
-	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent());
+	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent()).get();
 	rc->addGraphicsPipeline(gc, scene_config);
 
-	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent());
+	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent()).get();
 	rc->addGraphicsPipeline(gc, particle_Config);
 
 	this->camera = std::make_unique <GECamera>();
@@ -146,13 +146,13 @@ void GEScene::destroy(GEGraphicsContext* gc)
 void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
 {
 	rc->destroy(gc);
-	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent());
+	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent()).get();
 	this->rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
 
-	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent());
+	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent()).get();
 	this->rc->addGraphicsPipeline(gc, scene_config);
 
-	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent());
+	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent()).get();
 	this->rc->addGraphicsPipeline(gc, particle_Config);
 
 	fillCommandBuffers(cc);
@@ -339,9 +339,9 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 	//
 	// PROPÓSITO: Obtiene la configuración del pipeline de renderizado para el skybox
 	//
-	GEPipelineConfig* GEScene::createSkyboxPipelineConfig(VkExtent2D extent)
+std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2D extent)
 	{
-		GEPipelineConfig* config = new GEPipelineConfig();
+		std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
 		config->vertex_shader = IDR_VERT_SKYBOX;
 		config->fragment_shader = IDR_FRAG_SKYBOX;
 
@@ -373,9 +373,9 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 //
 // PROPÓSITO: Obtiene la configuración del pipeline de renderizado para las figuras
 //
-GEPipelineConfig* GEScene::createScenePipelineConfig(VkExtent2D extent)
+	std::unique_ptr <GEPipelineConfig> GEScene::createScenePipelineConfig(VkExtent2D extent)
 {
-	GEPipelineConfig* config = new GEPipelineConfig();
+	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
 	config->vertex_shader = IDR_VERT;
 	config->fragment_shader = IDR_FRAG;
 
@@ -418,9 +418,9 @@ GEPipelineConfig* GEScene::createScenePipelineConfig(VkExtent2D extent)
 //
 // PROP�SITO: Obtiene la configuraci�n del pipeline de particulass/ computacion
 //
-GEPipelineConfig* GEScene::createParticlePipelineConfig(VkExtent2D extent)
+std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExtent2D extent)
 {
-	GEPipelineConfig* config = new GEPipelineConfig();
+	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
 
 	config->vertex_shader = IDR_VERT_PARTICLES;   
 	config->fragment_shader = IDR_FRAG_PARTICLES; 

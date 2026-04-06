@@ -55,9 +55,9 @@ public:
 
 private:
 	void fillCommandBuffers(GECommandContext* commandBuffers);
-	GEPipelineConfig* createSkyboxPipelineConfig(VkExtent2D extent);
-	GEPipelineConfig* createScenePipelineConfig(VkExtent2D extent);
-	GEPipelineConfig* createParticlePipelineConfig(VkExtent2D extent);
+	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);
+	std::unique_ptr < GEPipelineConfig> createScenePipelineConfig(VkExtent2D extent);
+	std::unique_ptr < GEPipelineConfig> createParticlePipelineConfig(VkExtent2D extent);
 
 };
 
