@@ -34,16 +34,16 @@ class GEParticlesSystem
 		GELight light;
 
 		// compite shader
-		GEParticleBuffer* pboA = nullptr;
-		GEIndexBuffer* ibo = nullptr;
-		GEUniformBuffer* transformBuffer = nullptr;
-		GEUniformBuffer* materialBuffer = nullptr;
-		GEUniformBuffer* lightBuffer = nullptr;
-		GEDescriptorSet* dset = nullptr;
+		std::unique_ptr<GEParticleBuffer> pboA = nullptr;
+		std::unique_ptr<GEIndexBuffer> ibo = nullptr;
+		std::unique_ptr<GEUniformBuffer> transformBuffer = nullptr;
+		std::unique_ptr<GEUniformBuffer> materialBuffer = nullptr;
+		std::unique_ptr<GEUniformBuffer> lightBuffer = nullptr;
+		std::unique_ptr<GEDescriptorSet> dset = nullptr;
 
-		GEParticleBuffer* pboB = nullptr; // Buffer auxiliar para la lógica ping-pong
+		std::unique_ptr<GEParticleBuffer> pboB = nullptr; // Buffer auxiliar para la lógica ping-pong
 		GEEmitterParams emitterParams;
-		GEUniformBuffer* emitterParamsBuffer = nullptr;
+		std::unique_ptr<GEUniformBuffer> emitterParamsBuffer = nullptr;
 		float lastTime = 0.0f;
 
 	public:
@@ -59,13 +59,13 @@ class GEParticlesSystem
 		void setLight(GELight l);
 
 		// compute shader
-		GEParticleBuffer* getParticlesBufferA() { return pboA; }
-		GEParticleBuffer* getParticlesBufferB() { return pboB; }
+		GEParticleBuffer* getParticlesBufferA() { return pboA.get(); }
+		GEParticleBuffer* getParticlesBufferB() { return pboB.get(); }
 		size_t getParticlesSize() { return sizeof(GEParticle) * particles.size(); }
 		uint32_t getParticlesCount() { return (uint32_t)particles.size(); }
 		void addParticle(GEParticle p);
 		VkDescriptorSet getDescriptorSet(int index) { return dset->descriptorSets[index]; }
-		GEUniformBuffer* getEmitterParamsBuffer() { return emitterParamsBuffer;  }
+		GEUniformBuffer* getEmitterParamsBuffer() { return emitterParamsBuffer.get();  }
 
 
 	};

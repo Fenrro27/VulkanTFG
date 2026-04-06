@@ -20,40 +20,40 @@
 void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc, GETexture* sceneTexture)
 {
 	size_t vertexSize = sizeof(GEParticle) * particles.size();
-	pboA = new GEParticleBuffer(gc, vertexSize, particles.data());
-	pboB = new GEParticleBuffer(gc, vertexSize, nullptr);
+	pboA = std::make_unique<GEParticleBuffer>(gc, vertexSize, particles.data());
+	pboB = std::make_unique<GEParticleBuffer>(gc, vertexSize, nullptr);
 
 	// SOLO crear el IBO si hay �ndices, compute shader
 	if (!indices.empty()) { 
 		size_t indexSize = sizeof(indices[0]) * indices.size();
-		ibo = new GEIndexBuffer(gc, indexSize, indices.data());
+		ibo = std::make_unique < GEIndexBuffer>(gc, indexSize, indices.data());
 	}
 	else {
 		ibo = nullptr; 
 	}
 	size_t transformBufferSize = sizeof(GETransform);
-	transformBuffer = new GEUniformBuffer(gc, rc->imageCount, transformBufferSize);
+	transformBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, transformBufferSize);
 
 	size_t materialBufferSize = sizeof(GEMaterial);
-	materialBuffer = new GEUniformBuffer(gc, rc->imageCount, materialBufferSize);
+	materialBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, materialBufferSize);
 
 	size_t lightBufferSize = sizeof(GELight);
-	lightBuffer = new GEUniformBuffer(gc, rc->imageCount, lightBufferSize);
+	lightBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, lightBufferSize);
 
 	std::vector<GEUniformBuffer*> ubos(3);
-	ubos[0] = transformBuffer;
-	ubos[1] = materialBuffer;
-	ubos[2] = lightBuffer;
+	ubos[0] = transformBuffer.get();
+	ubos[1] = materialBuffer.get();
+	ubos[2] = lightBuffer.get();
 
 //	std::cout << "DescriptorSet: " << ubos.size() << " buffers, texture: " << (sceneTexture != nullptr) << std::endl;
 	std::vector<GETexture*> tex(1);
 	tex[0] = sceneTexture;
 
-	dset = new GEDescriptorSet(gc, rc, ubos, tex);
+	dset = std::make_unique<GEDescriptorSet>(gc, rc, ubos, tex);
 
 	location = glm::mat4(1.0f);
 
-	emitterParamsBuffer = new GEUniformBuffer(gc, rc->imageCount, sizeof(GEEmitterParams));
+	emitterParamsBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, sizeof(GEEmitterParams));
 
 }
 
@@ -70,25 +70,16 @@ void GEParticlesSystem::destroy(GEGraphicsContext* gc)
 	lightBuffer->destroy(gc);
 	dset->destroy(gc);
 
-	delete pboA;
-	delete transformBuffer;
-	delete materialBuffer;
-	delete lightBuffer;
-	delete dset;
-
 	if (ibo) { // compute shader
 		ibo->destroy(gc);
-		delete ibo;
 	}
 
 	if (emitterParamsBuffer) {
 		emitterParamsBuffer->destroy(gc);
-		delete emitterParamsBuffer;
 	}
 
 	if (pboB) {
 		pboB->destroy(gc);
-		delete pboB;
 	}
 
 
