@@ -14,9 +14,9 @@ GECone::GECone(int p, int m, float h, float r)
 	vertices.resize(numVertices);
 	indices.resize(numFaces * 3);
 
-	double module = sqrt(4 * h * h + r * r);
-	double xyN = (float)(2 * h / module);
-	double zN = (float)(r / module);
+	double moduleCone = sqrt(4 * h * h + r * r);
+	double xyN = (float)(2 * h / moduleCone);
+	double zN = (float)(r / moduleCone);
 
 	int verticesIndex = 0;
 
