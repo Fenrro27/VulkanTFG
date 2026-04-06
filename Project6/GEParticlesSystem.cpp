@@ -24,7 +24,7 @@ void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc
 	pboB = new GEParticleBuffer(gc, vertexSize, nullptr);
 
 	// SOLO crear el IBO si hay �ndices, compute shader
-	if (indices.empty()) { 
+	if (!indices.empty()) { 
 		size_t indexSize = sizeof(indices[0]) * indices.size();
 		ibo = new GEIndexBuffer(gc, indexSize, indices.data());
 	}
@@ -106,7 +106,7 @@ void GEParticlesSystem::addCommands(VkCommandBuffer commandBuffer, VkPipelineLay
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(pboA->buffer), &offset);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
 
-	if (indices.empty() ) {
+	if (!indices.empty() ) {
 		vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT16);
 		vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
 	}
