@@ -11,8 +11,8 @@
 //
 GEDescriptorSet::GEDescriptorSet(GEGraphicsContext* gc, GERenderingContext* rc, std::vector<GEUniformBuffer*> ubos, std::vector<GETexture*> tex)
 {
-	printf("DEBUG: Creando DescriptorSet. Pipeline activa en RC: %d | Layout: %p | Buffers: %zu | Texturas: %zu\n",
-		rc->getActivePipeline(), (void*)rc->getActiveDescriptorSetLayout(), ubos.size(), tex.size());
+	std::cout << "DEBUG: Creando DescriptorSet. Pipeline activa en RC: %d | Layout: %p | Buffers: %zu | Texturas: %zu\n" <<
+		rc->getActivePipeline() << ", " << (void*)rc->getActiveDescriptorSetLayout() << ", " << ubos.size()<<", "<< tex.size() << std::endl;
 
 	uint32_t bufferCount = (uint32_t)ubos.size();
 	uint32_t textureCount = (uint32_t)tex.size();

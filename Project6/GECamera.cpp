@@ -23,8 +23,8 @@ GECamera::GECamera()
 
 	moveStep = 0.1f;
 	turnStep = 1.0f;
-	cosAngle = (float)cos(glm::radians(turnStep));
-	sinAngle = (float)sin(glm::radians(turnStep));
+	cosAngle = cos(glm::radians(turnStep));
+	sinAngle = sin(glm::radians(turnStep));
 
 	turnLeftPressed = false;
 	turnRightPressed = false;
@@ -88,8 +88,8 @@ void GECamera::setMoveStep(float step)
 void GECamera::setTurnStep(float step)
 {
 	turnStep = step;
-	cosAngle = (float)cos(glm::radians(turnStep));
-	sinAngle = (float)sin(glm::radians(turnStep));
+	cosAngle = cos(glm::radians(turnStep));
+	sinAngle = sin(glm::radians(turnStep));
 }
 
 //

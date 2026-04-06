@@ -59,12 +59,12 @@ private:
 	void createPipelineLayout(GEGraphicsContext* gc, GEPipelineConfig* config);
 	void createVertexShaderStageCreateInfo(GEGraphicsContext* gc, int resource, VkShaderModule* vertShaderModule, VkPipelineShaderStageCreateInfo* vertShaderStageInfo);
 	void createFragmentShaderStageCreateInfo(GEGraphicsContext* gc, int resource, VkShaderModule* fragShaderModule, VkPipelineShaderStageCreateInfo* fragShaderStageInfo);
-	void createPipelineVertexInputStateCreateInfo(GEPipelineConfig* config, VkPipelineVertexInputStateCreateInfo* vertexInputInfo);
-	void createPipelineInputAssemblyStateCreateInfo(GEPipelineConfig* config, VkPipelineInputAssemblyStateCreateInfo* inputAssembly);
+	void createPipelineVertexInputStateCreateInfo(const GEPipelineConfig* config, VkPipelineVertexInputStateCreateInfo* vertexInputInfo);
+	void createPipelineInputAssemblyStateCreateInfo(const GEPipelineConfig* config, VkPipelineInputAssemblyStateCreateInfo* inputAssembly);
 	void createPipelineViewportStateCreateInfo(VkPipelineViewportStateCreateInfo* viewportState);
-	void createPipelineRasterizationStateCreateInfo(GEPipelineConfig* config, VkPipelineRasterizationStateCreateInfo* rasterizer);
+	void createPipelineRasterizationStateCreateInfo(const GEPipelineConfig* config, VkPipelineRasterizationStateCreateInfo* rasterizer);
 	void createPipelineMultisampleStateCreateInfo(VkPipelineMultisampleStateCreateInfo* multisampling);
-	void createPipelineDepthStencilStateCreateInfo(GEPipelineConfig* config, VkPipelineDepthStencilStateCreateInfo* depthStencil);
+	void createPipelineDepthStencilStateCreateInfo(const GEPipelineConfig* config, VkPipelineDepthStencilStateCreateInfo* depthStencil);
 	void createPipelineColorBlendStateCreateInfo(VkPipelineColorBlendAttachmentState* colorBlendAttachment, VkPipelineColorBlendStateCreateInfo* colorBlending);
 
 	// M?todos auxiliares

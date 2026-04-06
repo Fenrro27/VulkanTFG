@@ -5,9 +5,9 @@
 //
 // DESCRIPCIÓN: Estructura que almacena los datos necesarios para girar las figuras
 //
-typedef struct
+struct GETransform
 {
 	alignas(16) glm::mat4 MVP;
 	alignas(16) glm::mat4 ViewMatrix;
 	alignas(16) glm::mat4 ModelViewMatrix;
-} GETransform;
+};

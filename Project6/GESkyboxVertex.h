@@ -7,7 +7,7 @@
 //
 // DESCRIPCIÓN: Estructura que describe los atributos de un vértice de un skybox
 //
-typedef struct
+struct GESkyboxVertex
 {
 	glm::vec3 pos;
-} GESkyboxVertex;
+};

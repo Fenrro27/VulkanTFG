@@ -15,8 +15,8 @@ GECone::GECone(int p, int m, float h, float r)
 	indices.resize(numFaces * 3);
 
 	double moduleCone = sqrt(4 * h * h + r * r);
-	double xyN = (float)(2 * h / moduleCone);
-	double zN = (float)(r / moduleCone);
+	double xyN = (2 * h / moduleCone);
+	double zN = (r / moduleCone);
 
 	int verticesIndex = 0;
 
@@ -27,8 +27,8 @@ GECone::GECone(int p, int m, float h, float r)
 	// Vértices de la base
 	for (int i = 0; i < m; i++)
 	{
-		float x = (float)cos(glm::radians(360.0f * i / m));
-		float y = -(float)sin(glm::radians(360.0f * i / m));
+		float x = cos(glm::radians(360.0f * i / m));
+		float y = -sin(glm::radians(360.0f * i / m));
 		vertices[verticesIndex] = { {x * r , y * r, -h}, {0.0f, 0.0f, -1.0f}, {x, y} };
 		verticesIndex++;
 	}
@@ -44,10 +44,10 @@ GECone::GECone(int p, int m, float h, float r)
 		float z = h - 2 * i * h / p;
 		for (int j = 0; j < m; j++)
 		{
-			float xN = (float)cos(glm::radians(360.0f * j / m));
-			float yN = (float)sin(glm::radians(360.0f * j / m));
-			float x = (float)(xN * xy);
-			float y = (float)(yN * xy);
+			float xN = cos(glm::radians(360.0f * j / m));
+			float yN = sin(glm::radians(360.0f * j / m));
+			float x = (xN * xy);
+			float y = (yN * xy);
 			vertices[verticesIndex] = { { x, y, z}, {xN * xyN, yN * xyN, zN}, {x,y} };
 			verticesIndex++;
 		}

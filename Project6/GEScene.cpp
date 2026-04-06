@@ -137,17 +137,17 @@ void GEScene::destroy(GEGraphicsContext* gc)
 	skybox->destroy(gc);
 	delete skybox;
 
-	for (int i = 0; i < figures.size(); i++)
+	for (auto& figure: figures)
 	{
-		figures[i]->destroy(gc); 
-		delete figures[i];
+		figure->destroy(gc); 
+		delete figure;
 	}
 
 	
 
-	for (int i = 0; i < particleSystem.size(); i++) {
-		particleSystem[i]->destroy(gc);
-		delete particleSystem[i];
+	for (auto& ps: particleSystem) {
+		ps->destroy(gc);
+		delete ps;
 	}
 	particleSystem.clear();
 
@@ -185,14 +185,14 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 
 	skybox->update(gc, index, view, projection);
 
-	for (int i = 0; i < figures.size(); i++)
+	for (auto& figure:figures)
 	{
-		figures[i]->update(gc, index, view, projection);
+		figure->update(gc, index, view, projection);
 	}
 
-	for (int i = 0; i < particleSystem.size(); i++)
+	for (auto& ps: particleSystem)
 	{
-		particleSystem[i]->update(gc, index, view, projection);
+		ps->update(gc, index, view, projection);
 	}
 	//plane->update(gc, index, view, projection);
 
@@ -260,10 +260,10 @@ void GEScene::key_action(int key, bool pressed)
 void GEScene::aspect_ratio(double aspect)
 {
 	constexpr double fov = glm::radians(30.0f);
-	double sin_fov = sin(fov);
-	double cos_fov = cos(fov);
-	float wHeight = (float)(sin_fov * 0.2 / cos_fov);
-	float wWidth = (float)(wHeight * aspect);
+	// double sin_fov = sin(fov);
+	// double cos_fov = cos(fov);
+	// float wHeight = (sin_fov * 0.2 / cos_fov);
+	// float wWidth = (wHeight * aspect);
 
 	projection = glm::perspective((float)fov, (float)aspect, 0.2f, 400.0f);
 	projection[1][1] *= -1.0f;
@@ -320,9 +320,9 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				// Vinculamos la pipeline SOLO al buffer actual 'cb'
 				vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline()); 
 
-				for (int j = 0; j < (int)figures.size(); j++)
+				for ( auto& figure:figures)
 				{
-					figures[j]->addCommands(cb, rc->getActivePipelineLayout(), i);
+					figure->addCommands(cb, rc->getActivePipelineLayout(), i);
 				}
 		//	plane->addCommands(cb, rc->getActivePipelineLayout(), i);
 
@@ -331,12 +331,11 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				// Vinculamos la pipeline SOLO al buffer actual 'cb'
 				vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline()); 
 
-				for (size_t s = 0; s < particleSystem.size(); s++)
+				for (auto& ps:particleSystem)
 				{
-					GEParticlesSystem* ps = particleSystem[s]; 
 						uint32_t particleCount = ps->getParticlesCount(); 
 
-						VkDescriptorSet ds = ps->getDescriptorSet((int)i);
+						VkDescriptorSet ds = ps->getDescriptorSet(i);
 						vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipelineLayout(), 0, 1, &ds, 0, nullptr); 
 
 						VkDeviceSize offset = 0; 

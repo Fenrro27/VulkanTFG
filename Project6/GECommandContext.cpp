@@ -84,12 +84,13 @@ void GECommandContext::createCommandBuffers(GEGraphicsContext* gc, uint32_t imag
 //
 void GECommandContext::beginCommandBuffers()
 {
-	for (size_t i = 0; i < commandBuffers.size(); i++)
+	for(auto& commandBuffer : commandBuffers)
 	{
+
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-		if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS)
+		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
@@ -103,9 +104,9 @@ void GECommandContext::beginCommandBuffers()
 //
 void GECommandContext::endCommandBuffers()
 {
-	for (size_t i = 0; i < commandBuffers.size(); i++)
+	for (auto& commandBuffer : commandBuffers)
 	{
-		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to record command buffer!");
 		}

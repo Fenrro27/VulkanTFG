@@ -5,7 +5,7 @@
 //
 // DESCRIPCIÓN: Estructura que almacena la posición y el tamaño de la ventana gráfica
 //
-typedef struct {
+struct GEWindowPosition {
 	int width;
 	int height;
 	int Xpos;
@@ -13,4 +13,4 @@ typedef struct {
 	int screenWidth;
 	int screenHeight;
 	bool fullScreen;
-} GEWindowPosition;
+};

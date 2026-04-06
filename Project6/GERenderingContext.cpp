@@ -232,8 +232,10 @@ void GERenderingContext::createGraphicsPipeline(GEGraphicsContext* gc, GEPipelin
 	scissor.offset = { 0, 0 };
 	scissor.extent = config->extent;
 
-	VkShaderModule vertShaderModule, fragShaderModule;
-	VkPipelineShaderStageCreateInfo vertShaderStageInfo, fragShaderStageInfo;
+	VkShaderModule vertShaderModule;
+	VkShaderModule fragShaderModule;
+	VkPipelineShaderStageCreateInfo vertShaderStageInfo;
+	VkPipelineShaderStageCreateInfo fragShaderStageInfo;
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo;
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 	VkPipelineViewportStateCreateInfo viewportState;
@@ -431,7 +433,7 @@ void GERenderingContext::createFragmentShaderStageCreateInfo(GEGraphicsContext* 
 //
 // PROP�SITO: Crea la descripci�n de los atributos de los v�rtices
 //
-void GERenderingContext::createPipelineVertexInputStateCreateInfo(GEPipelineConfig* config, VkPipelineVertexInputStateCreateInfo* vertexInputInfo)
+void GERenderingContext::createPipelineVertexInputStateCreateInfo(const GEPipelineConfig* config, VkPipelineVertexInputStateCreateInfo* vertexInputInfo)
 {
 	
 	int attrCount = (int)config->attrOffsets.size();
@@ -469,7 +471,7 @@ void GERenderingContext::createPipelineVertexInputStateCreateInfo(GEPipelineConf
 //
 // PROP�SITO: Crea la informaci�n para el ensamblado de primitivas
 //
-void GERenderingContext::createPipelineInputAssemblyStateCreateInfo(GEPipelineConfig* config, VkPipelineInputAssemblyStateCreateInfo* inputAssembly)
+void GERenderingContext::createPipelineInputAssemblyStateCreateInfo(const GEPipelineConfig* config, VkPipelineInputAssemblyStateCreateInfo* inputAssembly)
 {
 	*inputAssembly = {};
 	inputAssembly->sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -497,7 +499,7 @@ void GERenderingContext::createPipelineViewportStateCreateInfo(VkPipelineViewpor
 //
 // PROP�SITO: Crea la informaci�n de la etapa de rasterizaci�n
 //
-void GERenderingContext::createPipelineRasterizationStateCreateInfo(GEPipelineConfig* config, VkPipelineRasterizationStateCreateInfo* rasterizer)
+void GERenderingContext::createPipelineRasterizationStateCreateInfo(const GEPipelineConfig* config, VkPipelineRasterizationStateCreateInfo* rasterizer)
 {
 	*rasterizer = {};
 	rasterizer->sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -528,7 +530,7 @@ void GERenderingContext::createPipelineMultisampleStateCreateInfo(VkPipelineMult
 //
 // PROP�SITO: Crea la informaci�n sobre los tests de profundidad y de plantilla
 //
-void GERenderingContext::createPipelineDepthStencilStateCreateInfo(GEPipelineConfig* config, VkPipelineDepthStencilStateCreateInfo* depthStencil)
+void GERenderingContext::createPipelineDepthStencilStateCreateInfo(const GEPipelineConfig* config, VkPipelineDepthStencilStateCreateInfo* depthStencil)
 {
 	*depthStencil = {};
 	depthStencil->sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
