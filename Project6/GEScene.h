@@ -31,7 +31,7 @@ class GEScene
 private:
 	GERenderingContext* rc;
 	GESkybox* skybox;
-	GEObject* plane; 
+	//GEObject* plane; 
 	std::vector<GEFigure*> figures;
 	std::vector<GETexture*> textures;
 	GECamera* camera;

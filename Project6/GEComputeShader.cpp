@@ -257,10 +257,10 @@ void GEComputeShader::destroy(GEGraphicsContext* gc) {
 }
 
 std::vector<char> GEComputeShader::getFileFromResource(int resource) {
-    HRSRC shaderHandle = FindResource(NULL, MAKEINTRESOURCE(resource), RT_HTML);
-        HGLOBAL shaderGlobal = LoadResource(NULL, shaderHandle); 
+    HRSRC shaderHandle = FindResource(nullptr, MAKEINTRESOURCE(resource), RT_HTML);
+        HGLOBAL shaderGlobal = LoadResource(nullptr, shaderHandle);
         LPCTSTR shaderPtr = static_cast<LPCTSTR>(LockResource(shaderGlobal)); 
-        DWORD shaderSize = SizeofResource(NULL, shaderHandle); 
+        DWORD shaderSize = SizeofResource(nullptr, shaderHandle);
         std::vector<char> shader(shaderSize);
     memcpy(shader.data(), shaderPtr, shaderSize);
     UnlockResource(shaderGlobal);

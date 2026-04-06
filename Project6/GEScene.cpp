@@ -1,6 +1,5 @@
 #include "GEScene.h"
 
-#include "F22_Raptor.h"
 #include "GECube.h"
 #include "GEPyramid.h"
 #include "GECone.h"
@@ -80,9 +79,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	figures.resize(1);
 	figures[0] = ground;
 
-	plane = new F22_Raptor(gc, rc);
-	plane->setLight(light);
-	plane->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	
 	
 	//Compute shadedr
 	rc->setActivePipeline(PARTICLE_PIPELINE);
@@ -146,9 +143,7 @@ void GEScene::destroy(GEGraphicsContext* gc)
 		delete figures[i];
 	}
 
-	plane->destroy(gc);
-	delete plane;
-
+	
 
 	for (int i = 0; i < particleSystem.size(); i++) {
 		particleSystem[i]->destroy(gc);
@@ -199,7 +194,7 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 	{
 		particleSystem[i]->update(gc, index, view, projection);
 	}
-	plane->update(gc, index, view, projection);
+	//plane->update(gc, index, view, projection);
 
 
 }
@@ -329,7 +324,7 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				{
 					figures[j]->addCommands(cb, rc->getActivePipelineLayout(), i);
 				}
-			plane->addCommands(cb, rc->getActivePipelineLayout(), i);
+		//	plane->addCommands(cb, rc->getActivePipelineLayout(), i);
 
 				// --- 4. DIBUJO DE PARTÍCULAS ---
 				rc->setActivePipeline(PARTICLE_PIPELINE);

@@ -117,10 +117,10 @@ void GEApplication::cleanup()
 	scene->destroy(gc);
 	cc->destroy(gc);
 	dc->destroy(gc);
-	delete scene;
-	delete cc;
-	delete dc;
-	delete gc;
+	//delete scene;
+	//delete cc;
+	//delete dc;
+	//delete gc;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
@@ -171,6 +171,7 @@ void GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int a
 //
 void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+	 // To do
 }
 
 //
@@ -180,6 +181,7 @@ void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int acti
 //
 void GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
+	// To do
 }
 
 //
@@ -216,7 +218,7 @@ void GEApplication::resize()
 
 	dc->recreate(gc, windowPos);
 	cc->destroy(gc);
-	delete cc;
+	// delete cc;
 
 	this->cc = new GECommandContext(this->gc, this->dc->getImageCount());
 
