@@ -16,29 +16,29 @@
 void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 {
 	size_t vertexSize = sizeof(GEVertex) * vertices.size();
-	vbo = new GEVertexBuffer(gc, vertexSize, vertices.data());
+	vbo = std::make_unique <GEVertexBuffer>(gc, vertexSize, vertices.data());
 
 	size_t indexSize = sizeof(indices[0]) * indices.size();
-	ibo = new GEIndexBuffer(gc, indexSize, indices.data());
+	ibo = std::make_unique < GEIndexBuffer>(gc, indexSize, indices.data());
 
 	size_t transformBufferSize = sizeof(GETransform);
-	transformBuffer = new GEUniformBuffer(gc, rc->imageCount, transformBufferSize);
+	transformBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, transformBufferSize);
 
 	size_t materialBufferSize = sizeof(GEMaterial);
-	materialBuffer = new GEUniformBuffer(gc, rc->imageCount, materialBufferSize);
+	materialBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, materialBufferSize);
 
 	size_t lightBufferSize = sizeof(GELight);
-	lightBuffer = new GEUniformBuffer(gc, rc->imageCount, lightBufferSize);
+	lightBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, lightBufferSize);
 
 	std::vector<GEUniformBuffer*> ubos(3);
-	ubos[0] = transformBuffer;
-	ubos[1] = materialBuffer;
-	ubos[2] = lightBuffer;
+	ubos[0] = transformBuffer.get();
+	ubos[1] = materialBuffer.get();
+	ubos[2] = lightBuffer.get();
 
 	std::vector<GETexture*> tex(1);
-	tex[0] = texture;
+	tex[0] = texture.get();
 
-	dset = new GEDescriptorSet(gc, rc, ubos, tex);
+	dset = std::make_unique<GEDescriptorSet>(gc, rc, ubos, tex);
 
 	location = glm::mat4(1.0f);
 }
@@ -56,13 +56,6 @@ void GEPiece::destroy(GEGraphicsContext* gc)
 	materialBuffer->destroy(gc);
 	lightBuffer->destroy(gc);
 	dset->destroy(gc);
-
-	delete vbo;
-	delete ibo;
-	delete transformBuffer;
-	delete materialBuffer;
-	delete lightBuffer;
-	delete dset;
 }
 
 //
@@ -161,7 +154,7 @@ void GEPiece::setLight(GELight l)
 //
 // PROPÓSITO: Asigna la textura
 //
-void GEPiece::setTexture(GETexture* tex)
+void GEPiece::setTexture(std::shared_ptr<GETexture> tex)
 {
 	this->texture = tex;
 }

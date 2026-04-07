@@ -29,7 +29,7 @@ protected:
 	glm::mat4 location;
 	GEMaterial material;
 	GELight light;
-	GETexture* texture;
+	std::shared_ptr<GETexture> texture;
 
 public:
 	void initialize(GEGraphicsContext* gc, GERenderingContext* rc);
@@ -42,13 +42,13 @@ public:
 	void rotate(float angle, glm::vec3 axis);
 	void setMaterial(GEMaterial m);
 	void setLight(GELight l);
-	void setTexture(GETexture* texture);
+	void setTexture(std::shared_ptr<GETexture> texture);
 
 private:
-	GEVertexBuffer* vbo;
-	GEIndexBuffer* ibo;
-	GEUniformBuffer* transformBuffer;
-	GEUniformBuffer* materialBuffer;
-	GEUniformBuffer* lightBuffer;
-	GEDescriptorSet* dset;
+	std::unique_ptr<GEVertexBuffer> vbo;
+	std::unique_ptr<GEIndexBuffer> ibo;
+	std::unique_ptr<GEUniformBuffer> transformBuffer;
+	std::unique_ptr<GEUniformBuffer> materialBuffer;
+	std::unique_ptr<GEUniformBuffer> lightBuffer;
+	std::unique_ptr<GEDescriptorSet> dset;
 };

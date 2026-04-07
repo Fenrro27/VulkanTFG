@@ -18,8 +18,9 @@ void GEObject::destroy(GEGraphicsContext* gc)
 	}
 	uint32_t texcount = (uint32_t)textures.size();
 	for (uint32_t i = 0; i < texcount; i++) {
-		if (textures[i] != nullptr)
-		textures[i]->destroy(gc);
+		if (textures[i] != nullptr) {
+			textures[i]->destroy(gc);
+		}
 	}
 }
 
