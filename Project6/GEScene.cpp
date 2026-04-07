@@ -33,14 +33,14 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	double aspect = (double)extent.width / (double)extent.height;
 	aspect_ratio(aspect);
 
-	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent()).get();
-	rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
+	auto skybox_config = createSkyboxPipelineConfig(dc->getExtent());
+	rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config.get());
 
-	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent()).get();
-	rc->addGraphicsPipeline(gc, scene_config);
+	auto scene_config = createScenePipelineConfig(dc->getExtent());
+	rc->addGraphicsPipeline(gc, scene_config.get());
 
-	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent()).get();
-	rc->addGraphicsPipeline(gc, particle_Config);
+	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
+	rc->addGraphicsPipeline(gc, particle_Config.get());
 
 	this->camera = std::make_unique <GECamera>();
 	this->camera->setPosition(glm::vec3(0.0f, 10.0f, 300.0f));
@@ -106,7 +106,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[1]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
-	particleSystem[2]->initialize(gc, rc.get(), new GETexture(gc, "textures/pngwing.com.png"));
+	particleSystem[2]->initialize(gc, rc.get(), new GETexture(gc, "textures/pngwing.com (1).png"));
 	particleSystem[2]->translate(glm::vec3(25.0f, 0.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
@@ -146,14 +146,14 @@ void GEScene::destroy(GEGraphicsContext* gc)
 void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
 {
 	rc->destroy(gc);
-	GEPipelineConfig* skybox_config = createSkyboxPipelineConfig(dc->getExtent()).get();
-	this->rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config);
+	auto skybox_config = createSkyboxPipelineConfig(dc->getExtent());
+	this->rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config.get());
 
-	GEPipelineConfig* scene_config = createScenePipelineConfig(dc->getExtent()).get();
-	this->rc->addGraphicsPipeline(gc, scene_config);
+	auto scene_config = createScenePipelineConfig(dc->getExtent());
+	this->rc->addGraphicsPipeline(gc, scene_config.get());
 
-	GEPipelineConfig* particle_Config = createParticlePipelineConfig(dc->getExtent()).get();
-	this->rc->addGraphicsPipeline(gc, particle_Config);
+	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
+	this->rc->addGraphicsPipeline(gc, particle_Config.get());
 
 	fillCommandBuffers(cc);
 }
