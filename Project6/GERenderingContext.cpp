@@ -303,7 +303,7 @@ void GERenderingContext::createDepthBuffers(GEGraphicsContext* gc)
 	depthBuffers.resize(imageCount);
 	for (size_t i = 0; i < imageCount; i++)
 	{
-		depthBuffers[i] = new GEDepthBuffer(gc, extent);
+		depthBuffers[i] = std::make_unique<GEDepthBuffer>(gc, extent);
 	}
 }
 

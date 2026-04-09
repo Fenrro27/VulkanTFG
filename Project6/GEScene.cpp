@@ -1,5 +1,7 @@
-#include "GEScene.h"
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
 
+#include "GEScene.h"
 #include "GECube.h"
 #include "GEPyramid.h"
 #include "GECone.h"
@@ -21,6 +23,7 @@
 #include "GEFuego.h"
 #include "GEAgua.h"
 #include "GETexture.h"
+#include "GEModel.h"
 
 //
 // FUNCI�N: GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc)
@@ -78,6 +81,17 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	figures.push_back(std::move(ground));
 
+	auto fuente = std::make_unique<GEModel>("models/14862_3_basin_fountain_v2.obj");
+	fuente->setTexture(textures[1].get()); // Asignar textura [cite: 750]
+	fuente->initialize(gc, rc.get());     // Crear buffers de Vulkan [cite: 287]
+	fuente->scale(glm::vec3(0.1f, 0.1f, 0.1f));
+	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	fuente->translate(glm::vec3(250.0f, 0.0f, 0.0f));
+	fuente->setMaterial(groundMat);       // Configurar material [cite: 753]
+	fuente->setLight(light);             // Configurar luz [cite: 752]
+
+	figures.push_back(std::move(fuente)); // Añadir a la lista de renderizado [cite: 754]
+
 	
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
@@ -107,7 +121,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
 	particleSystem[2]->initialize(gc, rc.get(), new GETexture(gc, "textures/pngwing.com (1).png"));
-	particleSystem[2]->translate(glm::vec3(25.0f, 0.0f, 0.0f));
+	particleSystem[2]->translate(glm::vec3(25.0f, 10.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());

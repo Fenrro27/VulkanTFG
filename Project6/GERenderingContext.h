@@ -26,7 +26,7 @@ private:
 	std::vector<VkPipeline> graphicsPipeline;
 	std::vector<VkDescriptorSetLayout> descriptorSetLayout;
 	std::vector<VkPipelineLayout> pipelineLayout;
-	std::vector<GEDepthBuffer*> depthBuffers;
+	std::vector<std::unique_ptr<GEDepthBuffer>> depthBuffers;
 	std::vector<VkFramebuffer> framebuffers;
 	VkViewport viewport;
 	VkRect2D scissor;

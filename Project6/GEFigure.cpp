@@ -84,7 +84,7 @@ void GEFigure::addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipel
 	
 	VkDeviceSize offset = 0;
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(vbo->buffer), &offset);
-	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
 	vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
 }
@@ -174,4 +174,9 @@ void GEFigure::setLight(GELight l)
 void GEFigure::setTexture(GETexture* tex)
 {
 	this->texture = tex;
+}
+
+void GEFigure::scale(glm::vec3 s)
+{
+	location = glm::scale(location, s);
 }

@@ -23,7 +23,7 @@ GEAgua::GEAgua(uint32_t particleCount) : GEParticlesSystem()
     // Fuerza inicial: Impulso hacia arriba (Y positivo)
     // Nota: El comportamiento de "caída" debería gestionarse en el shader 
     // aplicando una gravedad constante a la velocidad en cada frame.
-    emitterParams.force = glm::vec4(0.0f, 3.0f, 0.0f, 0.0f);
+    emitterParams.force = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
     // Colores: Azul brillante a Azul transparente
     emitterParams.startColor = glm::vec4(0.2f, 0.5f, 1.0f, 0.8f);

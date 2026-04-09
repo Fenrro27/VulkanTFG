@@ -23,7 +23,7 @@ class GEFigure
 {
 protected:
 	std::vector<GEVertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	glm::mat4 location;
 	GEMaterial material;
 	GELight light;
@@ -41,6 +41,8 @@ public:
 	void setMaterial(GEMaterial m);
 	void setLight(GELight l);
 	void setTexture(GETexture* texture);
+
+	void scale(glm::vec3 s);
 
 private:
 	std::unique_ptr < GEVertexBuffer> vbo;

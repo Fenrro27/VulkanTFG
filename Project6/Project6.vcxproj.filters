@@ -144,6 +144,9 @@
     <ClCompile Include="GEAgua.cpp">
       <Filter>Archivos de origen\GEComputeShader</Filter>
     </ClCompile>
+    <ClCompile Include="GEModel.cpp">
+      <Filter>Archivos de origen\GEFigures</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GEApplication.h">
@@ -277,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="GEAgua.h">
       <Filter>Archivos de encabezado\GEComputeShader</Filter>
+    </ClInclude>
+    <ClInclude Include="GEModel.h">
+      <Filter>Archivos de encabezado\GEFigures</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

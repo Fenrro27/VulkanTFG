@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.4.313.2\Include;C:\GameEngine\Tools\STBI;C:\GameEngine\Tools\GLM\Include;C:\GameEngine\Tools\GLFW34\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.4.313.2\Include;C:\GameEngine\Tools\STBI;C:\GameEngine\Tools\GLM\Include;C:\GameEngine\Tools\GLFW34\include;C:\GameEngine\Tools\TOL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -158,6 +158,7 @@
     <ClCompile Include="GEHumo.cpp" />
     <ClCompile Include="GEIcosahedron.cpp" />
     <ClCompile Include="GEIndexBuffer.cpp" />
+    <ClCompile Include="GEModel.cpp" />
     <ClCompile Include="GEObject.cpp" />
     <ClCompile Include="GEParticleBuffer.cpp" />
     <ClCompile Include="GEParticlesSystem.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="GEIndexBuffer.h" />
     <ClInclude Include="GELight.h" />
     <ClInclude Include="GEMaterial.h" />
+    <ClInclude Include="GEModel.h" />
     <ClInclude Include="GEObject.h" />
     <ClInclude Include="GEParticle.h" />
     <ClInclude Include="GEParticleBuffer.h" />
