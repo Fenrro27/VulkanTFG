@@ -81,16 +81,28 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	figures.push_back(std::move(ground));
 
-	auto fuente = std::make_unique<GEModel>("models/14862_3_basin_fountain_v2.obj");
-	fuente->setTexture(textures[1].get()); // Asignar textura [cite: 750]
-	fuente->initialize(gc, rc.get());     // Crear buffers de Vulkan [cite: 287]
-	fuente->scale(glm::vec3(0.1f, 0.1f, 0.1f));
+	// Carga de modelos .obj usando tinyobjloader
+	auto fuente = std::make_unique<GEModel>("models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
+	fuente->setTexture(textures[1].get()); 
+	fuente->initialize(gc, rc.get());     
+	//fuente->scale(glm::vec3(0.1f, 0.1f, 0.1f));
 	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-	fuente->translate(glm::vec3(250.0f, 0.0f, 0.0f));
-	fuente->setMaterial(groundMat);       // Configurar material [cite: 753]
-	fuente->setLight(light);             // Configurar luz [cite: 752]
+	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
+	fuente->setMaterial(groundMat);       
+	fuente->setLight(light);             
 
-	figures.push_back(std::move(fuente)); // Añadir a la lista de renderizado [cite: 754]
+	figures.push_back(std::move(fuente)); 
+
+	auto hoguera = std::make_unique<GEModel>("models/campfire/campfire.obj", 0.01f);
+	hoguera->setTexture(textures[1].get());
+	hoguera->initialize(gc, rc.get());
+	//hoguera->scale(glm::vec3(0.01f, 0.01f, 0.01f));
+	//hoguera->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	hoguera->translate(glm::vec3(0.0f, -0.1f, 0.0f));
+	hoguera->setMaterial(groundMat);
+	hoguera->setLight(light);
+
+	figures.push_back(std::move(hoguera));
 
 	
 	rc->setActivePipeline(PARTICLE_PIPELINE);
@@ -115,7 +127,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 
 	particleSystem[1]->initialize(gc, rc.get(), new GETexture(gc, "textures/fire.png"));
-	particleSystem[1]->translate(glm::vec3(0.0f, 0.0f, 0.0f));
+	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
@@ -125,7 +137,6 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
-
 
 
 	fillCommandBuffers(cc);
