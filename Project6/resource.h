@@ -22,3 +22,15 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+
+
+namespace GE_Resources {
+    constexpr int Vert = 101;
+        constexpr int Frag = 102;
+        constexpr int ComputeParticles = 104; 
+        constexpr int VertParticles = 105; 
+        constexpr int FragParticles = 106; 
+        constexpr int VertSkybox = 107; 
+        constexpr int FragSkybox = 108; 
+}

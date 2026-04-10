@@ -15,6 +15,11 @@
 //
 void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 {
+	if (this->texture == nullptr) {
+		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
+		this->texture = std::make_shared<GETexture>(gc, "textures/wood.jpg");
+	}
+
 	size_t vertexSize = sizeof(GEVertex) * vertices.size();
 	vbo = std::make_unique <GEVertexBuffer>(gc, vertexSize, vertices.data());
 

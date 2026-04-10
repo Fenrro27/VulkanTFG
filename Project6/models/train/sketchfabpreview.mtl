@@ -1,0 +1,164 @@
+# Blender MTL File: 'dolgoch0-4-0finalsketchfab.blend'
+# Material Count: 15
+
+newmtl black
+Ns 23.214866
+Ka 1.000000 1.000000 1.000000
+Kd 0.003562 0.003562 0.003562
+Ks 0.264394 0.264394 0.264394
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl boiler
+Ns 756.250549
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.525000 0.525000 0.525000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\darkgreen\\boiler.png
+
+newmtl cab
+Ns 756.249984
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.525000 0.525000 0.525000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\darkgreen\\cab.png
+
+newmtl coal
+Ns 22.562491
+Ka 1.000000 1.000000 1.000000
+Kd 0.005605 0.005605 0.005605
+Ks 0.125000 0.125000 0.125000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\coal.png
+
+newmtl gauges
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\gauges.png
+
+newmtl glass
+Ns 517.562489
+Ka 1.000000 1.000000 1.000000
+Kd 0.666417 0.729287 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.541667
+illum 9
+
+newmtl lubricators
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\lubricators.png
+
+newmtl main
+Ns 110.250015
+Ka 1.000000 1.000000 1.000000
+Kd 0.107552 0.005793 0.004697
+Ks 0.183333 0.183333 0.183333
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\mainshaded.jpg
+
+newmtl metallic
+Ns 552.249997
+Ka 0.641667 0.641667 0.641667
+Kd 0.107552 0.005793 0.004697
+Ks 0.525000 0.525000 0.525000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\metallicshaded.jpg
+
+newmtl plates
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump -bm 2.000000 C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\NormalMap (4).png
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\upscalemedia-transformed (6).png
+
+newmtl shine
+Ns 784.000007
+Ka 1.000000 1.000000 1.000000
+Kd 0.107552 0.005793 0.004697
+Ks 0.608333 0.608333 0.608333
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\shinyshaded.jpg
+
+newmtl sightglass
+Ns 517.562489
+Ka 1.000000 1.000000 1.000000
+Kd 0.666417 0.729287 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\sightglass.png
+
+newmtl sightglasssolid
+Ns 517.562489
+Ka 1.000000 1.000000 1.000000
+Kd 0.666417 0.729287 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\buddy\\Downloads\\Dolgoch 0-6-0\\textures\\sightglass.png
+
+newmtl void
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl wood
+Ns 66.410336
+Ka 1.000000 1.000000 1.000000
+Kd 0.083532 0.051048 0.018672
+Ks 0.320896 0.320896 0.320896
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2

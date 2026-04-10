@@ -1,12 +1,13 @@
 #include "GEModel.h"
 #include "tiny_obj_loader.h"
 #include <stdexcept>
-#include <iostream>
 #include <unordered_map>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp> 
+#include <filesystem>
 
-// Definición para que el mapa pueda comparar los vértices y encontrar duplicados
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+// Especialización de hash para eliminar duplicados
 namespace std {
     template<> struct hash<GEVertex> {
         size_t operator()(GEVertex const& vertex) const {
@@ -17,35 +18,59 @@ namespace std {
     };
 }
 
-GEModel::GEModel(const std::string& path, float scale) {
+// Actualizamos el constructor para recibir el contexto gráfico (necesario para las texturas)
+GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string err;
 
-    // Carga del archivo OBJ [cite: 608]
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path.c_str(), ".", true)) {
-        throw std::runtime_error("Error cargando OBJ: " + err); // [cite: 609]
+    // Obtenemos el directorio base para buscar el archivo .mtl y las texturas
+    std::string directory = std::filesystem::path(path).parent_path().string() + "/";
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path.c_str(), directory.c_str(), true)) {
+        throw std::runtime_error("Error cargando OBJ: " + err);
     }
 
-    // Mapa para rastrear vértices únicos y sus índices asociados
-    std::unordered_map<GEVertex, uint32_t> uniqueVertices{};
+    // 1. Cargamos todos los materiales y sus texturas asociadas
+    std::vector<std::shared_ptr<GETexture>> modelTextures;
+    for (const auto& mat : materials) {
+        if (!mat.diffuse_texname.empty()) {
+            std::string texPath = directory + mat.diffuse_texname;
+            try {
+                modelTextures.push_back(std::make_shared<GETexture>(gc, texPath.c_str()));
+            }
+            catch (...) {
+                // Si falla la carga del archivo específico, usamos uno por defecto
+                modelTextures.push_back(std::make_shared<GETexture>(gc, "textures/wood.jpg"));
+            }
+        }
+        else {
+            modelTextures.push_back(std::make_shared<GETexture>(gc, "textures/moon.jpg"));
+        }
+    }
 
-    // Pre-reserva de memoria para evitar reasignaciones costosas durante la carga
-    vertices.reserve(attrib.vertices.size() / 3);
+    // 2. Procesamos cada "shape" del OBJ como una GEPiece independiente
+    for (const auto& shape : shapes) {
+        // Agrupamos vértices por material dentro de la misma shape
+        // Nota: Simplificamos asumiendo que cada shape usa mayormente un material principal
+        int materialID = shape.mesh.material_ids.empty() ? -1 : shape.mesh.material_ids[0];
 
-    for (const auto& shape : shapes) { // 
+        auto piece = new GEPiece(); // Creamos la pieza 
+        std::unordered_map<GEVertex, uint16_t> uniqueVertices{};
+
+        std::vector<GEVertex> pieceVertices;
+        std::vector<uint16_t> pieceIndices;
+
         for (const auto& index : shape.mesh.indices) {
             GEVertex vertex{};
 
-            // Carga de posición [cite: 610, 611]
             vertex.pos = {
                 attrib.vertices[3 * index.vertex_index + 0] * scale,
                 attrib.vertices[3 * index.vertex_index + 1] * scale,
                 attrib.vertices[3 * index.vertex_index + 2] * scale
             };
 
-            // Carga de normales si existen [cite: 611, 612]
             if (index.normal_index >= 0) {
                 vertex.norm = {
                     attrib.normals[3 * index.normal_index + 0],
@@ -54,7 +79,6 @@ GEModel::GEModel(const std::string& path, float scale) {
                 };
             }
 
-            // Carga de coordenadas de textura (UV) con inversión para Vulkan [cite: 614]
             if (index.texcoord_index >= 0) {
                 vertex.tex = {
                     attrib.texcoords[2 * index.texcoord_index + 0],
@@ -62,13 +86,31 @@ GEModel::GEModel(const std::string& path, float scale) {
                 };
             }
 
-            // Optimización: Solo añadir el vértice si es nuevo. Si existe, solo añadir su índice.
             if (uniqueVertices.count(vertex) == 0) {
-                uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                vertices.push_back(vertex);
+                uniqueVertices[vertex] = static_cast<uint16_t>(pieceVertices.size());
+                pieceVertices.push_back(vertex);
             }
+            pieceIndices.push_back(uniqueVertices[vertex]);
+        }
 
-            indices.push_back(uniqueVertices[vertex]);
+        // 3. Asignamos los datos y la textura a la pieza
+        piece->setVertices(pieceVertices); 
+        piece->setIndices(pieceIndices);   
+
+        if (materialID >= 0 && materialID < modelTextures.size()) {
+            piece->setTexture(modelTextures[materialID]); // Asignamos la textura del material 
+        }
+
+        this->pieces.push_back(piece); // Añadimos la pieza al GEObject 
+    }
+
+
+}
+
+void GEModel::initialize(GEGraphicsContext* gc, GERenderingContext* rc) {
+    for (size_t i = 0; i < pieces.size(); i++) {
+        if (pieces[i] != nullptr) {
+            pieces[i]->initialize(gc, rc); // Llama al initialize de GEPiece
         }
     }
 }

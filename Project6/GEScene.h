@@ -36,6 +36,7 @@ private:
 
 	//GEObject* plane; 
 	std::vector<std::unique_ptr<GEFigure>> figures;
+	std::vector<std::unique_ptr<GEObject>> objects;
 	std::vector< std::unique_ptr<GEParticlesSystem>> particleSystem;
 	
 	std::vector< std::shared_ptr<GETexture>> textures;

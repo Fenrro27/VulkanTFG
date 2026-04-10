@@ -44,6 +44,9 @@ public:
 	void setLight(GELight l);
 	void setTexture(std::shared_ptr<GETexture> texture);
 
+	void setVertices(const std::vector<GEVertex>& v) { this->vertices = v; }
+	void setIndices(const std::vector<uint16_t>& i) { this->indices = i; }
+
 private:
 	std::unique_ptr<GEVertexBuffer> vbo;
 	std::unique_ptr<GEIndexBuffer> ibo;

@@ -82,29 +82,28 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	figures.push_back(std::move(ground));
 
 	// Carga de modelos .obj usando tinyobjloader
-	auto fuente = std::make_unique<GEModel>("models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
-	fuente->setTexture(textures[1].get()); 
+	auto fuente = std::make_unique<GEModel>(gc,"models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
 	fuente->initialize(gc, rc.get());     
-	//fuente->scale(glm::vec3(0.1f, 0.1f, 0.1f));
 	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
-	fuente->setMaterial(groundMat);       
 	fuente->setLight(light);             
+	objects.push_back(std::move(fuente)); 
 
-	figures.push_back(std::move(fuente)); 
-
-	auto hoguera = std::make_unique<GEModel>("models/campfire/campfire.obj", 0.01f);
-	hoguera->setTexture(textures[1].get());
+	auto hoguera = std::make_unique<GEModel>(gc, "models/campfire/campfire.obj", 0.01f);
 	hoguera->initialize(gc, rc.get());
-	//hoguera->scale(glm::vec3(0.01f, 0.01f, 0.01f));
 	//hoguera->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	hoguera->translate(glm::vec3(0.0f, -0.1f, 0.0f));
-	hoguera->setMaterial(groundMat);
 	hoguera->setLight(light);
+	objects.push_back(std::move(hoguera));
 
-	figures.push_back(std::move(hoguera));
+	auto tren = std::make_unique<GEModel>(gc, "models/train/sketchfabpreview.obj", 0.1f);
+	tren->initialize(gc, rc.get());
+	//tren->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	tren->translate(glm::vec3(-25.0f, 0.0f, -6.5f));
+	tren->setLight(light);
+	objects.push_back(std::move(tren));
 
-	
+
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
 	particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
@@ -121,7 +120,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particle1Mat.Shininess = 2.0f;
 
 	particleSystem[0]->initialize(gc, rc.get(), new GETexture(gc, "textures/smoke.png"));
-	particleSystem[0]->translate(glm::vec3(-25.0f, 0.0f, 0.0f));
+	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
@@ -156,6 +155,12 @@ void GEScene::destroy(GEGraphicsContext* gc)
 	{
 		figure->destroy(gc);
 	}
+	
+	for (auto& ob : objects)
+	{
+		ob->destroy(gc);
+	}
+
 	for (auto& ps: particleSystem) {
 		ps->destroy(gc);
 	}
@@ -198,6 +203,10 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 	for (auto& figure:figures)
 	{
 		figure->update(gc, index, view, projection);
+	}
+	for (auto& ob : objects)
+	{
+		ob->update(gc, index, view, projection);
 	}
 
 	for (auto& ps: particleSystem)
@@ -334,8 +343,11 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				{
 					figure->addCommands(cb, rc->getActivePipelineLayout(), i);
 				}
-		//	plane->addCommands(cb, rc->getActivePipelineLayout(), i);
 
+				for (auto& ob : objects)
+				{
+					ob->addCommands(cb, rc->getActivePipelineLayout(), i);
+				}
 				// --- 4. DIBUJO DE PARTÍCULAS ---
 				rc->setActivePipeline(PARTICLE_PIPELINE);
 				// Vinculamos la pipeline SOLO al buffer actual 'cb'
