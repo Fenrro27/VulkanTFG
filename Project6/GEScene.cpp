@@ -54,10 +54,21 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	rc->setActivePipeline(SCENE_PIPELINE);
 
-	textures.resize(3);
-	textures[0] = std::make_unique<GETexture>(gc, "textures/stone.jpg");
-	textures[1] = std::make_unique<GETexture>(gc, "textures/moon.jpg");
-	textures[2] = std::make_unique<GETexture>(gc, "textures/wood.jpg");
+	auto texWood = std::make_shared<GETexture>(gc, "textures/wood.jpg");
+	textures.push_back(texWood);
+
+	auto texMoon = std::make_shared<GETexture>(gc, "textures/moon.jpg");
+	textures.push_back(texMoon);
+
+	auto texSmoke = std::make_shared<GETexture>(gc, "textures/smoke.png");
+	textures.push_back(texSmoke);
+
+	auto texFire = std::make_shared<GETexture>(gc, "textures/fire.png");
+	textures.push_back(texFire);
+
+	auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com (1).png");
+	textures.push_back(texWater);
+
 
 	GELight light = {};
 	light.Ldir = glm::normalize(glm::vec3(1.0f, -0.8f, -0.7f));
@@ -73,7 +84,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 
 	std::unique_ptr<GEFigure> ground = std::make_unique<GEGround>(50.0f, 50.0f);
-	ground->setTexture(textures[2].get()); // Obtiene el puntero crudo del unique_ptr
+	ground->setTexture(texWood.get()); // Obtiene el puntero crudo del unique_ptr
 	ground->initialize(gc, rc.get());
 	ground->setMaterial(groundMat);
 	ground->setLight(light);
@@ -83,6 +94,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	// Carga de modelos .obj usando tinyobjloader
 	auto fuente = std::make_unique<GEModel>(gc,"models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
+	fuente->setTexture(texMoon);
 	fuente->initialize(gc, rc.get());     
 	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
@@ -119,19 +131,19 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particle1Mat.Ks = glm::vec3(0.05f, 0.05f, 0.05f);
 	particle1Mat.Shininess = 2.0f;
 
-	particleSystem[0]->initialize(gc, rc.get(), new GETexture(gc, "textures/smoke.png"));
+	particleSystem[0]->initialize(gc, rc.get(), texSmoke.get());
 	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 
-	particleSystem[1]->initialize(gc, rc.get(), new GETexture(gc, "textures/fire.png"));
+	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
-	particleSystem[2]->initialize(gc, rc.get(), new GETexture(gc, "textures/pngwing.com (1).png"));
+	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 	particleSystem[2]->translate(glm::vec3(25.0f, 10.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
@@ -165,6 +177,13 @@ void GEScene::destroy(GEGraphicsContext* gc)
 		ps->destroy(gc);
 	}
 	particleSystem.clear();
+
+	for (auto& tex : textures) {
+		if (tex != nullptr) {
+			tex->destroy(gc);
+		}
+	}
+	textures.clear();
 
 }
 

@@ -43,6 +43,8 @@ GETexture::GETexture(GEGraphicsContext* gc, const char** filename)
 	vkDestroyBuffer(gc->device, stagingBuffer, nullptr);
 	vkFreeMemory(gc->device, stagingBufferMemory, nullptr);
 
+	vkDestroyCommandPool(gc->device, commandPool, nullptr);
+
 	createCubemapImageView(gc);
 	createSampler(gc);
 }
@@ -82,6 +84,8 @@ GETexture::GETexture(GEGraphicsContext* gc, const char* filename)
 	vkDestroyBuffer(gc->device, stagingBuffer, nullptr);
 	vkFreeMemory(gc->device, stagingBufferMemory, nullptr);
 
+	vkDestroyCommandPool(gc->device, commandPool, nullptr);
+
 	createImageView(gc);
 	createSampler(gc);
 }
@@ -93,10 +97,22 @@ GETexture::GETexture(GEGraphicsContext* gc, const char* filename)
 //
 void GETexture::destroy(GEGraphicsContext* gc)
 {
-	vkDestroySampler(gc->device, textureSampler, nullptr);
-	vkDestroyImageView(gc->device, textureImageView, nullptr);
-	vkDestroyImage(gc->device, textureImage, nullptr);
-	vkFreeMemory(gc->device, textureImageMemory, nullptr);
+	if (textureSampler != VK_NULL_HANDLE) {
+		vkDestroySampler(gc->device, textureSampler, nullptr);
+		textureSampler = VK_NULL_HANDLE;
+	}
+	if (textureImageView != VK_NULL_HANDLE) {
+		vkDestroyImageView(gc->device, textureImageView, nullptr);
+		textureImageView = VK_NULL_HANDLE;
+	}
+	if (textureImage != VK_NULL_HANDLE) {
+		vkDestroyImage(gc->device, textureImage, nullptr);
+		textureImage = VK_NULL_HANDLE;
+	}
+	if (textureImageMemory != VK_NULL_HANDLE) {
+		vkFreeMemory(gc->device, textureImageMemory, nullptr);
+		textureImageMemory = VK_NULL_HANDLE;
+	}
 }
 
 //

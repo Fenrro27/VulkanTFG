@@ -30,20 +30,22 @@ GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc, GEWindowPosition wpos)
 //
 void GEDrawingContext::destroy(GEGraphicsContext* gc)
 {
+	// Destruir objetos que dependen de frameCount
 	for (size_t i = 0; i < frameCount; i++)
 	{
-		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr);
 		vkDestroySemaphore(gc->device, imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(gc->device, inFlightFences[i], nullptr);
 	}
 
+	// Destruir objetos que dependen de imageCount
 	for (uint32_t i = 0; i < imageCount; i++)
 	{
+		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr); // MUEVE ESTO AQUÍ
 		vkDestroyImageView(gc->device, imageViews[i], nullptr);
 	}
+
 	vkDestroySwapchainKHR(gc->device, swapChain, nullptr);
 }
-
 //
 // FUNCIÓN: GEDrawingContext::recreate(GEGraphicsContext* gc,  GEWindowPosition wpos)
 //

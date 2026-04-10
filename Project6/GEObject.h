@@ -16,9 +16,9 @@ class GEObject
 {
 protected:
 	std::vector<GEMaterial> materials;
-	std::vector<GETexture*> textures;
-	std::vector<GEPiece*> pieces;
-	glm::mat4 model;  // Model matrix
+	std::vector<std::shared_ptr<GETexture>> textures;
+	std::vector<std::unique_ptr<GEPiece>> pieces;
+	glm::mat4 model = glm::mat4(1.0f);  // Model matrix
 
 public:
 	void destroy(GEGraphicsContext* gc);
@@ -29,5 +29,6 @@ public:
 	void translate(glm::vec3 t);
 	void rotate(float angle, glm::vec3 axis);
 	void setLight(GELight l);
+	void setTexture(std::shared_ptr<GETexture> tex);
 };
 

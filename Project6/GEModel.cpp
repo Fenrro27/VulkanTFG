@@ -38,15 +38,24 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
         if (!mat.diffuse_texname.empty()) {
             std::string texPath = directory + mat.diffuse_texname;
             try {
-                modelTextures.push_back(std::make_shared<GETexture>(gc, texPath.c_str()));
+                modelTextures.push_back(std::shared_ptr<GETexture>(
+                    new GETexture(gc, texPath.c_str()),
+                    [gc](GETexture* t) { t->destroy(gc); delete t; }
+                ));
             }
             catch (...) {
+                modelTextures.push_back(std::shared_ptr<GETexture>(
+                    new GETexture(gc, "textures/wood.jpg"),
+                    [gc](GETexture* t) { t->destroy(gc); delete t; }
+                ));
                 // Si falla la carga del archivo específico, usamos uno por defecto
-                modelTextures.push_back(std::make_shared<GETexture>(gc, "textures/wood.jpg"));
             }
         }
         else {
-            modelTextures.push_back(std::make_shared<GETexture>(gc, "textures/moon.jpg"));
+            modelTextures.push_back(std::shared_ptr<GETexture>(
+                new GETexture(gc, "textures/wood.jpg"),
+                [gc](GETexture* t) { t->destroy(gc); delete t; }
+            ));
         }
     }
 
@@ -56,14 +65,16 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
         // Nota: Simplificamos asumiendo que cada shape usa mayormente un material principal
         int materialID = shape.mesh.material_ids.empty() ? -1 : shape.mesh.material_ids[0];
 
-        auto piece = new GEPiece(); // Creamos la pieza 
-        std::unordered_map<GEVertex, uint16_t> uniqueVertices{};
+        auto piece = std::make_unique<GEPiece>();
+
+        std::unordered_map<GEVertex, uint32_t> uniqueVertices{};
 
         std::vector<GEVertex> pieceVertices;
-        std::vector<uint16_t> pieceIndices;
+        std::vector<uint32_t> pieceIndices;
 
         for (const auto& index : shape.mesh.indices) {
             GEVertex vertex{};
+            vertex.norm = { 0.0f, 1.0f, 0.0f };
 
             vertex.pos = {
                 attrib.vertices[3 * index.vertex_index + 0] * scale,
@@ -87,7 +98,7 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
             }
 
             if (uniqueVertices.count(vertex) == 0) {
-                uniqueVertices[vertex] = static_cast<uint16_t>(pieceVertices.size());
+                uniqueVertices[vertex] = static_cast<uint32_t>(pieceVertices.size());
                 pieceVertices.push_back(vertex);
             }
             pieceIndices.push_back(uniqueVertices[vertex]);
@@ -101,7 +112,7 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
             piece->setTexture(modelTextures[materialID]); // Asignamos la textura del material 
         }
 
-        this->pieces.push_back(piece); // Añadimos la pieza al GEObject 
+        this->pieces.push_back(std::move(piece)); // Añadimos la pieza al GEObject 
     }
 
 

@@ -68,9 +68,9 @@ void GEFigure::destroy(GEGraphicsContext* gc)
 	lightBuffer->destroy(gc);
 	dset->destroy(gc);
 
-	if (texture != nullptr) {
-		texture->destroy(gc);
-	}
+	//if (texture != nullptr) {
+	//	texture->destroy(gc);
+	//}
 	
 }
 

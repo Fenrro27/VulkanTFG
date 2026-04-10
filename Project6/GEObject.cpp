@@ -11,17 +11,19 @@
 //
 void GEObject::destroy(GEGraphicsContext* gc)
 {
-	uint32_t count = (uint32_t)pieces.size();
-	for (uint32_t i = 0; i < count; i++) {
-		if (pieces[i] != nullptr)
-			pieces[i]->destroy(gc);
-	}
-	uint32_t texcount = (uint32_t)textures.size();
-	for (uint32_t i = 0; i < texcount; i++) {
-		if (textures[i] != nullptr) {
-			textures[i]->destroy(gc);
+	for (auto& piece : pieces) {
+		if (piece != nullptr) {
+			piece->destroy(gc); // Liberamos la VRAM (Vulkan)
 		}
 	}
+	pieces.clear();
+
+	for (auto& tex : textures) {
+		if (tex != nullptr) {
+			tex->destroy(gc);
+		}
+	}
+	textures.clear();
 }
 
 
@@ -98,4 +100,16 @@ void GEObject::setLight(GELight l)
 {
 	uint32_t count = (uint32_t)pieces.size();
 	for (uint32_t i = 0; i < count; i++) pieces[i]->setLight(l);
+}
+
+
+
+void GEObject::setTexture(std::shared_ptr<GETexture> tex)
+{
+	uint32_t count = (uint32_t)pieces.size();
+	for (uint32_t i = 0; i < count; i++) {
+		if (pieces[i] != nullptr) {
+			pieces[i]->setTexture(tex);
+		}
+	}
 }

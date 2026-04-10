@@ -25,7 +25,7 @@ class GEPiece
 {
 protected:
 	std::vector<GEVertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	glm::mat4 location;
 	GEMaterial material;
 	GELight light;
@@ -45,7 +45,7 @@ public:
 	void setTexture(std::shared_ptr<GETexture> texture);
 
 	void setVertices(const std::vector<GEVertex>& v) { this->vertices = v; }
-	void setIndices(const std::vector<uint16_t>& i) { this->indices = i; }
+	void setIndices(const std::vector<uint32_t>& i) { this->indices = i; }
 
 private:
 	std::unique_ptr<GEVertexBuffer> vbo;

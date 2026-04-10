@@ -17,7 +17,10 @@ void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 {
 	if (this->texture == nullptr) {
 		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
-		this->texture = std::make_shared<GETexture>(gc, "textures/wood.jpg");
+		this->texture = std::shared_ptr<GETexture>(
+			new GETexture(gc, "textures/wood.jpg"),
+			[gc](GETexture* t) { t->destroy(gc); delete t; }
+		);
 	}
 
 	size_t vertexSize = sizeof(GEVertex) * vertices.size();
@@ -72,7 +75,7 @@ void GEPiece::addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipeli
 {
 	VkDeviceSize offset = 0;
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(vbo->buffer), &offset);
-	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
 	vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
 }
