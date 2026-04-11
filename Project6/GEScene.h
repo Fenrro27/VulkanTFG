@@ -63,9 +63,10 @@ public:
 	void mouse_action(double xpos, double ypos);
 	void toggle_camera_mode();
 	void mouse_button_action(GLFWwindow* window, int button, int action);
+	void fillCommandBuffers(GECommandContext* commandBuffers);
+
 
 private:
-	void fillCommandBuffers(GECommandContext* commandBuffers);
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);
 	std::unique_ptr < GEPipelineConfig> createScenePipelineConfig(VkExtent2D extent);
 	std::unique_ptr < GEPipelineConfig> createParticlePipelineConfig(VkExtent2D extent);

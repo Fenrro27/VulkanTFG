@@ -8,6 +8,9 @@
 #include <vector>
 #include <glm/common.hpp>
 #include "resource.h"
+#include "imgui.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "backends/imgui_impl_glfw.h"
 
 //
 // FUNCIÓN: GEApplication::run()
@@ -93,7 +96,19 @@ void GEApplication::mainLoop()
 void GEApplication::draw()
 {
 	dc->waitForNextImage(gc.get());
+
+
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+
 	scene->update(gc.get(), dc->getCurrentImage());
+
+	ImGui::Render();
+
+	scene->fillCommandBuffers(cc.get());
+
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
 }

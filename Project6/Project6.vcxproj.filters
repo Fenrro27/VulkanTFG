@@ -40,6 +40,12 @@
     <Filter Include="Archivos de origen\GEContexts">
       <UniqueIdentifier>{01b21510-0500-4e4b-bd82-f845ee1836fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de encabezado\GEExternalsLibs">
+      <UniqueIdentifier>{b1d91d57-a73e-4d42-aac8-9ab357747650}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\GEExternalsLibs">
+      <UniqueIdentifier>{ea47d0a8-1d65-492e-be81-506295d25167}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -146,6 +152,27 @@
     </ClCompile>
     <ClCompile Include="GEModel.cpp">
       <Filter>Archivos de origen\GEFigures</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\backends\imgui_impl_glfw.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\backends\imgui_impl_vulkan.cpp">
+      <Filter>Archivos de origen\GEExternalsLibs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +310,30 @@
     </ClInclude>
     <ClInclude Include="GEModel.h">
       <Filter>Archivos de encabezado\GEFigures</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\backends\imgui_impl_glfw.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\backends\imgui_impl_vulkan.h">
+      <Filter>Archivos de encabezado\GEExternalsLibs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
