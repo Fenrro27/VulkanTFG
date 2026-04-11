@@ -1,5 +1,5 @@
 # Blender MTL File: 'dolgoch0-4-0finalsketchfab.blend'
-# Material Count: 15
+# Material Count: 21
 
 newmtl black
 Ns 23.214866
@@ -20,7 +20,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/boiler.png
+map_Kd textures\\darkgreen\\boiler.png
 
 newmtl cab
 Ns 756.249984
@@ -31,7 +31,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/cab.png
+map_Kd textures\\darkgreen\\cab.png
 
 newmtl coal
 Ns 22.562491
@@ -42,7 +42,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/coal.png
+map_Kd textures\\coal.png
 
 newmtl gauges
 Ns 225.000000
@@ -53,9 +53,63 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/gauges.png
+map_Kd textures\\gauges.png
+
+newmtl gerry
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\gerry.png
+map_d textures\\gerry.png
+
+newmtl gerryface
+Ns 400.000024
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.308333 0.308333 0.308333
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\wood.png
+
+newmtl gerryfaceshine
+Ns 756.250033
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.441667 0.441667 0.441667
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\wood.png
 
 newmtl glass
+Ns 517.562489
+Ka 1.000000 1.000000 1.000000
+Kd 0.666417 0.729287 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 0.541667
+illum 9
+
+newmtl lamp
+Ns 528.999978
+Ka 0.991667 0.991667 0.991667
+Kd 0.638273 0.638273 0.638273
+Ks 0.658333 0.658333 0.658333
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl lampglass
 Ns 517.562489
 Ka 1.000000 1.000000 1.000000
 Kd 0.666417 0.729287 0.800000
@@ -74,7 +128,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/lubricators.png
+map_Kd textures\\lubricators.png
 
 newmtl main
 Ns 110.250015
@@ -85,7 +139,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/mainshaded.jpeg
+map_Kd textures\\mainshaded.jpg
 
 newmtl metallic
 Ns 552.249997
@@ -96,7 +150,18 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 3
-map_Kd textures/metallicshaded.jpeg
+map_Kd textures\\metallicshaded.jpg
+
+newmtl nameplate
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures\\nameplate.png
 
 newmtl plates
 Ns 225.000000
@@ -107,7 +172,8 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/plates.png
+map_Bump -bm 2.000000 NormalMap(4).png
+map_Kd upscalemedia-transformed(6).png
 
 newmtl shine
 Ns 784.000007
@@ -118,7 +184,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/shinyshaded.jpeg
+map_Kd textures\\shinyshaded.jpg
 
 newmtl sightglass
 Ns 517.562489
@@ -129,7 +195,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/sightglass.png
+map_Kd textures\\sightglass.png
 
 newmtl sightglasssolid
 Ns 517.562489
@@ -140,7 +206,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd textures/sightglass.png
+map_Kd textures\\sightglass.png
 
 newmtl void
 Ns 0.000000

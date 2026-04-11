@@ -6,6 +6,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
+#include "commonDebug.h"
 
 // Especialización de hash para eliminar duplicados
 namespace std {
@@ -20,6 +21,7 @@ namespace std {
 
 // Actualizamos el constructor para recibir el contexto gráfico (necesario para las texturas)
 GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
+    GE_DEBUG_INFO("Intentando cargar modelo: " << path);
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -35,6 +37,7 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
     // 1. Cargamos todos los materiales y sus texturas asociadas
     std::vector<std::shared_ptr<GETexture>> modelTextures;
     for (const auto& mat : materials) {
+        GE_DEBUG_INFO("Cargando Material OBJ: '" << mat.name << "' | Textura detectada: " << (mat.diffuse_texname.empty() ? "NINGUNA" : mat.diffuse_texname));
         if (!mat.diffuse_texname.empty()) {
             std::string texPath = directory + mat.diffuse_texname;
             try {
@@ -44,6 +47,7 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
                 ));
             }
             catch (...) {
+                GE_DEBUG_ERROR("Fallo al cargar la textura: " << texPath << ". Usando wood.jpg"); // <-- Opcional, para ver si falla
                 modelTextures.push_back(std::shared_ptr<GETexture>(
                     new GETexture(gc, "textures/wood.jpg"),
                     [gc](GETexture* t) { t->destroy(gc); delete t; }

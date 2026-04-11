@@ -3,12 +3,13 @@
 FILE: Project6\commonDebug.h
 ========================================
 #pragma once
+#include <iostream>
 
-#define RESET   "\033[0m"
-#define RED     "\033[31m"      
-#define GREEN   "\033[32m"      
-#define YELLOW  "\033[33m"      
-#define BLUE    "\033[34m"      
+constexpr const char* RESET = "\033[0m";
+constexpr const char* RED = "\033[31m";      
+constexpr const char* GREEN = "\033[32m";      
+constexpr const char* YELLOW = "\033[33m";      
+constexpr const char* BLUE = "\033[34m";      
 
 #ifdef _DEBUG
 #define GE_DEBUG_ERROR(x) std::cout << RED << "[DEBUG_ERROR] " << x << RESET << std::endl
@@ -208,12 +209,18 @@ void GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int a
 
 void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-
+	GEApplication* app = (GEApplication*)glfwGetWindowUserPointer(window);
+	if (app->scene) {
+		app->scene->mouse_button_action(window, button, action);
+	}
 }
 
 void GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-
+	GEApplication* app = (GEApplication*)glfwGetWindowUserPointer(window);
+	if (app->scene) {
+		app->scene->mouse_action(xpos, ypos);
+	}
 }
 
 void GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -542,6 +549,50 @@ void GECamera::setMoveDown(bool flag)
 	moveDownPressed = flag;
 }
 
+void GECamera::processMouse(float xoffset, float yoffset)
+{
+	if (!isFpsMode) return;
+
+	float sensitivity = 0.1f;
+	yaw += xoffset * sensitivity;
+	pitch += yoffset * sensitivity; 
+
+	if (pitch > 89.0f) pitch = 89.0f;
+	if (pitch < -89.0f) pitch = -89.0f;
+
+	updateFPSCameraVectors();
+}
+
+void GECamera::updateFPSCameraVectors()
+{
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	Dir = glm::normalize(front);
+	Right = glm::normalize(glm::cross(Dir, glm::vec3(0.0f, 1.0f, 0.0f)));
+	Up = glm::normalize(glm::cross(Right, Dir));
+}
+
+void GECamera::toggleMode()
+{
+	isFpsMode = !isFpsMode;
+
+	if (isFpsMode)
+	{
+
+		glm::vec3 front = glm::normalize(Dir);
+
+		pitch = glm::degrees(asin(front.y));
+
+		yaw = glm::degrees(atan2(front.z, front.x));
+
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+	}
+}
+
 ========================================
 FILE: Project6\GECamera.h
 ========================================
@@ -578,6 +629,10 @@ public:
 	void setMoveUp(bool flag);
 	void setMoveDown(bool flag);
 
+	bool isFpsMode = false;
+	void toggleMode();
+	void processMouse(float xoffset, float yoffset);
+
 private:
 	glm::vec3 Pos;
 	glm::vec3 Dir;
@@ -613,6 +668,10 @@ private:
 	void moveDown();
 	void moveFront();
 	void moveBack();
+
+	float yaw = -90.0f; 
+	float pitch = 0.0f;
+	void updateFPSCameraVectors();
 };
 
 
@@ -1664,17 +1723,19 @@ GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc, GEWindowPosition wpos)
 
 void GEDrawingContext::destroy(GEGraphicsContext* gc)
 {
+
 	for (size_t i = 0; i < frameCount; i++)
 	{
-		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr);
 		vkDestroySemaphore(gc->device, imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(gc->device, inFlightFences[i], nullptr);
 	}
 
 	for (uint32_t i = 0; i < imageCount; i++)
 	{
+		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr); 
 		vkDestroyImageView(gc->device, imageViews[i], nullptr);
 	}
+
 	vkDestroySwapchainKHR(gc->device, swapChain, nullptr);
 }
 
@@ -4691,6 +4752,7 @@ FILE: Project6\GEScene.cpp
 #include "GEAgua.h"
 #include "GETexture.h"
 #include "GEModel.h"
+#include "commonDebug.h"
 
 GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
 {
@@ -4752,7 +4814,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	figures.push_back(std::move(ground));
 
 	auto fuente = std::make_unique<GEModel>(gc,"models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
-	fuente->setTexture(std::make_shared<GETexture>(gc,texMoon));
+	fuente->setTexture(texMoon);
 	fuente->initialize(gc, rc.get());     
 	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
@@ -4920,7 +4982,34 @@ void GEScene::key_action(int key, bool pressed)
 	case GLFW_KEY_L:
 		camera->setTurnRight(pressed);
 		break;
+	case GLFW_KEY_M:
+		if (pressed) {
+			camera->toggleMode();
+			firstMouse = true; 
+			GE_DEBUG_INFO("Modo camara alternado");
+		}
+		break;
 	}
+}
+
+void GEScene::mouse_action(double xpos, double ypos)
+{
+
+	if (!isDragging) return;
+
+	if (firstMouse) {
+		lastX = (float)xpos;
+		lastY = (float)ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = (float)xpos - lastX;
+	float yoffset = lastY - (float)ypos; 
+
+	lastX = (float)xpos;
+	lastY = (float)ypos;
+
+	camera->processMouse(xoffset, yoffset);
 }
 
 void GEScene::aspect_ratio(double aspect)
@@ -5123,6 +5212,25 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 	return config;
 }
 
+void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (action == GLFW_PRESS) {
+			isDragging = true;
+			firstMouse = true;
+
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		}
+		else if (action == GLFW_RELEASE) {
+			isDragging = false;
+
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
+}
+
 ========================================
 FILE: Project6\GEScene.h
 ========================================
@@ -5143,9 +5251,11 @@ FILE: Project6\GEScene.h
 #include <vector>
 #include "GEComputeShader.h"
 
-#define SKYBOX_PIPELINE 0
-#define SCENE_PIPELINE 1
-#define PARTICLE_PIPELINE 2
+enum PipelineType {
+	SKYBOX_PIPELINE = 0,
+	SCENE_PIPELINE = 1,
+	PARTICLE_PIPELINE = 2
+};
 
 class GEScene
 {
@@ -5164,6 +5274,11 @@ private:
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
 
+	bool isDragging = false;
+	bool firstMouse = true;
+	float lastX = 400.0f; 
+	float lastY = 300.0f;
+
 public:
 	GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
 	void destroy(GEGraphicsContext* gc);
@@ -5171,6 +5286,10 @@ public:
 	void update(GEGraphicsContext* gc, uint32_t index);
 	void key_action(int key, bool pressed);
 	void aspect_ratio(double aspect);
+
+	void mouse_action(double xpos, double ypos);
+	void toggle_camera_mode();
+	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 private:
 	void fillCommandBuffers(GECommandContext* commandBuffers);
@@ -5456,6 +5575,8 @@ GETexture::GETexture(GEGraphicsContext* gc, const char** filename)
 	vkDestroyBuffer(gc->device, stagingBuffer, nullptr);
 	vkFreeMemory(gc->device, stagingBufferMemory, nullptr);
 
+	vkDestroyCommandPool(gc->device, commandPool, nullptr);
+
 	createCubemapImageView(gc);
 	createSampler(gc);
 }
@@ -5489,6 +5610,8 @@ GETexture::GETexture(GEGraphicsContext* gc, const char* filename)
 
 	vkDestroyBuffer(gc->device, stagingBuffer, nullptr);
 	vkFreeMemory(gc->device, stagingBufferMemory, nullptr);
+
+	vkDestroyCommandPool(gc->device, commandPool, nullptr);
 
 	createImageView(gc);
 	createSampler(gc);
