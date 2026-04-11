@@ -63,3 +63,11 @@ ALL_BUILD.*
 .DS_Store
 Thumbs.db
 vcpkg.applocal.log
+
+
+
+
+# Ignorar la libreria externa ImGui
+Project6/ImGui/
+
+

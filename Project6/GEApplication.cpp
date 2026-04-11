@@ -95,6 +95,10 @@ void GEApplication::mainLoop()
 //
 void GEApplication::draw()
 {
+	if (ImGui::GetCurrentContext() == nullptr) {
+		throw std::runtime_error("¡CRASH EVITADO! ImGui no se ha inicializado. Revisa donde pusiste ImGui::CreateContext().");
+	}
+
 	dc->waitForNextImage(gc.get());
 
 
