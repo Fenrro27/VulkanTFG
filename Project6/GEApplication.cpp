@@ -164,7 +164,10 @@ void GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int a
 //
 void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	 // To do
+	GEApplication* app = (GEApplication*)glfwGetWindowUserPointer(window);
+	if (app->scene) {
+		app->scene->mouse_button_action(window, button, action);
+	}
 }
 
 //
@@ -174,7 +177,10 @@ void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int acti
 //
 void GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	// To do
+	GEApplication* app = (GEApplication*)glfwGetWindowUserPointer(window);
+	if (app->scene) {
+		app->scene->mouse_action(xpos, ypos);
+	}
 }
 
 //

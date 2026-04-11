@@ -416,3 +416,54 @@ void GECamera::setMoveDown(bool flag)
 {
 	moveDownPressed = flag;
 }
+
+
+
+void GECamera::processMouse(float xoffset, float yoffset)
+{
+	if (!isFpsMode) return;
+
+	float sensitivity = 0.1f;
+	yaw += xoffset * sensitivity;
+	pitch += yoffset * sensitivity; 
+
+	// Restringir el cabeceo para no dar la vuelta completa (como en Minecraft)
+	if (pitch > 89.0f) pitch = 89.0f;
+	if (pitch < -89.0f) pitch = -89.0f;
+
+	updateFPSCameraVectors();
+}
+
+void GECamera::updateFPSCameraVectors()
+{
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	Dir = glm::normalize(front);
+	Right = glm::normalize(glm::cross(Dir, glm::vec3(0.0f, 1.0f, 0.0f)));
+	Up = glm::normalize(glm::cross(Right, Dir));
+}
+
+
+void GECamera::toggleMode()
+{
+	isFpsMode = !isFpsMode;
+
+	if (isFpsMode)
+	{
+		// 1. Asegurarnos de que el vector de dirección está normalizado
+		glm::vec3 front = glm::normalize(Dir);
+
+		// 2. Extraer el Pitch (Cabeceo) usando el arco seno del eje Y
+		pitch = glm::degrees(asin(front.y));
+
+		// 3. Extraer el Yaw (Guiñada) usando el arco tangente de Z y X
+		yaw = glm::degrees(atan2(front.z, front.x));
+
+		// 4. Limitar el pitch por seguridad (para evitar el Gimbal Lock)
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+	}
+}

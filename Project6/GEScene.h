@@ -17,9 +17,11 @@
 
 
 
-#define SKYBOX_PIPELINE 0
-#define SCENE_PIPELINE 1
-#define PARTICLE_PIPELINE 2
+enum PipelineType {
+	SKYBOX_PIPELINE = 0,
+	SCENE_PIPELINE = 1,
+	PARTICLE_PIPELINE = 2
+};
 
 //
 // CLASE: GEScene
@@ -44,6 +46,10 @@ private:
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
 
+	bool isDragging = false;
+	bool firstMouse = true;
+	float lastX = 400.0f; // Mitad de pantalla 800x600
+	float lastY = 300.0f;
 
 
 public:
@@ -53,6 +59,10 @@ public:
 	void update(GEGraphicsContext* gc, uint32_t index);
 	void key_action(int key, bool pressed);
 	void aspect_ratio(double aspect);
+
+	void mouse_action(double xpos, double ypos);
+	void toggle_camera_mode();
+	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 private:
 	void fillCommandBuffers(GECommandContext* commandBuffers);

@@ -24,6 +24,7 @@
 #include "GEAgua.h"
 #include "GETexture.h"
 #include "GEModel.h"
+#include "commonDebug.h"
 
 //
 // FUNCI�N: GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc)
@@ -287,7 +288,35 @@ void GEScene::key_action(int key, bool pressed)
 	case GLFW_KEY_L:
 		camera->setTurnRight(pressed);
 		break;
+	case GLFW_KEY_M:
+		if (pressed) {
+			camera->toggleMode();
+			firstMouse = true; // Resetea el ratón al cambiar de modo
+			GE_DEBUG_INFO("Modo camara alternado");
+		}
+		break;
 	}
+}
+
+
+void GEScene::mouse_action(double xpos, double ypos)
+{
+	// Si no estamos haciendo clic, no hacemos nada de cálculo
+	if (!isDragging) return;
+
+	if (firstMouse) {
+		lastX = (float)xpos;
+		lastY = (float)ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = (float)xpos - lastX;
+	float yoffset = lastY - (float)ypos; // Invertido
+
+	lastX = (float)xpos;
+	lastY = (float)ypos;
+
+	camera->processMouse(xoffset, yoffset);
 }
 
 //
@@ -520,4 +549,26 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 	config->extent = extent;
 
 	return config;
+}
+
+
+void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT)
+	{
+		if (action == GLFW_PRESS) {
+			isDragging = true;
+			firstMouse = true;
+
+			// Oculta el cursor y lo atrapa en la ventana (Movimiento infinito)
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		}
+		else if (action == GLFW_RELEASE) {
+			isDragging = false;
+
+			// Vuelve a mostrar el cursor y lo libera
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
 }

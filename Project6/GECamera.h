@@ -31,6 +31,11 @@ public:
 	void setMoveUp(bool flag);
 	void setMoveDown(bool flag);
 
+	bool isFpsMode = false;
+	void toggleMode();
+	void processMouse(float xoffset, float yoffset);
+
+
 private:
 	glm::vec3 Pos;
 	glm::vec3 Dir;
@@ -66,5 +71,9 @@ private:
 	void moveDown();
 	void moveFront();
 	void moveBack();
+
+	float yaw = -90.0f; // -90 para mirar hacia -Z por defecto
+	float pitch = 0.0f;
+	void updateFPSCameraVectors();
 };
 
