@@ -102,37 +102,44 @@ void GEApplication::mainLoop()
 //
 void GEApplication::draw()
 {
-
+	// 1. SINCRONIZACIÓN (Esto limpia el camino para el Command Buffer)
 	dc->waitForNextImage(gc.get());
+	uint32_t i = dc->getCurrentImage();
+	VkCommandBuffer cb = cc->commandBuffers[i];
 
+	// 2. RESET Y BEGIN (Si esto falla, nada se dibuja)
+	vkResetCommandBuffer(cb, 0);
+	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; // Añade este flag
+
+	if (vkBeginCommandBuffer(cb, &beginInfo) != VK_SUCCESS) return;
+
+	// 3. PREPARAR IMGUI (Cálculos de vértices de la UI)
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Panel de Control");
-	ImGui::Text("¡Si ves esto, ImGui funciona!");
-	ImGui::End();
+	// Aquí puedes poner tus ventanas de ImGui: ImGui::Begin("Test"); ImGui::End();
 
-	// Generar los datos de renderizado
-	ImGui::Render();
+	ImGui::Render(); // IMPORTANTE: Render() debe ir antes de RenderDrawData
 
-	uint32_t imageIndex = dc->getCurrentImage();
-	VkCommandBuffer cb = cc->commandBuffers[imageIndex];
+	// 4. ACTUALIZAR Y DIBUJAR ESCENA
+	scene->update(gc.get(), i);
+	scene->recordComputeCommands(cb, i); // Tus partículas
 
-	// Resetear el buffer para escribir de nuevo
-	vkResetCommandBuffer(cb, 0);
+	auto rc = scene->getRenderingContext();
+	rc->insertBeginCommands(cb, i); // Inicia RenderPass
 
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	vkBeginCommandBuffer(cb, &beginInfo);
+	scene->drawGraphicsObjects(cb, i);
 
-	scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
-	scene->update(gc.get(), dc->getCurrentImage());
+	// 5. DIBUJAR IMGUI (Dentro del RenderPass, al final para que esté encima)
+	ImDrawData* drawData = ImGui::GetDrawData();
+	if (drawData) {
+		ImGui_ImplVulkan_RenderDrawData(drawData, cb);
+	}
 
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
-
-	// Cerrar renderpass
-	scene->getRenderingContext()->insertEndCommands(cb);
+	// 6. FINALIZAR
+	rc->insertEndCommands(cb);
 	vkEndCommandBuffer(cb);
 
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);

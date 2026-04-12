@@ -52,6 +52,7 @@ public:
 	void waitForNextImage(GEGraphicsContext* gc);
 	void submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers);
 	void submitPresentCommands(GEGraphicsContext* gc);
+	void waitIdle(VkDevice device);
 
 private:
 	// Métodos de creación de componentes

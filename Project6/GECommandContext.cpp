@@ -48,6 +48,7 @@ void GECommandContext::createCommandPool(GEGraphicsContext* gc)
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = gc->graphicsQueueFamilyIndex;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 
 	if (vkCreateCommandPool(gc->device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)

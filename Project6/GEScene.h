@@ -67,6 +67,10 @@ public:
 	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 	GERenderingContext* getRenderingContext() { return rc.get(); }
+//	void drawScene(VkCommandBuffer cb, uint32_t i);
+
+	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
+	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

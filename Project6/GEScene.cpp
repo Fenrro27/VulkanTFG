@@ -156,7 +156,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 
-	fillCommandBuffers(cc);
+	//fillCommandBuffers(cc);
 }
 
 //
@@ -210,7 +210,7 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
 	this->rc->addGraphicsPipeline(gc, particle_Config.get());
 
-	fillCommandBuffers(cc);
+//	fillCommandBuffers(cc);
 }
 
 //
@@ -243,9 +243,6 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 	camera->update();
 	glm::mat4 view = camera->getViewMatrix();
 
-
-
-
 	skybox->update(gc, index, view, projection);
 
 	for (auto& figure:figures)
@@ -261,8 +258,6 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 	{
 		ps->update(gc, index, view, projection);
 	}
-	//plane->update(gc, index, view, projection);
-
 
 }
 
@@ -598,5 +593,74 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 			// Vuelve a mostrar el cursor y lo libera
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
+	}
+}
+
+// --- NUEVO MÉTODO 1: Solo Cómputo (FUERA del Render Pass) ---
+void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
+{
+	for (size_t s = 0; s < particleSystem.size(); s++)
+	{
+		auto& ps = particleSystem[s];
+		uint32_t particleCount = ps->getParticlesCount();
+		uint32_t groupCount = (particleCount + 255) / 256;
+
+		particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+
+		VkBufferMemoryBarrier barriers[2] = {};
+		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barriers[0].buffer = ps->getParticlesBufferA()->buffer;
+		barriers[0].offset = 0;
+		barriers[0].size = VK_WHOLE_SIZE;
+
+		barriers[1] = barriers[0];
+		barriers[1].buffer = ps->getParticlesBufferB()->buffer;
+
+		vkCmdPipelineBarrier(
+			cb,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+			0, 0, nullptr, 2, barriers, 0, nullptr
+		);
+	}
+}
+
+void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
+{
+	// 1. Skybox
+	rc->setActivePipeline(SKYBOX_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+	skybox->addCommands(cb, rc->getActivePipelineLayout(), i);
+
+	// 2. Objetos de la escena
+	rc->setActivePipeline(SCENE_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+
+	for (auto& figure : figures) {
+		figure->addCommands(cb, rc->getActivePipelineLayout(), i);
+	}
+	for (auto& ob : objects) {
+		ob->addCommands(cb, rc->getActivePipelineLayout(), i);
+	}
+
+	// 3. Partículas
+	rc->setActivePipeline(PARTICLE_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+
+	for (auto& ps : particleSystem)
+	{
+		uint32_t particleCount = ps->getParticlesCount();
+		VkDescriptorSet ds = ps->getDescriptorSet(i);
+		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipelineLayout(), 0, 1, &ds, 0, nullptr);
+
+		VkDeviceSize offset = 0;
+		VkBuffer bufferADibujar = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer : ps->getParticlesBufferA()->buffer;
+
+		vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset);
+		vkCmdDraw(cb, particleCount, 1, 0, 0);
 	}
 }

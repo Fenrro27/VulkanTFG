@@ -72,7 +72,7 @@ void GERenderingContext::addGraphicsPipeline(GEGraphicsContext* gc, GEPipelineCo
 void GERenderingContext::setActivePipeline(uint32_t index)
 {
 	if (index < graphicsPipeline.size()) pipelineIndex = index;
-	GE_DEBUG_INFO("setActivePipeline: Pipeline activo cambiado a: " << pipelineIndex);
+	//GE_DEBUG_INFO("setActivePipeline: Pipeline activo cambiado a: " << pipelineIndex);
 }
 
 //
@@ -104,7 +104,7 @@ void GERenderingContext::insertBeginCommands(VkCommandBuffer cb, uint32_t index)
 {
 	
 		VkClearValue clearValues[2];
-		clearValues[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		clearValues[0].color = { 1.0f, 1.0f, 0.0f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
 		VkRenderPassBeginInfo renderPassInfo = {};

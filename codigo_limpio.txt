@@ -178,8 +178,8 @@ void GEApplication::draw()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Panel de Control");
-	ImGui::Text("�Si ves esto, ImGui funciona!");
+	ImGui::Begin("Motor Estadisticas");
+	ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 	ImGui::End();
 
 	ImGui::Render();
@@ -191,15 +191,20 @@ void GEApplication::draw()
 
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	vkBeginCommandBuffer(cb, &beginInfo);
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
-	scene->update(gc.get(), dc->getCurrentImage());
+	if (vkBeginCommandBuffer(cb, &beginInfo) == VK_SUCCESS) {
 
-	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+		scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
 
-	scene->getRenderingContext()->insertEndCommands(cb);
-	vkEndCommandBuffer(cb);
+		scene->update(gc.get(), imageIndex);
+
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+
+		scene->getRenderingContext()->insertEndCommands(cb);
+
+		vkEndCommandBuffer(cb);
+	}
 
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
@@ -832,6 +837,7 @@ void GECommandContext::createCommandPool(GEGraphicsContext* gc)
 	VkCommandPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = gc->graphicsQueueFamilyIndex;
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	if (vkCreateCommandPool(gc->device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
 	{
@@ -5394,6 +5400,7 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 		}
 	}
 }
+
 
 ========================================
 FILE: Project6\GEScene.h
