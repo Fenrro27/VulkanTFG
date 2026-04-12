@@ -173,38 +173,36 @@ void GEApplication::draw()
 {
 
 	dc->waitForNextImage(gc.get());
+	uint32_t i = dc->getCurrentImage();
+	VkCommandBuffer cb = cc->commandBuffers[i];
+
+	vkResetCommandBuffer(cb, 0);
+	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; 
+
+	if (vkBeginCommandBuffer(cb, &beginInfo) != VK_SUCCESS) return;
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::Begin("Motor Estadisticas");
-	ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-	ImGui::End();
+	ImGui::Render(); 
 
-	ImGui::Render();
+	scene->update(gc.get(), i);
+	scene->recordComputeCommands(cb, i); 
 
-	uint32_t imageIndex = dc->getCurrentImage();
-	VkCommandBuffer cb = cc->commandBuffers[imageIndex];
+	auto rc = scene->getRenderingContext();
+	rc->insertBeginCommands(cb, i); 
 
-	vkResetCommandBuffer(cb, 0);
+	scene->drawGraphicsObjects(cb, i);
 
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-	if (vkBeginCommandBuffer(cb, &beginInfo) == VK_SUCCESS) {
-
-		scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
-
-		scene->update(gc.get(), imageIndex);
-
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
-
-		scene->getRenderingContext()->insertEndCommands(cb);
-
-		vkEndCommandBuffer(cb);
+	ImDrawData* drawData = ImGui::GetDrawData();
+	if (drawData) {
+		ImGui_ImplVulkan_RenderDrawData(drawData, cb);
 	}
+
+	rc->insertEndCommands(cb);
+	vkEndCommandBuffer(cb);
 
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
@@ -2048,16 +2046,24 @@ void GEDrawingContext::createQueues(GEGraphicsContext* gc)
 
 void GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
 {
+
 	vkWaitForFences(gc->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(gc->device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+
+		return;
+	}
+
 	currentImage = imageIndex;
 
-	 if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR && result != VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		throw std::runtime_error("failed to acquire swap chain image!");
+	if (imagesInFlight[currentImage] != VK_NULL_HANDLE) {
+		vkWaitForFences(gc->device, 1, &imagesInFlight[currentImage], VK_TRUE, UINT64_MAX);
 	}
+
+	imagesInFlight[currentImage] = inFlightFences[currentFrame];
 }
 
 void GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
@@ -2157,6 +2163,10 @@ VkExtent2D GEDrawingContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& ca
 	}
 }
 
+void GEDrawingContext::waitIdle(VkDevice device) {
+	vkDeviceWaitIdle(device);
+}
+
 ========================================
 FILE: Project6\GEDrawingContext.h
 ========================================
@@ -2205,6 +2215,7 @@ public:
 	void waitForNextImage(GEGraphicsContext* gc);
 	void submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers);
 	void submitPresentCommands(GEGraphicsContext* gc);
+	void waitIdle(VkDevice device);
 
 private:
 
@@ -4371,7 +4382,7 @@ void GERenderingContext::addGraphicsPipeline(GEGraphicsContext* gc, GEPipelineCo
 void GERenderingContext::setActivePipeline(uint32_t index)
 {
 	if (index < graphicsPipeline.size()) pipelineIndex = index;
-	GE_DEBUG_INFO("setActivePipeline: Pipeline activo cambiado a: " << pipelineIndex);
+
 }
 
 VkDescriptorSetLayout GERenderingContext::getActiveDescriptorSetLayout()
@@ -4388,7 +4399,7 @@ void GERenderingContext::insertBeginCommands(VkCommandBuffer cb, uint32_t index)
 {
 
 		VkClearValue clearValues[2];
-		clearValues[0].color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		clearValues[0].color = { 1.0f, 1.0f, 0.0f, 1.0f };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
 		VkRenderPassBeginInfo renderPassInfo = {};
@@ -5018,7 +5029,6 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[2]->setLight(light);
 	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
-	fillCommandBuffers(cc);
 }
 
 void GEScene::destroy(GEGraphicsContext* gc)
@@ -5062,7 +5072,6 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
 	this->rc->addGraphicsPipeline(gc, particle_Config.get());
 
-	fillCommandBuffers(cc);
 }
 
 void GEScene::update(GEGraphicsContext* gc, uint32_t index)
@@ -5401,6 +5410,71 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 	}
 }
 
+void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
+{
+	for (size_t s = 0; s < particleSystem.size(); s++)
+	{
+		auto& ps = particleSystem[s];
+		uint32_t particleCount = ps->getParticlesCount();
+		uint32_t groupCount = (particleCount + 255) / 256;
+
+		particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+
+		VkBufferMemoryBarrier barriers[2] = {};
+		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barriers[0].buffer = ps->getParticlesBufferA()->buffer;
+		barriers[0].offset = 0;
+		barriers[0].size = VK_WHOLE_SIZE;
+
+		barriers[1] = barriers[0];
+		barriers[1].buffer = ps->getParticlesBufferB()->buffer;
+
+		vkCmdPipelineBarrier(
+			cb,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+			0, 0, nullptr, 2, barriers, 0, nullptr
+		);
+	}
+}
+
+void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
+{
+
+	rc->setActivePipeline(SKYBOX_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+	skybox->addCommands(cb, rc->getActivePipelineLayout(), i);
+
+	rc->setActivePipeline(SCENE_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+
+	for (auto& figure : figures) {
+		figure->addCommands(cb, rc->getActivePipelineLayout(), i);
+	}
+	for (auto& ob : objects) {
+		ob->addCommands(cb, rc->getActivePipelineLayout(), i);
+	}
+
+	rc->setActivePipeline(PARTICLE_PIPELINE);
+	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
+
+	for (auto& ps : particleSystem)
+	{
+		uint32_t particleCount = ps->getParticlesCount();
+		VkDescriptorSet ds = ps->getDescriptorSet(i);
+		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipelineLayout(), 0, 1, &ds, 0, nullptr);
+
+		VkDeviceSize offset = 0;
+		VkBuffer bufferADibujar = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer : ps->getParticlesBufferA()->buffer;
+
+		vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset);
+		vkCmdDraw(cb, particleCount, 1, 0, 0);
+	}
+}
 
 ========================================
 FILE: Project6\GEScene.h
@@ -5464,6 +5538,9 @@ public:
 	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 	GERenderingContext* getRenderingContext() { return rc.get(); }
+
+	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
+	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

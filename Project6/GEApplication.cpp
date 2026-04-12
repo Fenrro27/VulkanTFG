@@ -10,6 +10,7 @@
 #include "resource.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+#include <imgui_internal.h>
 
 //
 // FUNCIÓN: GEApplication::run()
@@ -118,10 +119,52 @@ void GEApplication::draw()
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+	// -----------------------Dibujamos la UI con ImGui-----------------------
 
-	// Aquí puedes poner tus ventanas de ImGui: ImGui::Begin("Test"); ImGui::End();
+	// 1. Configurar la posición y el tamaño fijo
+	// Usamos el ancho de la ventana actual (dc->getExtent())
+	float windowWidth = (float)dc->getExtent().width;
+	ImGui::SetNextWindowPos(ImVec2(0, 0)); // Esquina superior izquierda
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f)); // Altura fija de 60px (puedes ajustarla)
+	
+	// 1. EMPUJAR ESTILO: Color de fondo (Oscuro semitransparente)
+// RGBA: 0,0,0 es negro. 0.7f es el 70% de opacidad.
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.7f));
+	// Quitamos el borde para que se fusione perfectamente con el marco
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-	ImGui::Render(); // IMPORTANTE: Render() debe ir antes de RenderDrawData
+	// 2. Definir las banderas para bloquear la ventana
+	ImGuiWindowFlags window_flags = 0;
+	window_flags |= ImGuiWindowFlags_NoTitleBar;   // Quita la barra de título
+	window_flags |= ImGuiWindowFlags_NoResize;     // Bloquea el cambio de tamaño
+	window_flags |= ImGuiWindowFlags_NoMove;       // Bloquea que el usuario la mueva
+	window_flags |= ImGuiWindowFlags_NoCollapse;   // Evita que se minimice
+	window_flags |= ImGuiWindowFlags_NoScrollbar;  // Quita el scroll
+
+	// 3. Dibujar la ventana
+	if (ImGui::Begin("TopBar", nullptr, window_flags))
+	{
+		ImGui::SetCursorPosY(10.0f);
+		// Mostrar FPS (ImGui lo calcula automáticamente)
+		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms/frame)",
+			ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+
+		ImGui::SameLine(); // Pone el siguiente elemento en la misma línea
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+
+		if (ImGui::Button("Hola")) {
+			// Tu acción aquí
+		}
+
+		ImGui::End();
+	}
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
+
+
+	// -----------------------------------------------------------------------
+	ImGui::Render(); 
 
 	// 4. ACTUALIZAR Y DIBUJAR ESCENA
 	scene->update(gc.get(), i);
