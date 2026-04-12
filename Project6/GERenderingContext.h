@@ -48,6 +48,11 @@ public:
 	VkPipeline getActivePipeline() {
 		return graphicsPipeline[pipelineIndex];
 	}
+
+
+	VkRenderPass getRenderPass() const { return renderPass; }
+	uint32_t getImageCount() const { return imageCount; }
+
 private:
 	// M?todos de creaci?n de componentes
 	void createRenderPass(GEGraphicsContext* gc);
@@ -70,5 +75,6 @@ private:
 	// M?todos auxiliares
 	VkShaderModule createShaderModule(GEGraphicsContext* gc, const std::vector<char>& code);
 	std::vector<char> getFileFromResource(int resource);
+
 };
 

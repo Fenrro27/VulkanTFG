@@ -104,9 +104,8 @@ FILE: Project6\GEApplication.cpp
 #include <vector>
 #include <glm/common.hpp>
 #include "resource.h"
-#include "imgui.h"
-#include "backends/imgui_impl_vulkan.h"
-#include "backends/imgui_impl_glfw.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 
 void GEApplication::run()
 {
@@ -118,6 +117,14 @@ void GEApplication::run()
 	this->cc = std::make_unique < GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
 	this->scene = std::make_unique <GEScene>(gc.get(), dc.get(), cc.get());
+
+	if (scene->getRenderingContext() != nullptr) {
+		std::cout << "Intentando iniciar imgui" << std::endl;
+		inicializarImGui();
+	}
+	else {
+		std::cout << "[ERROR FATAL] La escena no cre� el RenderingContext" << std::endl;
+	}
 
 	mainLoop();
 
@@ -164,17 +171,35 @@ void GEApplication::mainLoop()
 
 void GEApplication::draw()
 {
+
 	dc->waitForNextImage(gc.get());
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	scene->update(gc.get(), dc->getCurrentImage());
+	ImGui::Begin("Panel de Control");
+	ImGui::Text("�Si ves esto, ImGui funciona!");
+	ImGui::End();
 
 	ImGui::Render();
 
-	scene->fillCommandBuffers(cc.get());
+	uint32_t imageIndex = dc->getCurrentImage();
+	VkCommandBuffer cb = cc->commandBuffers[imageIndex];
+
+	vkResetCommandBuffer(cb, 0);
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkBeginCommandBuffer(cb, &beginInfo);
+
+	scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
+	scene->update(gc.get(), dc->getCurrentImage());
+
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+
+	scene->getRenderingContext()->insertEndCommands(cb);
+	vkEndCommandBuffer(cb);
 
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
@@ -184,10 +209,16 @@ void GEApplication::cleanup()
 {
 	if(gc) vkDeviceWaitIdle(gc->device); 
 
+	if (imguiPool != VK_NULL_HANDLE) {
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+		vkDestroyDescriptorPool(gc->device, imguiPool, nullptr);
+	}
+
 	if(scene) scene->destroy(gc.get());
 	if(cc) cc->destroy(gc.get());
 	if(dc) dc->destroy(gc.get());
-
 	glfwTerminate();
 }
 
@@ -271,6 +302,83 @@ void GEApplication::resize()
 	this->scene->aspect_ratio(aspect);
 }
 
+void GEApplication::inicializarImGui() {
+
+	if (!gc) {
+		std::cerr << "[ImGui] ERROR: GraphicsContext (gc) es nulo." << std::endl;
+		return;
+	}
+	if (!scene) {
+		std::cerr << "[ImGui] ERROR: La escena no existe. ImGui necesita el RenderPass de la escena." << std::endl;
+		return;
+	}
+
+	auto renderContext = scene->getRenderingContext();
+	if (!renderContext) {
+		std::cerr << "[ImGui] ERROR: El RenderingContext es nulo. No se puede obtener el RenderPass." << std::endl;
+		return;
+	}
+
+	VkDescriptorPoolSize pool_sizes[] = {
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
+	};
+	VkDescriptorPoolCreateInfo pool_info = {};
+	pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	pool_info.maxSets = 1000;
+	pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
+	pool_info.pPoolSizes = pool_sizes;
+
+	if (vkCreateDescriptorPool(gc->device, &pool_info, nullptr, &this->imguiPool) != VK_SUCCESS) {
+		std::cerr << "[ImGui] ERROR: No se pudo crear el Descriptor Pool." << std::endl;
+		return;
+	}
+
+	IMGUI_CHECKVERSION();
+	if (!ImGui::CreateContext()) {
+		std::cerr << "[ImGui] ERROR: No se pudo crear el contexto de ImGui." << std::endl;
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+
+	if (!ImGui_ImplGlfw_InitForVulkan(this->window.get(), true)) {
+		std::cerr << "[ImGui] ERROR: Fall� la inicializaci�n de ImGui para GLFW." << std::endl;
+		return;
+	}
+
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance = gc->instance;
+	init_info.PhysicalDevice = gc->physicalDevice;
+	init_info.Device = gc->device;
+	init_info.QueueFamily = gc->graphicsQueueFamilyIndex;
+
+	vkGetDeviceQueue(gc->device, gc->graphicsQueueFamilyIndex, 0, &init_info.Queue);
+	if (init_info.Queue == VK_NULL_HANDLE) {
+		std::cerr << "[ImGui] ERROR: No se pudo obtener la cola (Queue) de Vulkan." << std::endl;
+		return;
+	}
+
+	init_info.DescriptorPool = this->imguiPool;
+	init_info.MinImageCount = 2;
+	init_info.ImageCount = renderContext->getImageCount();
+
+	init_info.PipelineInfoMain.RenderPass = renderContext->getRenderPass();
+	init_info.PipelineInfoMain.Subpass = 0;
+	init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+	if (!ImGui_ImplVulkan_Init(&init_info)) {
+		std::cerr << "[ImGui] ERROR: Fall� la inicializaci�n de ImGui para Vulkan." << std::endl;
+		return;
+	}
+
+	std::cout << "--------------------------------------------------" << std::endl;
+	std::cout << "[SUCCESS] ImGui inicializado correctamente!" << std::endl;
+	std::cout << "[INFO] RenderPass utilizado: " << renderContext->getRenderPass() << std::endl;
+	std::cout << "[INFO] Im�genes en Swapchain: " << renderContext->getImageCount() << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
+}
 
 ========================================
 FILE: Project6\GEApplication.h
@@ -284,6 +392,10 @@ FILE: Project6\GEApplication.h
 #include "GEDrawingContext.h"
 #include "GECommandContext.h"
 #include "GEScene.h"
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -309,6 +421,9 @@ private:
 
 	GLFWwindow* initWindow();
 	GEWindowPosition initWindowPos();
+
+	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+
 	void mainLoop();
 	void draw();
 	void cleanup();
@@ -319,6 +434,9 @@ private:
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 	static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+	void inicializarImGui();
+
 };
 
 
@@ -4717,6 +4835,10 @@ public:
 	VkPipeline getActivePipeline() {
 		return graphicsPipeline[pipelineIndex];
 	}
+
+	VkRenderPass getRenderPass() const { return renderPass; }
+	uint32_t getImageCount() const { return imageCount; }
+
 private:
 
 	void createRenderPass(GEGraphicsContext* gc);
@@ -4737,6 +4859,7 @@ private:
 
 	VkShaderModule createShaderModule(GEGraphicsContext* gc, const std::vector<char>& code);
 	std::vector<char> getFileFromResource(int resource);
+
 };
 
 
@@ -4771,9 +4894,10 @@ FILE: Project6\GEScene.cpp
 #include "GETexture.h"
 #include "GEModel.h"
 #include "commonDebug.h"
+
 #include "imgui.h"
-#include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 
 GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
 {
@@ -4956,20 +5080,6 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 		timeAccumulator = 0.0f;
 	}
 
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always); 
-	ImGui::SetNextWindowBgAlpha(0.35f); 
-
-	if (ImGui::Begin("HUD", NULL, window_flags))
-	{
-
-		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "FPS: %d", currentFPS);
-
-		std::string modo = camera->isFpsMode ? "FPS (Minecraft)" : "Vuelo Libre";
-		ImGui::Text("Modo Camara: %s", modo.c_str());
-	}
-	ImGui::End();
-
 	camera->update();
 	glm::mat4 view = camera->getViewMatrix();
 
@@ -5149,7 +5259,6 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 						vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset); 
 						vkCmdDraw(cb, particleCount, 1, 0, 0); 
 				}
-				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
 				rc->insertEndCommands(cb);
 	}
 
@@ -5328,6 +5437,7 @@ private:
 
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
+	void fillCommandBuffers(GECommandContext* commandBuffers);
 
 	bool isDragging = false;
 	bool firstMouse = true;
@@ -5345,7 +5455,8 @@ public:
 	void mouse_action(double xpos, double ypos);
 	void toggle_camera_mode();
 	void mouse_button_action(GLFWwindow* window, int button, int action);
-	void fillCommandBuffers(GECommandContext* commandBuffers);
+
+	GERenderingContext* getRenderingContext() { return rc.get(); }
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

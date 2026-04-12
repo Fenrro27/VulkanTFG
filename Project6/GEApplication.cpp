@@ -8,9 +8,8 @@
 #include <vector>
 #include <glm/common.hpp>
 #include "resource.h"
-#include "imgui.h"
-#include "backends/imgui_impl_vulkan.h"
-#include "backends/imgui_impl_glfw.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 
 //
 // FUNCIÓN: GEApplication::run()
@@ -27,6 +26,14 @@ void GEApplication::run()
 	this->cc = std::make_unique < GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
 	this->scene = std::make_unique <GEScene>(gc.get(), dc.get(), cc.get());
+
+	if (scene->getRenderingContext() != nullptr) {
+		std::cout << "Intentando iniciar imgui" << std::endl;
+		inicializarImGui();
+	}
+	else {
+		std::cout << "[ERROR FATAL] La escena no creó el RenderingContext" << std::endl;
+	}
 
 	mainLoop();
 
@@ -95,23 +102,38 @@ void GEApplication::mainLoop()
 //
 void GEApplication::draw()
 {
-	if (ImGui::GetCurrentContext() == nullptr) {
-		throw std::runtime_error("¡CRASH EVITADO! ImGui no se ha inicializado. Revisa donde pusiste ImGui::CreateContext().");
-	}
 
 	dc->waitForNextImage(gc.get());
-
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	ImGui::Begin("Panel de Control");
+	ImGui::Text("¡Si ves esto, ImGui funciona!");
+	ImGui::End();
 
-	scene->update(gc.get(), dc->getCurrentImage());
-
+	// Generar los datos de renderizado
 	ImGui::Render();
 
-	scene->fillCommandBuffers(cc.get());
+	uint32_t imageIndex = dc->getCurrentImage();
+	VkCommandBuffer cb = cc->commandBuffers[imageIndex];
+
+	// Resetear el buffer para escribir de nuevo
+	vkResetCommandBuffer(cb, 0);
+
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkBeginCommandBuffer(cb, &beginInfo);
+
+	scene->getRenderingContext()->insertBeginCommands(cb, imageIndex);
+	scene->update(gc.get(), dc->getCurrentImage());
+
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
+
+	// Cerrar renderpass
+	scene->getRenderingContext()->insertEndCommands(cb);
+	vkEndCommandBuffer(cb);
 
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
@@ -126,14 +148,16 @@ void GEApplication::cleanup()
 {
 	if(gc) vkDeviceWaitIdle(gc->device); // ESPERA A LA GPU ANTES DE DESTRUIR NADA
 
+	if (imguiPool != VK_NULL_HANDLE) {
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+		vkDestroyDescriptorPool(gc->device, imguiPool, nullptr);
+	}
+
 	if(scene) scene->destroy(gc.get());
 	if(cc) cc->destroy(gc.get());
 	if(dc) dc->destroy(gc.get());
-	//delete scene;
-	//delete cc;
-	//delete dc;
-	//delete gc;
-	//glfwDestroyWindow(window.get());
 	glfwTerminate();
 }
 
@@ -236,7 +260,6 @@ void GEApplication::resize()
 
 	dc->recreate(gc.get(), windowPos);
 	cc->destroy(gc.get());
-	// delete cc;
 
 	this->cc = std::make_unique<GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
@@ -248,3 +271,88 @@ void GEApplication::resize()
 	this->scene->aspect_ratio(aspect);
 }
 
+void GEApplication::inicializarImGui() {
+	// 1. Comprobaciones de seguridad iniciales
+	if (!gc) {
+		std::cerr << "[ImGui] ERROR: GraphicsContext (gc) es nulo." << std::endl;
+		return;
+	}
+	if (!scene) {
+		std::cerr << "[ImGui] ERROR: La escena no existe. ImGui necesita el RenderPass de la escena." << std::endl;
+		return;
+	}
+
+	auto renderContext = scene->getRenderingContext();
+	if (!renderContext) {
+		std::cerr << "[ImGui] ERROR: El RenderingContext es nulo. No se puede obtener el RenderPass." << std::endl;
+		return;
+	}
+
+	// 2. Crear Pool de Descriptores con verificación
+	VkDescriptorPoolSize pool_sizes[] = {
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
+	};
+	VkDescriptorPoolCreateInfo pool_info = {};
+	pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	pool_info.maxSets = 1000;
+	pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
+	pool_info.pPoolSizes = pool_sizes;
+
+	if (vkCreateDescriptorPool(gc->device, &pool_info, nullptr, &this->imguiPool) != VK_SUCCESS) {
+		std::cerr << "[ImGui] ERROR: No se pudo crear el Descriptor Pool." << std::endl;
+		return;
+	}
+
+	// 3. Setup Contexto ImGui
+	IMGUI_CHECKVERSION();
+	if (!ImGui::CreateContext()) {
+		std::cerr << "[ImGui] ERROR: No se pudo crear el contexto de ImGui." << std::endl;
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+
+	// 4. Inicializar Binding de GLFW
+	if (!ImGui_ImplGlfw_InitForVulkan(this->window.get(), true)) {
+		std::cerr << "[ImGui] ERROR: Falló la inicialización de ImGui para GLFW." << std::endl;
+		return;
+	}
+
+	// 5. Configurar información de inicialización para Vulkan
+	ImGui_ImplVulkan_InitInfo init_info = {};
+	init_info.Instance = gc->instance;
+	init_info.PhysicalDevice = gc->physicalDevice;
+	init_info.Device = gc->device;
+	init_info.QueueFamily = gc->graphicsQueueFamilyIndex;
+
+	// Obtenemos la cola de gráficos directamente
+	vkGetDeviceQueue(gc->device, gc->graphicsQueueFamilyIndex, 0, &init_info.Queue);
+	if (init_info.Queue == VK_NULL_HANDLE) {
+		std::cerr << "[ImGui] ERROR: No se pudo obtener la cola (Queue) de Vulkan." << std::endl;
+		return;
+	}
+
+	init_info.DescriptorPool = this->imguiPool;
+	init_info.MinImageCount = 2;
+	init_info.ImageCount = renderContext->getImageCount();
+
+	// Configuración del Pipeline (Tu versión de ImGui usa PipelineInfoMain)
+	init_info.PipelineInfoMain.RenderPass = renderContext->getRenderPass();
+	init_info.PipelineInfoMain.Subpass = 0;
+	init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+	// 6. Inicializar Binding de Vulkan
+	if (!ImGui_ImplVulkan_Init(&init_info)) {
+		std::cerr << "[ImGui] ERROR: Falló la inicialización de ImGui para Vulkan." << std::endl;
+		return;
+	}
+
+	// MENSAJE DE ÉXITO
+	std::cout << "--------------------------------------------------" << std::endl;
+	std::cout << "[SUCCESS] ImGui inicializado correctamente!" << std::endl;
+	std::cout << "[INFO] RenderPass utilizado: " << renderContext->getRenderPass() << std::endl;
+	std::cout << "[INFO] Imágenes en Swapchain: " << renderContext->getImageCount() << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
+}

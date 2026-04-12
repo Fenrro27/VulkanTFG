@@ -45,6 +45,8 @@ private:
 
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
+	void fillCommandBuffers(GECommandContext* commandBuffers);
+
 
 	bool isDragging = false;
 	bool firstMouse = true;
@@ -63,8 +65,8 @@ public:
 	void mouse_action(double xpos, double ypos);
 	void toggle_camera_mode();
 	void mouse_button_action(GLFWwindow* window, int button, int action);
-	void fillCommandBuffers(GECommandContext* commandBuffers);
 
+	GERenderingContext* getRenderingContext() { return rc.get(); }
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

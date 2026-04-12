@@ -8,6 +8,11 @@
 #include "GECommandContext.h"
 #include "GEScene.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
+
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
@@ -39,6 +44,9 @@ private:
 	// Métodos principales
 	GLFWwindow* initWindow();
 	GEWindowPosition initWindowPos();
+
+	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+
 	void mainLoop();
 	void draw();
 	void cleanup();
@@ -50,5 +58,8 @@ private:
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 	static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+	void inicializarImGui();
+
 };
 

@@ -26,9 +26,10 @@
 #include "GETexture.h"
 #include "GEModel.h"
 #include "commonDebug.h"
+
 #include "imgui.h"
-#include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
 
 //
 // FUNCI�N: GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc)
@@ -238,28 +239,12 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 		timeAccumulator = 0.0f;
 	}
 
-	// DIBUJAR EL HUD DE IMGUI
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
-	ImGui::SetNextWindowBgAlpha(0.35f);
-
-	if (ImGui::Begin("HUD", NULL, window_flags))
-	{
-		// Texto en verde para los FPS
-		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "FPS: %d", currentFPS);
-
-		if (camera != nullptr) {
-			std::string modo = camera->isFpsMode ? "FPS (Minecraft)" : "Vuelo Libre";
-			ImGui::Text("Modo Camara: %s", modo.c_str());
-		}
-		else {
-			ImGui::Text("Cargando camara...");
-		}
-	}
-	ImGui::End();
-
+	
 	camera->update();
 	glm::mat4 view = camera->getViewMatrix();
+
+
+
 
 	skybox->update(gc, index, view, projection);
 
@@ -457,7 +442,6 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 						vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset); 
 						vkCmdDraw(cb, particleCount, 1, 0, 0); 
 				}
-				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
 				rc->insertEndCommands(cb);
 	}
 

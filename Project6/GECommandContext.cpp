@@ -49,6 +49,7 @@ void GECommandContext::createCommandPool(GEGraphicsContext* gc)
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = gc->graphicsQueueFamilyIndex;
 
+
 	if (vkCreateCommandPool(gc->device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
 	{
 		throw std::runtime_error("failed to create command pool!");
