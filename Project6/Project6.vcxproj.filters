@@ -342,19 +342,24 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\comp.vert.spv">
+    <Image Include="..\..\..\Icon\toy.ico">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\fire_comp.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
-    <None Include="shaders\comp.frag.spv">
+    <None Include="shaders\particles_frag.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
-    <None Include="shaders\comp.spv">
+    <None Include="shaders\particles_vert.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
-    <None Include="shaders\frag.spv">
+    <None Include="shaders\scene_frag.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
-    <None Include="shaders\vert.spv">
+    <None Include="shaders\scene_vert.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
     <None Include="shaders\skybox_frag.spv">
@@ -363,10 +368,11 @@
     <None Include="shaders\skybox_vert.spv">
       <Filter>Archivos de recursos</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\Icon\toy.ico">
+    <None Include="shaders\smoke_comp.spv">
       <Filter>Archivos de recursos</Filter>
-    </Image>
+    </None>
+    <None Include="shaders\water_comp.spv">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>

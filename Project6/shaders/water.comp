@@ -1,0 +1,80 @@
+#version 450
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    float size;
+    vec3 norm;       
+    int activeTTL;
+    float ttl;
+    float currentTtl;
+};
+
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
+
+layout(std140, binding = 2) uniform EmitterParams {
+    vec4 emitterPos;     
+    vec4 force;          
+    vec4 startColor;     
+    vec4 endColor;       
+    float deltaTime;     
+    float randomness;    
+    float startSize;     
+    float endSize;       
+    int particleType;    
+    float time;          
+} params;
+
+layout(local_size_x = 256) in;
+
+float random(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return float((state >> 22u) ^ state) / 4294967295.0;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x; 
+    if (index >= 100000) return;
+
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+
+    // REAPARICIÓN (Reset de la gota)
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = p.ttl; // Usamos el TTL original asignado en C++
+        p.pos = params.emitterPos.xyz;
+
+        // Lógica de 4 chorros
+        uint chorroID = index % 4;
+        float anguloBase = (90.0 * chorroID) * 0.0174533; 
+        float dispersion = (random(index + 500) - 0.5) * params.randomness;
+        float anguloFinal = anguloBase + dispersion;
+
+        float inclinacion = 0.35 + ((random(index + 30000) - 0.5) * 0.2); 
+
+        float vx = sin(inclinacion) * cos(anguloFinal);
+        float vy = cos(inclinacion);
+        float vz = sin(inclinacion) * sin(anguloFinal);
+
+        float fuerza = 12.0 + (random(index + 100) * 4.0); 
+        p.norm = vec3(vx, vy, vz) * fuerza;
+        
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+        // FÍSICA CONSTANTE
+        float gravedad = 9.8; 
+        p.norm.y -= gravedad * params.deltaTime; // Cae con el tiempo
+        p.norm.xz *= 0.99;                        // Rozamiento del aire
+        
+        p.pos += p.norm * params.deltaTime;
+
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
+    }
+
+    particlesOut[index] = p;
+}

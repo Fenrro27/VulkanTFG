@@ -45,6 +45,11 @@ GECamera::GECamera()
 //
 glm::mat4 GECamera::getViewMatrix()
 {
+	if (currentMode == CameraMode::THIRD_PERSON) {
+		glm::vec3 offsetPos = Pos + (Dir * 5.0f);
+		return glm::lookAt(offsetPos, Pos, Up);
+	}
+
 	return glm::lookAt(Pos, Pos - Dir, Up);
 }
 
@@ -147,14 +152,19 @@ float GECamera::getTurnStep()
 //
 // PROPÓSITO: Actualiza la posición y orientación de la cámara 
 //
-void GECamera::update()
+void GECamera::update(float deltaTime)
 {
-	if (turnLeftPressed && !turnRightPressed) turnLeft();
-	if (!turnLeftPressed && turnRightPressed) turnRight();
-	if (turnUpPressed && !turnDownPressed) turnUp();
-	if (!turnUpPressed && turnDownPressed) turnDown();
-	if (turnCWPressed && !turnCCWPressed) turnCW();
-	if (!turnCWPressed && turnCCWPressed) turnCCW();
+	// Solo permitimos rotaciones manuales (teclado) en modo FREE
+	if (currentMode == CameraMode::FREE) {
+		if (turnLeftPressed && !turnRightPressed) turnLeft();
+		if (!turnLeftPressed && turnRightPressed) turnRight();
+		if (turnUpPressed && !turnDownPressed) turnUp();
+		if (!turnUpPressed && turnDownPressed) turnDown();
+		if (turnCWPressed && !turnCCWPressed) turnCW();
+		if (!turnCWPressed && turnCCWPressed) turnCCW();
+	}
+
+	// El movimiento de traslación suele ser común
 	if (moveLeftPressed && !moveRightPressed) moveLeft();
 	if (!moveLeftPressed && moveRightPressed) moveRight();
 	if (moveUpPressed && !moveDownPressed) moveUp();
@@ -417,24 +427,47 @@ void GECamera::setMoveDown(bool flag)
 	moveDownPressed = flag;
 }
 
+void GECamera::setNextMode()
+{
+	// Ciclo entre FREE -> FPS -> THIRD_PERSON -> FREE
+	if (currentMode == CameraMode::FREE) {
+		currentMode = CameraMode::FPS;
+	}
+	else if (currentMode == CameraMode::FPS) {
+		currentMode = CameraMode::THIRD_PERSON;
+	}
+	else {
+		currentMode = CameraMode::FREE;
+	}
 
+	// Si entramos en un modo basado en Euler, sincronizamos ángulos
+	if (currentMode == CameraMode::FPS || currentMode == CameraMode::THIRD_PERSON)
+	{
+		glm::vec3 front = glm::normalize(Dir);
+		pitch = glm::degrees(asin(front.y));
+		yaw = glm::degrees(atan2(front.z, front.x));
+
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+	}
+}
 
 void GECamera::processMouse(float xoffset, float yoffset)
 {
-	if (!isFpsMode) return;
+	// Ahora el ratón afecta tanto a FPS como a Tercera Persona
+	if (currentMode == CameraMode::FREE) return;
 
 	float sensitivity = 0.1f;
 	yaw += xoffset * sensitivity;
-	pitch += yoffset * sensitivity; 
+	pitch += yoffset * sensitivity;
 
-	// Restringir el cabeceo para no dar la vuelta completa (como en Minecraft)
 	if (pitch > 89.0f) pitch = 89.0f;
 	if (pitch < -89.0f) pitch = -89.0f;
 
-	updateFPSCameraVectors();
+	updateCameraVectorsFromEuler();
 }
 
-void GECamera::updateFPSCameraVectors()
+void GECamera::updateCameraVectorsFromEuler()
 {
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -446,24 +479,3 @@ void GECamera::updateFPSCameraVectors()
 	Up = glm::normalize(glm::cross(Right, Dir));
 }
 
-
-void GECamera::toggleMode()
-{
-	isFpsMode = !isFpsMode;
-
-	if (isFpsMode)
-	{
-		// 1. Asegurarnos de que el vector de dirección está normalizado
-		glm::vec3 front = glm::normalize(Dir);
-
-		// 2. Extraer el Pitch (Cabeceo) usando el arco seno del eje Y
-		pitch = glm::degrees(asin(front.y));
-
-		// 3. Extraer el Yaw (Guiñada) usando el arco tangente de Z y X
-		yaw = glm::degrees(atan2(front.z, front.x));
-
-		// 4. Limitar el pitch por seguridad (para evitar el Gimbal Lock)
-		if (pitch > 89.0f) pitch = 89.0f;
-		if (pitch < -89.0f) pitch = -89.0f;
-	}
-}

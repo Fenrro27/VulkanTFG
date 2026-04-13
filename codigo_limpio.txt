@@ -106,6 +106,7 @@ FILE: Project6\GEApplication.cpp
 #include "resource.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+#include <imgui_internal.h>
 
 void GEApplication::run()
 {
@@ -185,6 +186,45 @@ void GEApplication::draw()
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+
+	float windowWidth = (float)dc->getExtent().width;
+	ImGui::SetNextWindowPos(ImVec2(0, 0)); 
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f)); 
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+	ImGuiWindowFlags window_flags = 0;
+	window_flags |= ImGuiWindowFlags_NoTitleBar;   
+	window_flags |= ImGuiWindowFlags_NoResize;     
+	window_flags |= ImGuiWindowFlags_NoMove;       
+	window_flags |= ImGuiWindowFlags_NoCollapse;   
+	window_flags |= ImGuiWindowFlags_NoScrollbar;  
+
+	if (ImGui::Begin("TopBar", nullptr, window_flags))
+	{
+		ImGui::SetCursorPosY(10.0f);
+
+		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms/frame)",
+			ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+
+		ImGui::SameLine(); 
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+
+		auto camera = scene->getCamera();
+
+		switch (camera->getCurrentMode()) {
+		case GECamera::CameraMode::FREE:         ImGui::Text("Modo: Libre"); break;
+		case GECamera::CameraMode::FPS:          ImGui::Text("Modo: FPS"); break;
+		case GECamera::CameraMode::THIRD_PERSON: ImGui::Text("Modo: Tercera Persona"); break;
+		}
+
+		ImGui::End();
+	}
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
 
 	ImGui::Render(); 
 
@@ -477,6 +517,11 @@ GECamera::GECamera()
 
 glm::mat4 GECamera::getViewMatrix()
 {
+	if (currentMode == CameraMode::THIRD_PERSON) {
+		glm::vec3 offsetPos = Pos + (Dir * 5.0f);
+		return glm::lookAt(offsetPos, Pos, Up);
+	}
+
 	return glm::lookAt(Pos, Pos - Dir, Up);
 }
 
@@ -529,14 +574,18 @@ float GECamera::getTurnStep()
 	return turnStep;
 }
 
-void GECamera::update()
+void GECamera::update(float deltaTime)
 {
-	if (turnLeftPressed && !turnRightPressed) turnLeft();
-	if (!turnLeftPressed && turnRightPressed) turnRight();
-	if (turnUpPressed && !turnDownPressed) turnUp();
-	if (!turnUpPressed && turnDownPressed) turnDown();
-	if (turnCWPressed && !turnCCWPressed) turnCW();
-	if (!turnCWPressed && turnCCWPressed) turnCCW();
+
+	if (currentMode == CameraMode::FREE) {
+		if (turnLeftPressed && !turnRightPressed) turnLeft();
+		if (!turnLeftPressed && turnRightPressed) turnRight();
+		if (turnUpPressed && !turnDownPressed) turnUp();
+		if (!turnUpPressed && turnDownPressed) turnDown();
+		if (turnCWPressed && !turnCCWPressed) turnCW();
+		if (!turnCWPressed && turnCCWPressed) turnCCW();
+	}
+
 	if (moveLeftPressed && !moveRightPressed) moveLeft();
 	if (!moveLeftPressed && moveRightPressed) moveRight();
 	if (moveUpPressed && !moveDownPressed) moveUp();
@@ -683,21 +732,46 @@ void GECamera::setMoveDown(bool flag)
 	moveDownPressed = flag;
 }
 
+void GECamera::setNextMode()
+{
+
+	if (currentMode == CameraMode::FREE) {
+		currentMode = CameraMode::FPS;
+	}
+	else if (currentMode == CameraMode::FPS) {
+		currentMode = CameraMode::THIRD_PERSON;
+	}
+	else {
+		currentMode = CameraMode::FREE;
+	}
+
+	if (currentMode == CameraMode::FPS || currentMode == CameraMode::THIRD_PERSON)
+	{
+		glm::vec3 front = glm::normalize(Dir);
+		pitch = glm::degrees(asin(front.y));
+		yaw = glm::degrees(atan2(front.z, front.x));
+
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+	}
+}
+
 void GECamera::processMouse(float xoffset, float yoffset)
 {
-	if (!isFpsMode) return;
+
+	if (currentMode == CameraMode::FREE) return;
 
 	float sensitivity = 0.1f;
 	yaw += xoffset * sensitivity;
-	pitch += yoffset * sensitivity; 
+	pitch += yoffset * sensitivity;
 
 	if (pitch > 89.0f) pitch = 89.0f;
 	if (pitch < -89.0f) pitch = -89.0f;
 
-	updateFPSCameraVectors();
+	updateCameraVectorsFromEuler();
 }
 
-void GECamera::updateFPSCameraVectors()
+void GECamera::updateCameraVectorsFromEuler()
 {
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -709,23 +783,6 @@ void GECamera::updateFPSCameraVectors()
 	Up = glm::normalize(glm::cross(Right, Dir));
 }
 
-void GECamera::toggleMode()
-{
-	isFpsMode = !isFpsMode;
-
-	if (isFpsMode)
-	{
-
-		glm::vec3 front = glm::normalize(Dir);
-
-		pitch = glm::degrees(asin(front.y));
-
-		yaw = glm::degrees(atan2(front.z, front.x));
-
-		if (pitch > 89.0f) pitch = 89.0f;
-		if (pitch < -89.0f) pitch = -89.0f;
-	}
-}
 
 ========================================
 FILE: Project6\GECamera.h
@@ -736,6 +793,9 @@ FILE: Project6\GECamera.h
 
 class GECamera {
 public:
+
+	enum class CameraMode { FREE, FPS, THIRD_PERSON };
+
 	GECamera();
 	glm::mat4 getViewMatrix();
 
@@ -750,7 +810,7 @@ public:
 	float getMoveStep();
 	float getTurnStep();
 
-	void update();
+	void update(float deltaTime);
 
 	void setTurnLeft(bool flag);
 	void setTurnRight(bool flag);
@@ -763,11 +823,14 @@ public:
 	void setMoveUp(bool flag);
 	void setMoveDown(bool flag);
 
-	bool isFpsMode = false;
-	void toggleMode();
+	void setNextMode();
+	CameraMode getCurrentMode() { return currentMode; }
+
 	void processMouse(float xoffset, float yoffset);
 
 private:
+	CameraMode currentMode = CameraMode::FREE;
+
 	glm::vec3 Pos;
 	glm::vec3 Dir;
 	glm::vec3 Up;
@@ -805,7 +868,7 @@ private:
 
 	float yaw = -90.0f; 
 	float pitch = 0.0f;
-	void updateFPSCameraVectors();
+	void updateCameraVectorsFromEuler();
 };
 
 
@@ -1965,7 +2028,7 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 
 	createInfo.preTransform = capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(gc->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
@@ -4999,7 +5062,9 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
-	particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
+	computeHumo = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount());
+	computeFuego = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount());
+	computeAgua = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount());
 
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
 	particleSystem.push_back(std::make_unique<GEFuego>(50));
@@ -5015,25 +5080,28 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
-	particleSystem[2]->translate(glm::vec3(25.0f, 10.0f, 0.0f));
+	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 }
 
 void GEScene::destroy(GEGraphicsContext* gc)
 {
-	particleCompute->destroy(gc);
+	computeAgua->destroy(gc);
+	computeFuego->destroy(gc);
+	computeHumo->destroy(gc);
+
 	rc->destroy(gc);
 	skybox->destroy(gc);
 	for (auto& figure: figures)
@@ -5095,7 +5163,7 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 		timeAccumulator = 0.0f;
 	}
 
-	camera->update();
+	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
 
 	skybox->update(gc, index, view, projection);
@@ -5163,7 +5231,7 @@ void GEScene::key_action(int key, bool pressed)
 		break;
 	case GLFW_KEY_M:
 		if (pressed) {
-			camera->toggleMode();
+			camera->setNextMode();
 			firstMouse = true; 
 			GE_DEBUG_INFO("Modo camara alternado");
 		}
@@ -5211,9 +5279,14 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				{
 						auto& ps = particleSystem[s]; 
 						uint32_t particleCount = ps->getParticlesCount(); 
-						uint32_t groupCount = (particleCount + 255) / 256; 
 
-						particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+						uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
+						uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
+						uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+
+						computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
+						computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
+						computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
 
 						VkBufferMemoryBarrier barriers[2] = {};
 					barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER; 
@@ -5311,8 +5384,8 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 	std::unique_ptr <GEPipelineConfig> GEScene::createScenePipelineConfig(VkExtent2D extent)
 {
 	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
-	config->vertex_shader = IDR_VERT;
-	config->fragment_shader = IDR_FRAG;
+	config->vertex_shader = IDR_VERT_SCENE;
+	config->fragment_shader = IDR_FRAG_SCENE;
 
 	config->attrStride = sizeof(GEVertex);
 	config->attrOffsets.resize(3);
@@ -5416,9 +5489,14 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
 	{
 		auto& ps = particleSystem[s];
 		uint32_t particleCount = ps->getParticlesCount();
-		uint32_t groupCount = (particleCount + 255) / 256;
 
-		particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+		uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
+		uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
+		uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+
+		computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
+		computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
+		computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
 
 		VkBufferMemoryBarrier barriers[2] = {};
 		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -5508,7 +5586,10 @@ private:
 	std::unique_ptr<GERenderingContext> rc;
 	std::unique_ptr<GESkybox> skybox;
 	std::unique_ptr<GECamera> camera;
-	std::unique_ptr<GEComputeShader> particleCompute;
+
+	std::unique_ptr<GEComputeShader> computeHumo;
+	std::unique_ptr<GEComputeShader> computeFuego;
+	std::unique_ptr<GEComputeShader> computeAgua;
 
 	std::vector<std::unique_ptr<GEFigure>> figures;
 	std::vector<std::unique_ptr<GEObject>> objects;
@@ -5541,6 +5622,7 @@ public:
 
 	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
+	GECamera* getCamera() { return camera.get(); }
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);
@@ -6541,18 +6623,20 @@ int main()
 FILE: Project6\resource.h
 ========================================
 
-#define IDR_VERT						101
-#define IDR_FRAG						102
+#define IDR_VERT_SCENE					101
+#define IDR_FRAG_SCENE					102
 #define IDI_ICON1                       103
-#define IDR_COMPUTE_PARTICLES           104
-#define IDR_VERT_PARTICLES				105
-#define IDR_FRAG_PARTICLES				106
-#define IDR_VERT_SKYBOX					107
-#define IDR_FRAG_SKYBOX					108
+#define IDR_COMPUTE_HUMO				104
+#define IDR_COMPUTE_FUEGO				105
+#define IDR_COMPUTE_AGUA				106
+#define IDR_VERT_PARTICLES				107
+#define IDR_FRAG_PARTICLES				108
+#define IDR_VERT_SKYBOX					109
+#define IDR_FRAG_SKYBOX					110
 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
@@ -77744,7 +77828,7 @@ FILE: Project6\ImGui\misc\single_file\imgui_single_file.h
 #endif
 
 ========================================
-FILE: Project6\shaders\particles.comp
+FILE: Project6\shaders\fire.comp
 ========================================
 #version 450
 
@@ -77758,13 +77842,8 @@ struct Particle {
     float currentTtl;
 };
 
-layout(std430, binding = 0) buffer ParticleBufferIn { 
-    Particle particlesIn[];
-};
-
-layout(std430, binding = 1) buffer ParticleBufferOut { 
-    Particle particlesOut[];
-};
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
 
 layout(std140, binding = 2) uniform EmitterParams {
     vec4 emitterPos;     
@@ -77784,90 +77863,40 @@ layout(local_size_x = 256) in;
 float random(uint seed) {
     uint state = seed * 747796405u + 2891336453u;
     state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
-    return float((state >> 22u) ^ state) / 4294967295.0; 
+    return float((state >> 22u) ^ state) / 4294967295.0;
 }
 
 void main() {
     uint index = gl_GlobalInvocationID.x; 
-
     if (index >= 100000) return;
 
     Particle p = particlesIn[index];
-
     p.currentTtl -= params.deltaTime;
 
     if (p.currentTtl <= 0.0) {
-
         p.currentTtl = max(p.ttl, 0.1); 
-	p.pos = params.emitterPos.xyz + (particlesIn[index].pos - particlesIn[index].pos); 
+        p.pos = params.emitterPos.xyz;
 
         float randX = (random(index) - 0.5) * params.randomness;
         float randY = (random(index + 10000) - 0.5) * params.randomness;
         float randZ = (random(index + 20000) - 0.5) * params.randomness;
 
-        if (params.particleType == 1) { 
-            p.norm = vec3(randX, abs(randY) * 2.0, randZ); 
-        } else if (params.particleType == 2) { 
-    uint chorroID = index % 4;
-
-    float anguloBase = (90.0 * chorroID) * 0.0174533; 
-
-    float dispersionHorizontal = (random(index + 500) - 0.5) * 0.4; 
-    float anguloFinalHorizontal = anguloBase + dispersionHorizontal;
-
-    float variacionInclinacion = (random(index + 30000) - 0.5) * 0.2; 
-    float anguloVertical = 0.35 + variacionInclinacion; 
-
-    float vx = sin(anguloVertical) * cos(anguloFinalHorizontal);
-    float vy = cos(anguloVertical);
-    float vz = sin(anguloVertical) * sin(anguloFinalHorizontal);
-
-    float fuerzaBase = 12.0 + (random(index + 100) * 4.0); 
-
-    p.norm = vec3(vx, vy, vz) * fuerzaBase;
-
-         } else { 
-	    p.norm = vec3(randX, randY, randZ); 
-        }
-
+        p.norm = vec3(randX, abs(randY) * 2.0, randZ); 
         p.color = params.startColor;
         p.size = params.startSize;
-
     } else {
         p.norm += params.force.xyz * params.deltaTime;
-
         p.pos += p.norm * params.deltaTime;
 
-        if (params.particleType == 0) { 
-            float swirlX = sin(p.pos.y * 0.5 + params.time * 2.0) * params.randomness;
-            float swirlZ = cos(p.pos.y * 0.5 + params.time * 1.5) * params.randomness;
+        float seed = float(index % 100u);
+        float upwardProgress = p.pos.y - params.emitterPos.y;
+        float flicker = sin(params.time * 10.0 + seed) * 0.2;
 
-            p.pos.x += swirlX * params.deltaTime;
-            p.pos.z += swirlZ * params.deltaTime;
-        }
-
-         if (params.particleType == 1) { 
-
-            float seed = float(index % 100u);
-
-            float upwardProgress = p.pos.y - params.emitterPos.y;
-            float flicker = sin(params.time * 10.0 + seed) * 0.2;
-
-            p.pos.x += sin(params.time * 4.0 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-            p.pos.z += cos(params.time * 3.5 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-
-            p.pos.y += flicker * params.deltaTime;
-        }
-
-if (params.particleType == 2) { 
-    float gravedad = 9.8; 
-            p.norm.y -= gravedad * params.deltaTime; 
-            p.norm.xz *= 0.99; 
-
-            }
+        p.pos.x += sin(params.time * 4.0 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
+        p.pos.z += cos(params.time * 3.5 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
+        p.pos.y += flicker * params.deltaTime;
 
         float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
-
         p.color = mix(params.startColor, params.endColor, lifeFactor);
         p.size = mix(params.startSize, params.endSize, lifeFactor);
     }
@@ -77876,7 +77905,7 @@ if (params.particleType == 2) {
 }
 
 ========================================
-FILE: Project6\shaders\shader.comp.frag
+FILE: Project6\shaders\particles_shader.frag
 ========================================
 #version 450
 
@@ -77908,7 +77937,7 @@ void main() {
 }
 
 ========================================
-FILE: Project6\shaders\shader.comp.vert
+FILE: Project6\shaders\particles_shader.vert
 ========================================
 #version 450
 
@@ -77936,7 +77965,7 @@ void main() {
 }
 
 ========================================
-FILE: Project6\shaders\shader.frag
+FILE: Project6\shaders\scene_shader.frag
 ========================================
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -77995,7 +78024,7 @@ void main()
 }
 
 ========================================
-FILE: Project6\shaders\shader.vert
+FILE: Project6\shaders\scene_shader.vert
 ========================================
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
@@ -78060,4 +78089,160 @@ void main()
     gl_Position = vec4(VertexPosition,1.0);
     Position = vec3(ubo.Inverse * gl_Position);
     Position = normalize(Position);
+}
+
+========================================
+FILE: Project6\shaders\smoke.comp
+========================================
+#version 450
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    float size;
+    vec3 norm;       
+    int activeTTL;
+    float ttl;
+    float currentTtl;
+};
+
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
+
+layout(std140, binding = 2) uniform EmitterParams {
+    vec4 emitterPos;     
+    vec4 force;          
+    vec4 startColor;     
+    vec4 endColor;       
+    float deltaTime;     
+    float randomness;    
+    float startSize;     
+    float endSize;       
+    int particleType;    
+    float time;          
+} params;
+
+layout(local_size_x = 256) in;
+
+float random(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return float((state >> 22u) ^ state) / 4294967295.0;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x; 
+    if (index >= 100000) return;
+
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = max(p.ttl, 0.1); 
+        p.pos = params.emitterPos.xyz;
+
+        float randX = (random(index) - 0.5) * params.randomness;
+        float randY = (random(index + 10000) - 0.5) * params.randomness;
+        float randZ = (random(index + 20000) - 0.5) * params.randomness;
+
+        p.norm = vec3(randX, randY, randZ); 
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+        p.norm += params.force.xyz * params.deltaTime;
+        p.pos += p.norm * params.deltaTime;
+
+        float swirlX = sin(p.pos.y * 0.5 + params.time * 2.0) * params.randomness;
+        float swirlZ = cos(p.pos.y * 0.5 + params.time * 1.5) * params.randomness;
+        p.pos.x += swirlX * params.deltaTime;
+        p.pos.z += swirlZ * params.deltaTime;
+
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
+    }
+
+    particlesOut[index] = p;
+}
+
+========================================
+FILE: Project6\shaders\water.comp
+========================================
+#version 450
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    float size;
+    vec3 norm;       
+    int activeTTL;
+    float ttl;
+    float currentTtl;
+};
+
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
+
+layout(std140, binding = 2) uniform EmitterParams {
+    vec4 emitterPos;     
+    vec4 force;          
+    vec4 startColor;     
+    vec4 endColor;       
+    float deltaTime;     
+    float randomness;    
+    float startSize;     
+    float endSize;       
+    int particleType;    
+    float time;          
+} params;
+
+layout(local_size_x = 256) in;
+
+float random(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return float((state >> 22u) ^ state) / 4294967295.0;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x; 
+    if (index >= 100000) return;
+
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = p.ttl; 
+        p.pos = params.emitterPos.xyz;
+
+        uint chorroID = index % 4;
+        float anguloBase = (90.0 * chorroID) * 0.0174533; 
+        float dispersion = (random(index + 500) - 0.5) * params.randomness;
+        float anguloFinal = anguloBase + dispersion;
+
+        float inclinacion = 0.35 + ((random(index + 30000) - 0.5) * 0.2); 
+
+        float vx = sin(inclinacion) * cos(anguloFinal);
+        float vy = cos(inclinacion);
+        float vz = sin(inclinacion) * sin(anguloFinal);
+
+        float fuerza = 12.0 + (random(index + 100) * 4.0); 
+        p.norm = vec3(vx, vy, vz) * fuerza;
+
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+
+        float gravedad = 9.8; 
+        p.norm.y -= gravedad * params.deltaTime; 
+        p.norm.xz *= 0.99;                        
+
+        p.pos += p.norm * params.deltaTime;
+
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
+    }
+
+    particlesOut[index] = p;
 }

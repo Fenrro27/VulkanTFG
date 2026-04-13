@@ -124,8 +124,12 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
-	particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
-	
+	//particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
+
+	computeHumo = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount());
+	computeFuego = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount());
+	computeAgua = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount());
+
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
 	particleSystem.push_back(std::make_unique<GEFuego>(50));
 	particleSystem.push_back(std::make_unique<GEAgua>(1000));
@@ -141,22 +145,21 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
-	particleSystem[2]->translate(glm::vec3(25.0f, 10.0f, 0.0f));
+	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
-	particleCompute->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 
-	//fillCommandBuffers(cc);
 }
 
 //
@@ -166,7 +169,10 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 //
 void GEScene::destroy(GEGraphicsContext* gc)
 {
-	particleCompute->destroy(gc);
+	computeAgua->destroy(gc);
+	computeFuego->destroy(gc);
+	computeHumo->destroy(gc);
+	
 	rc->destroy(gc);
 	skybox->destroy(gc);
 	for (auto& figure: figures)
@@ -240,7 +246,7 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index)
 	}
 
 	
-	camera->update();
+	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
 
 	skybox->update(gc, index, view, projection);
@@ -313,7 +319,7 @@ void GEScene::key_action(int key, bool pressed)
 		break;
 	case GLFW_KEY_M:
 		if (pressed) {
-			camera->toggleMode();
+			camera->setNextMode();
 			firstMouse = true; // Resetea el ratón al cambiar de modo
 			GE_DEBUG_INFO("Modo camara alternado");
 		}
@@ -372,9 +378,20 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 				{
 						auto& ps = particleSystem[s]; 
 						uint32_t particleCount = ps->getParticlesCount(); 
-						uint32_t groupCount = (particleCount + 255) / 256; 
+						//uint32_t groupCount = (particleCount + 255) / 256; 
 
-						particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+						//particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+
+						uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
+						uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
+						uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+
+						// Cada uno usa su propio Pipeline
+						computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
+						computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
+						computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
+
+
 
 						VkBufferMemoryBarrier barriers[2] = {};
 					barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER; 
@@ -484,8 +501,8 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 	std::unique_ptr <GEPipelineConfig> GEScene::createScenePipelineConfig(VkExtent2D extent)
 {
 	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
-	config->vertex_shader = IDR_VERT;
-	config->fragment_shader = IDR_FRAG;
+	config->vertex_shader = IDR_VERT_SCENE;
+	config->fragment_shader = IDR_FRAG_SCENE;
 
 	config->attrStride = sizeof(GEVertex);
 	config->attrOffsets.resize(3);
@@ -603,9 +620,18 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
 	{
 		auto& ps = particleSystem[s];
 		uint32_t particleCount = ps->getParticlesCount();
-		uint32_t groupCount = (particleCount + 255) / 256;
+		//uint32_t groupCount = (particleCount + 255) / 256;
 
-		particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+		//particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+
+		uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
+		uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
+		uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+
+		// Cada uno usa su propio Pipeline
+		computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
+		computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
+		computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
 
 		VkBufferMemoryBarrier barriers[2] = {};
 		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;

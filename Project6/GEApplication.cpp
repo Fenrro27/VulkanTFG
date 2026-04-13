@@ -129,7 +129,7 @@ void GEApplication::draw()
 	
 	// 1. EMPUJAR ESTILO: Color de fondo (Oscuro semitransparente)
 // RGBA: 0,0,0 es negro. 0.7f es el 70% de opacidad.
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.7f));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
 	// Quitamos el borde para que se fusione perfectamente con el marco
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
@@ -153,8 +153,12 @@ void GEApplication::draw()
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 
-		if (ImGui::Button("Hola")) {
-			// Tu acción aquí
+		auto camera = scene->getCamera();
+
+		switch (camera->getCurrentMode()) {
+		case GECamera::CameraMode::FREE:         ImGui::Text("Modo: Libre"); break;
+		case GECamera::CameraMode::FPS:          ImGui::Text("Modo: FPS"); break;
+		case GECamera::CameraMode::THIRD_PERSON: ImGui::Text("Modo: Tercera Persona"); break;
 		}
 
 		ImGui::End();

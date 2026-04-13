@@ -34,7 +34,10 @@ private:
 	std::unique_ptr<GERenderingContext> rc;
 	std::unique_ptr<GESkybox> skybox;
 	std::unique_ptr<GECamera> camera;
-	std::unique_ptr<GEComputeShader> particleCompute;
+
+	std::unique_ptr<GEComputeShader> computeHumo;
+	std::unique_ptr<GEComputeShader> computeFuego;
+	std::unique_ptr<GEComputeShader> computeAgua;
 
 	//GEObject* plane; 
 	std::vector<std::unique_ptr<GEFigure>> figures;
@@ -71,6 +74,7 @@ public:
 
 	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
+	GECamera* getCamera() { return camera.get(); }
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

@@ -244,16 +244,18 @@
     <ResourceCompile Include="Project6.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\comp.frag.spv" />
-    <None Include="shaders\comp.spv" />
-    <None Include="shaders\comp.vert.spv" />
-    <None Include="shaders\frag.spv" />
-    <None Include="shaders\skybox_frag.spv" />
-    <None Include="shaders\skybox_vert.spv" />
-    <None Include="shaders\vert.spv" />
+    <Image Include="..\..\..\Icon\toy.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Icon\toy.ico" />
+    <None Include="shaders\fire_comp.spv" />
+    <None Include="shaders\particles_frag.spv" />
+    <None Include="shaders\particles_vert.spv" />
+    <None Include="shaders\scene_frag.spv" />
+    <None Include="shaders\scene_vert.spv" />
+    <None Include="shaders\skybox_frag.spv" />
+    <None Include="shaders\skybox_vert.spv" />
+    <None Include="shaders\smoke_comp.spv" />
+    <None Include="shaders\water_comp.spv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

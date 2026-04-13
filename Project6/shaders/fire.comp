@@ -1,0 +1,73 @@
+#version 450
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    float size;
+    vec3 norm;       
+    int activeTTL;
+    float ttl;
+    float currentTtl;
+};
+
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
+
+layout(std140, binding = 2) uniform EmitterParams {
+    vec4 emitterPos;     
+    vec4 force;          
+    vec4 startColor;     
+    vec4 endColor;       
+    float deltaTime;     
+    float randomness;    
+    float startSize;     
+    float endSize;       
+    int particleType;    
+    float time;          
+} params;
+
+layout(local_size_x = 256) in;
+
+float random(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return float((state >> 22u) ^ state) / 4294967295.0;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x; 
+    if (index >= 100000) return;
+
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = max(p.ttl, 0.1); 
+        p.pos = params.emitterPos.xyz;
+
+        float randX = (random(index) - 0.5) * params.randomness;
+        float randY = (random(index + 10000) - 0.5) * params.randomness;
+        float randZ = (random(index + 20000) - 0.5) * params.randomness;
+        
+        p.norm = vec3(randX, abs(randY) * 2.0, randZ); 
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+        p.norm += params.force.xyz * params.deltaTime;
+        p.pos += p.norm * params.deltaTime;
+
+        float seed = float(index % 100u);
+        float upwardProgress = p.pos.y - params.emitterPos.y;
+        float flicker = sin(params.time * 10.0 + seed) * 0.2;
+        
+        p.pos.x += sin(params.time * 4.0 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
+        p.pos.z += cos(params.time * 3.5 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
+        p.pos.y += flicker * params.deltaTime;
+
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
+    }
+
+    particlesOut[index] = p;
+}

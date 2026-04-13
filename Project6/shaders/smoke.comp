@@ -1,0 +1,71 @@
+#version 450
+
+struct Particle {
+    vec4 color;
+    vec3 pos;
+    float size;
+    vec3 norm;       
+    int activeTTL;
+    float ttl;
+    float currentTtl;
+};
+
+layout(std430, binding = 0) buffer ParticleBufferIn { Particle particlesIn[]; };
+layout(std430, binding = 1) buffer ParticleBufferOut { Particle particlesOut[]; };
+
+layout(std140, binding = 2) uniform EmitterParams {
+    vec4 emitterPos;     
+    vec4 force;          
+    vec4 startColor;     
+    vec4 endColor;       
+    float deltaTime;     
+    float randomness;    
+    float startSize;     
+    float endSize;       
+    int particleType;    
+    float time;          
+} params;
+
+layout(local_size_x = 256) in;
+
+float random(uint seed) {
+    uint state = seed * 747796405u + 2891336453u;
+    state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return float((state >> 22u) ^ state) / 4294967295.0;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x; 
+    if (index >= 100000) return;
+
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = max(p.ttl, 0.1); 
+        p.pos = params.emitterPos.xyz;
+
+        float randX = (random(index) - 0.5) * params.randomness;
+        float randY = (random(index + 10000) - 0.5) * params.randomness;
+        float randZ = (random(index + 20000) - 0.5) * params.randomness;
+        
+        p.norm = vec3(randX, randY, randZ); 
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+        p.norm += params.force.xyz * params.deltaTime;
+        p.pos += p.norm * params.deltaTime;
+
+        // Efecto de remolino para el humo
+        float swirlX = sin(p.pos.y * 0.5 + params.time * 2.0) * params.randomness;
+        float swirlZ = cos(p.pos.y * 0.5 + params.time * 1.5) * params.randomness;
+        p.pos.x += swirlX * params.deltaTime;
+        p.pos.z += swirlZ * params.deltaTime;
+
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
+    }
+
+    particlesOut[index] = p;
+}

@@ -2,8 +2,12 @@
 
 #include <glm/glm.hpp>
 
+
 class GECamera {
 public:
+
+	enum class CameraMode { FREE, FPS, THIRD_PERSON };
+
 	GECamera();
 	glm::mat4 getViewMatrix();
 
@@ -18,7 +22,7 @@ public:
 	float getMoveStep();
 	float getTurnStep();
 
-	void update();
+	void update(float deltaTime);
 
 	void setTurnLeft(bool flag);
 	void setTurnRight(bool flag);
@@ -31,12 +35,15 @@ public:
 	void setMoveUp(bool flag);
 	void setMoveDown(bool flag);
 
-	bool isFpsMode = false;
-	void toggleMode();
+	void setNextMode();
+	CameraMode getCurrentMode() { return currentMode; }
+
 	void processMouse(float xoffset, float yoffset);
 
 
 private:
+	CameraMode currentMode = CameraMode::FREE;
+
 	glm::vec3 Pos;
 	glm::vec3 Dir;
 	glm::vec3 Up;
@@ -74,6 +81,6 @@ private:
 
 	float yaw = -90.0f; // -90 para mirar hacia -Z por defecto
 	float pitch = 0.0f;
-	void updateFPSCameraVectors();
+	void updateCameraVectorsFromEuler();
 };
 
