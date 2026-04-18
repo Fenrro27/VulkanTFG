@@ -55,6 +55,7 @@ class GEParticlesSystem
 		//void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection, float fixedDeltaTime);
 		void resetLocation();
 		void setLocation(glm::mat4 m);
+		glm::mat4 getLocation() { return location; }
 		void translate(glm::vec3 t);
 		void rotate(float angle, glm::vec3 axis);
 		void setMaterial(GEMaterial m);

@@ -36,6 +36,9 @@ GECamera::GECamera()
 	moveRightPressed = false;
 	moveUpPressed = false;
 	moveDownPressed = false;
+
+	moveFrontPressed = false;
+	moveBackPressed = false;
 }
 
 //
@@ -45,11 +48,26 @@ GECamera::GECamera()
 //
 glm::mat4 GECamera::getViewMatrix()
 {
-	if (currentMode == CameraMode::THIRD_PERSON) {
-		glm::vec3 offsetPos = Pos + (Dir * 5.0f);
-		return glm::lookAt(offsetPos, Pos, Up);
+	// Si estamos en modo observador, calculamos la vista de órbita
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos;
+
+		if (observationPoints.empty()) {
+			// Comportamiento por defecto: Lista vacía -> Mirar al centro (0,0,0)
+			targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+		else {
+			// Comportamiento normal: Mirar al elemento actual de la lista
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		// La cámara se coloca a 8 unidades de distancia del objetivo, en la dirección contraria a donde mira
+		glm::vec3 offsetPos = targetPos + (Dir * observationDistance);
+
+		return glm::lookAt(offsetPos, targetPos, Up);
 	}
 
+	// Comportamiento para modos FREE y FPS
 	return glm::lookAt(Pos, Pos - Dir, Up);
 }
 
@@ -154,7 +172,6 @@ float GECamera::getTurnStep()
 //
 void GECamera::update(float deltaTime)
 {
-	// Solo permitimos rotaciones manuales (teclado) en modo FREE
 	if (currentMode == CameraMode::FREE) {
 		if (turnLeftPressed && !turnRightPressed) turnLeft();
 		if (!turnLeftPressed && turnRightPressed) turnRight();
@@ -162,15 +179,23 @@ void GECamera::update(float deltaTime)
 		if (!turnUpPressed && turnDownPressed) turnDown();
 		if (turnCWPressed && !turnCCWPressed) turnCW();
 		if (!turnCWPressed && turnCCWPressed) turnCCW();
+
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+
+		moveFront(); // Comportamiento normal (se mueve constantemente hacia adelante)
 	}
-
-	// El movimiento de traslación suele ser común
-	if (moveLeftPressed && !moveRightPressed) moveLeft();
-	if (!moveLeftPressed && moveRightPressed) moveRight();
-	if (moveUpPressed && !moveDownPressed) moveUp();
-	if (!moveUpPressed && moveDownPressed) moveDown();
-
-	moveFront();
+	else if (currentMode == CameraMode::FPS) {
+		// En FPS solo nos movemos si las teclas están siendo pulsadas
+		if (moveFrontPressed && !moveBackPressed) moveFront();
+		if (!moveFrontPressed && moveBackPressed) moveBack();
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+	}
 }
 
 //
@@ -427,21 +452,37 @@ void GECamera::setMoveDown(bool flag)
 	moveDownPressed = flag;
 }
 
+//
+// FUNCIÓN: GECamera::setNextMode()
+//
 void GECamera::setNextMode()
 {
-	// Ciclo entre FREE -> FPS -> THIRD_PERSON -> FREE
+	// Guardar la posición orbital al salir de OBSERVING
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+
+		if (!observationPoints.empty()) {
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		// Sobrescribimos 'Pos' con la posición real en la que estaba la cámara.
+		// Así, al entrar a modo FREE, continuará el vuelo desde aquí sin saltos bruscos.
+		Pos = targetPos + (Dir * observationDistance);
+	}
+
+	// Ciclo entre FREE -> FPS -> OBSERVING -> FREE
 	if (currentMode == CameraMode::FREE) {
 		currentMode = CameraMode::FPS;
 	}
 	else if (currentMode == CameraMode::FPS) {
-		currentMode = CameraMode::THIRD_PERSON;
+		currentMode = CameraMode::OBSERVING;
 	}
 	else {
 		currentMode = CameraMode::FREE;
 	}
 
-	// Si entramos en un modo basado en Euler, sincronizamos ángulos
-	if (currentMode == CameraMode::FPS || currentMode == CameraMode::THIRD_PERSON)
+	// Si entramos en un modo basado en Euler, sincronizamos ángulos con la dirección actual
+	if (currentMode == CameraMode::FPS || currentMode == CameraMode::OBSERVING)
 	{
 		glm::vec3 front = glm::normalize(Dir);
 		pitch = glm::degrees(asin(front.y));
@@ -479,3 +520,75 @@ void GECamera::updateCameraVectorsFromEuler()
 	Up = glm::normalize(glm::cross(Right, Dir));
 }
 
+// Añade una nueva matriz de localización a la lista
+void GECamera::addObservationPoint(glm::mat4 location, std::string s)
+{
+	observationPoints.push_back({ location,s });
+}
+
+// Cambia al siguiente punto a observar
+void GECamera::nextObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex = (currentObservationIndex + 1) % observationPoints.size();
+	}
+}
+
+// Cambia al punto anterior a observar
+void GECamera::prevObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex--;
+		if (currentObservationIndex < 0) {
+			currentObservationIndex = (int)observationPoints.size() - 1;
+		}
+	}
+}
+
+
+//
+// FUNCIÓN: GECamera::getCurrentObservationName()
+//
+std::string GECamera::getCurrentObservationName()
+{
+	// Si no hay nada añadido, devolvemos "null" explícitamente
+	if (observationPoints.empty()) {
+		return "null";
+	}
+
+	// Si hay elementos, devolvemos el nombre del elemento actual
+	return observationPoints[currentObservationIndex].name;
+}
+
+
+void GECamera::setMoveFront(bool flag)
+{
+	moveFrontPressed = flag;
+}
+
+void GECamera::setMoveBack(bool flag)
+{
+	moveBackPressed = flag;
+}
+
+void GECamera::stopAllMovement()
+{
+	// Reseteamos la velocidad de avance continuo
+	moveStep = 0.0f;
+
+	// Reseteamos todas las teclas de movimiento
+	moveFrontPressed = false;
+	moveBackPressed = false;
+	moveLeftPressed = false;
+	moveRightPressed = false;
+	moveUpPressed = false;
+	moveDownPressed = false;
+
+	// Reseteamos también las de rotación por si acaso
+	turnLeftPressed = false;
+	turnRightPressed = false;
+	turnUpPressed = false;
+	turnDownPressed = false;
+	turnCWPressed = false;
+	turnCCWPressed = false;
+}

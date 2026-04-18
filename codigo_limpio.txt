@@ -117,6 +117,15 @@ void GEApplication::run()
 	this->dc = std::make_unique <GEDrawingContext>(this->gc.get(), this->windowPos);
 	this->cc = std::make_unique < GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
+	VkQueryPoolCreateInfo queryPoolInfo{};
+	queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+	queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+	queryPoolInfo.queryCount = 2; 
+
+	if (vkCreateQueryPool(gc->device, &queryPoolInfo, nullptr, &this->queryPool) != VK_SUCCESS) {
+		std::cout << "[ERROR FATAL] Fallo al crear el Query Pool." << std::endl;
+	}
+
 	this->scene = std::make_unique <GEScene>(gc.get(), dc.get(), cc.get());
 
 	if (scene->getRenderingContext() != nullptr) {
@@ -192,9 +201,34 @@ void GEApplication::draw(float deltaTime)
 	uint32_t i = dc->getCurrentImage();
 	VkCommandBuffer cb = cc->commandBuffers[i];
 
+	static float computeShaderTimeMs = 0.0f; 
+	static bool isFirstFrame = true;
+
+	if (!isFirstFrame) {
+		uint64_t timeStamps[2] = { 0, 0 };
+
+		VkResult result = vkGetQueryPoolResults(
+			gc->device, queryPool, 0, 2,
+			sizeof(timeStamps), timeStamps, sizeof(uint64_t),
+			VK_QUERY_RESULT_64_BIT
+		);
+
+		if (result == VK_SUCCESS) {
+			VkPhysicalDeviceProperties props;
+			vkGetPhysicalDeviceProperties(gc->physicalDevice, &props);
+
+			uint64_t timeElapsedTicks = timeStamps[1] - timeStamps[0];
+			float tick_en_nanosegundos = props.limits.timestampPeriod;
+
+			computeShaderTimeMs = (timeElapsedTicks * tick_en_nanosegundos) / 1000000.0f;
+		}
+	}
+	else 
+		isFirstFrame = false;
+
 	vkResetCommandBuffer(cb, 0);
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; 
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	if (vkBeginCommandBuffer(cb, &beginInfo) != VK_SUCCESS) return;
 
@@ -203,28 +237,34 @@ void GEApplication::draw(float deltaTime)
 	ImGui::NewFrame();
 
 	float windowWidth = (float)dc->getExtent().width;
-	ImGui::SetNextWindowPos(ImVec2(0, 0)); 
-	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f)); 
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f));
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
-
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 	ImGuiWindowFlags window_flags = 0;
-	window_flags |= ImGuiWindowFlags_NoTitleBar;   
-	window_flags |= ImGuiWindowFlags_NoResize;     
-	window_flags |= ImGuiWindowFlags_NoMove;       
-	window_flags |= ImGuiWindowFlags_NoCollapse;   
-	window_flags |= ImGuiWindowFlags_NoScrollbar;  
+	window_flags |= ImGuiWindowFlags_NoTitleBar;
+	window_flags |= ImGuiWindowFlags_NoResize;
+	window_flags |= ImGuiWindowFlags_NoMove;
+	window_flags |= ImGuiWindowFlags_NoCollapse;
+	window_flags |= ImGuiWindowFlags_NoScrollbar;
 
 	if (ImGui::Begin("TopBar", nullptr, window_flags))
 	{
 		ImGui::SetCursorPosY(10.0f);
 
-		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms/frame)",
-			ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms)",
+			ImGui::GetIO().Framerate,
+			1000.0f / ImGui::GetIO().Framerate);
 
-		ImGui::SameLine(); 
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+
+		ImGui::Text("Particulas GPU: %.4f ms", computeShaderTimeMs);
+
+		ImGui::SameLine();
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 
@@ -233,7 +273,7 @@ void GEApplication::draw(float deltaTime)
 		switch (camera->getCurrentMode()) {
 		case GECamera::CameraMode::FREE:         ImGui::Text("Modo: Libre"); break;
 		case GECamera::CameraMode::FPS:          ImGui::Text("Modo: FPS"); break;
-		case GECamera::CameraMode::THIRD_PERSON: ImGui::Text("Modo: Tercera Persona"); break;
+		case GECamera::CameraMode::OBSERVING:	 ImGui::Text("Observando: %s", camera->getCurrentObservationName().c_str()); break;
 		}
 
 		ImGui::End();
@@ -241,13 +281,13 @@ void GEApplication::draw(float deltaTime)
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 
-	ImGui::Render(); 
+	ImGui::Render();
 
 	scene->update(gc.get(), i, deltaTime);
-	scene->recordComputeCommands(cb, i); 
+	scene->recordComputeCommands(cb, i, queryPool); 
 
 	auto rc = scene->getRenderingContext();
-	rc->insertBeginCommands(cb, i); 
+	rc->insertBeginCommands(cb, i);
 
 	scene->drawGraphicsObjects(cb, i);
 
@@ -266,6 +306,8 @@ void GEApplication::draw(float deltaTime)
 void GEApplication::cleanup()
 {
 	if(gc) vkDeviceWaitIdle(gc->device); 
+
+	vkDestroyQueryPool(gc->device, queryPool, nullptr);
 
 	if (imguiPool != VK_NULL_HANDLE) {
 		ImGui_ImplVulkan_Shutdown();
@@ -438,6 +480,8 @@ void GEApplication::inicializarImGui() {
 	std::cout << "--------------------------------------------------" << std::endl;
 }
 
+}
+
 ========================================
 FILE: Project6\GEApplication.h
 ========================================
@@ -467,6 +511,7 @@ struct GLFWWindowDeleter {
 class GEApplication
 {
 public:
+
 	void run();
 
 private:
@@ -481,6 +526,8 @@ private:
 	GEWindowPosition initWindowPos();
 
 	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
+
+	VkQueryPool queryPool = VK_NULL_HANDLE;
 
 	void mainLoop();
 	void draw(float deltaTime);
@@ -528,13 +575,29 @@ GECamera::GECamera()
 	moveRightPressed = false;
 	moveUpPressed = false;
 	moveDownPressed = false;
+
+	moveFrontPressed = false;
+	moveBackPressed = false;
 }
 
 glm::mat4 GECamera::getViewMatrix()
 {
-	if (currentMode == CameraMode::THIRD_PERSON) {
-		glm::vec3 offsetPos = Pos + (Dir * 5.0f);
-		return glm::lookAt(offsetPos, Pos, Up);
+
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos;
+
+		if (observationPoints.empty()) {
+
+			targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+		else {
+
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		glm::vec3 offsetPos = targetPos + (Dir * observationDistance);
+
+		return glm::lookAt(offsetPos, targetPos, Up);
 	}
 
 	return glm::lookAt(Pos, Pos - Dir, Up);
@@ -591,7 +654,6 @@ float GECamera::getTurnStep()
 
 void GECamera::update(float deltaTime)
 {
-
 	if (currentMode == CameraMode::FREE) {
 		if (turnLeftPressed && !turnRightPressed) turnLeft();
 		if (!turnLeftPressed && turnRightPressed) turnRight();
@@ -599,14 +661,23 @@ void GECamera::update(float deltaTime)
 		if (!turnUpPressed && turnDownPressed) turnDown();
 		if (turnCWPressed && !turnCCWPressed) turnCW();
 		if (!turnCWPressed && turnCCWPressed) turnCCW();
+
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+
+		moveFront(); 
 	}
+	else if (currentMode == CameraMode::FPS) {
 
-	if (moveLeftPressed && !moveRightPressed) moveLeft();
-	if (!moveLeftPressed && moveRightPressed) moveRight();
-	if (moveUpPressed && !moveDownPressed) moveUp();
-	if (!moveUpPressed && moveDownPressed) moveDown();
-
-	moveFront();
+		if (moveFrontPressed && !moveBackPressed) moveFront();
+		if (!moveFrontPressed && moveBackPressed) moveBack();
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+	}
 }
 
 void GECamera::moveFront()
@@ -750,17 +821,27 @@ void GECamera::setMoveDown(bool flag)
 void GECamera::setNextMode()
 {
 
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+
+		if (!observationPoints.empty()) {
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		Pos = targetPos + (Dir * observationDistance);
+	}
+
 	if (currentMode == CameraMode::FREE) {
 		currentMode = CameraMode::FPS;
 	}
 	else if (currentMode == CameraMode::FPS) {
-		currentMode = CameraMode::THIRD_PERSON;
+		currentMode = CameraMode::OBSERVING;
 	}
 	else {
 		currentMode = CameraMode::FREE;
 	}
 
-	if (currentMode == CameraMode::FPS || currentMode == CameraMode::THIRD_PERSON)
+	if (currentMode == CameraMode::FPS || currentMode == CameraMode::OBSERVING)
 	{
 		glm::vec3 front = glm::normalize(Dir);
 		pitch = glm::degrees(asin(front.y));
@@ -798,6 +879,67 @@ void GECamera::updateCameraVectorsFromEuler()
 	Up = glm::normalize(glm::cross(Right, Dir));
 }
 
+void GECamera::addObservationPoint(glm::mat4 location, std::string s)
+{
+	observationPoints.push_back({ location,s });
+}
+
+void GECamera::nextObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex = (currentObservationIndex + 1) % observationPoints.size();
+	}
+}
+
+void GECamera::prevObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex--;
+		if (currentObservationIndex < 0) {
+			currentObservationIndex = (int)observationPoints.size() - 1;
+		}
+	}
+}
+
+std::string GECamera::getCurrentObservationName()
+{
+
+	if (observationPoints.empty()) {
+		return "null";
+	}
+
+	return observationPoints[currentObservationIndex].name;
+}
+
+void GECamera::setMoveFront(bool flag)
+{
+	moveFrontPressed = flag;
+}
+
+void GECamera::setMoveBack(bool flag)
+{
+	moveBackPressed = flag;
+}
+
+void GECamera::stopAllMovement()
+{
+
+	moveStep = 0.0f;
+
+	moveFrontPressed = false;
+	moveBackPressed = false;
+	moveLeftPressed = false;
+	moveRightPressed = false;
+	moveUpPressed = false;
+	moveDownPressed = false;
+
+	turnLeftPressed = false;
+	turnRightPressed = false;
+	turnUpPressed = false;
+	turnDownPressed = false;
+	turnCWPressed = false;
+	turnCCWPressed = false;
+}
 
 ========================================
 FILE: Project6\GECamera.h
@@ -805,11 +947,18 @@ FILE: Project6\GECamera.h
 #pragma once
 
 #include <glm/glm.hpp>
+#include <vector>
+#include <string>
+
+struct ObservationPoint {
+	glm::mat4 location;
+	std::string name;
+};
 
 class GECamera {
 public:
 
-	enum class CameraMode { FREE, FPS, THIRD_PERSON };
+	enum class CameraMode { FREE, FPS, OBSERVING};
 
 	GECamera();
 	glm::mat4 getViewMatrix();
@@ -842,8 +991,24 @@ public:
 	CameraMode getCurrentMode() { return currentMode; }
 
 	void processMouse(float xoffset, float yoffset);
+	void addObservationPoint(glm::mat4 location, std::string s);
+	void nextObservationPoint();
+	void prevObservationPoint();
+	std::string getCurrentObservationName();
+
+	void setMoveFront(bool flag);
+	void setMoveBack(bool flag);
+
+	void setObservationDistance(float dist) { observationDistance = dist; }
+	float getObservationDistance() const { return observationDistance; }
+
+	void stopAllMovement();
 
 private:
+
+	std::vector<ObservationPoint> observationPoints;
+	int currentObservationIndex = 0;
+
 	CameraMode currentMode = CameraMode::FREE;
 
 	glm::vec3 Pos;
@@ -866,6 +1031,11 @@ private:
 	bool moveRightPressed;
 	bool moveUpPressed;
 	bool moveDownPressed;
+
+	bool moveFrontPressed;
+	bool moveBackPressed;
+
+	float observationDistance = 8.0f; 
 
 	void turnRight();
 	void turnLeft();
@@ -3928,6 +4098,24 @@ FILE: Project6\GEParticlesSystem.cpp
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+GEParticlesSystem::GEParticlesSystem() {
+	std::cout << "GEPS" << std::endl;
+
+	emitterParams.emitterPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); 
+	emitterParams.force = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); 
+
+	emitterParams.startColor = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f); 
+	emitterParams.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f); 
+
+	emitterParams.deltaTime = 0.016f;
+	emitterParams.time = 0.0f;
+
+	emitterParams.randomness = 1.0f;
+	emitterParams.startSize = 1.0f;
+	emitterParams.endSize = 0.1f;
+	emitterParams.particleType = 0;
+}
+
 void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc, GETexture* sceneTexture)
 {
 	size_t vertexSize = sizeof(GEParticle) * particles.size();
@@ -4103,6 +4291,7 @@ class GEParticlesSystem
 		float lastTime = 0.0f;
 
 	public:
+		GEParticlesSystem();
 		void initialize(GEGraphicsContext* gc, GERenderingContext* rc, GETexture* sceneTexture);
 		void destroy(GEGraphicsContext* gc);
 		void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
@@ -4110,6 +4299,7 @@ class GEParticlesSystem
 
 		void resetLocation();
 		void setLocation(glm::mat4 m);
+		glm::mat4 getLocation() { return location; }
 		void translate(glm::vec3 t);
 		void rotate(float angle, glm::vec3 axis);
 		void setMaterial(GEMaterial m);
@@ -5099,18 +5289,21 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
 	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	camera->addObservationPoint(particleSystem[0]->getLocation(), "Humo");
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
 	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	camera->addObservationPoint(particleSystem[1]->getLocation(), "Fuego");
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
 	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
 
 }
 
@@ -5189,56 +5382,71 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 
 void GEScene::key_action(int key, bool pressed)
 {
-	switch (key)
-	{
-	case GLFW_KEY_UP:
-		camera->setTurnDown(pressed);
-		break;
-	case GLFW_KEY_DOWN:
-		camera->setTurnUp(pressed);
-		break;
-	case GLFW_KEY_LEFT:
-		camera->setTurnCCW(pressed);
-		break;
-	case GLFW_KEY_RIGHT:
-		camera->setTurnCW(pressed);
-		break;
-	case GLFW_KEY_S:
-		camera->setMoveStep(0.0f);
-		break;
-	case GLFW_KEY_KP_ADD:
-	case GLFW_KEY_1:
-		camera->setMoveStep(camera->getMoveStep() + 0.1f);
-		break;
-	case GLFW_KEY_KP_SUBTRACT:
-	case GLFW_KEY_2:
-		camera->setMoveStep(camera->getMoveStep() - 0.1f);
-		break;
-	case GLFW_KEY_Q:
-		camera->setMoveUp(pressed);
-		break;
-	case GLFW_KEY_A:
-		camera->setMoveDown(pressed);
-		break;
-	case GLFW_KEY_O:
-		camera->setMoveLeft(pressed);
-		break;
-	case GLFW_KEY_P:
-		camera->setMoveRight(pressed);
-		break;
-	case GLFW_KEY_K:
-		camera->setTurnLeft(pressed);
-		break;
-	case GLFW_KEY_L:
-		camera->setTurnRight(pressed);
-		break;
-	case GLFW_KEY_M:
-		if (pressed) {
-			camera->setNextMode();
-			firstMouse = true; 
-			GE_DEBUG_INFO("Modo camara alternado");
+
+	if (key == GLFW_KEY_M && pressed) {
+		camera->stopAllMovement();
+		camera->setNextMode();
+		firstMouse = true;
+		GE_DEBUG_INFO("Modo camara alternado");
+		return; 
+	}
+
+	auto mode = camera->getCurrentMode();
+
+	if (mode == GECamera::CameraMode::FREE) {
+
+		switch (key) {
+		case GLFW_KEY_UP: camera->setTurnDown(pressed); break;
+		case GLFW_KEY_DOWN: camera->setTurnUp(pressed); break;
+		case GLFW_KEY_LEFT: camera->setTurnCCW(pressed); break;
+		case GLFW_KEY_RIGHT: camera->setTurnCW(pressed); break;
+		case GLFW_KEY_S: if (pressed) camera->setMoveStep(0.0f); break;
+		case GLFW_KEY_KP_ADD:
+		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.1f); break;
+		case GLFW_KEY_KP_SUBTRACT:
+		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.1f); break;
+		case GLFW_KEY_Q: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_A: camera->setMoveDown(pressed); break;
+		case GLFW_KEY_O: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_P: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_K: camera->setTurnLeft(pressed); break;
+		case GLFW_KEY_L: camera->setTurnRight(pressed); break;
 		}
-		break;
+	}
+	else if (mode == GECamera::CameraMode::FPS) {
+		if (pressed) camera->setMoveStep(0.25f);
+
+		switch (key) {
+		case GLFW_KEY_W: camera->setMoveFront(pressed); break;
+		case GLFW_KEY_S: camera->setMoveBack(pressed); break;
+		case GLFW_KEY_A: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_D: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_SPACE: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_LEFT_SHIFT: camera->setMoveDown(pressed); break;
+		}
+	}
+	else if (mode == GECamera::CameraMode::OBSERVING) {
+
+		if (pressed) {
+			switch (key) {
+			case GLFW_KEY_RIGHT:
+				camera->nextObservationPoint();
+				break;
+			case GLFW_KEY_LEFT:
+				camera->prevObservationPoint();
+				break;
+			case GLFW_KEY_UP:
+
+				camera->setObservationDistance(camera->getObservationDistance() + 1.0f);
+				break;
+			case GLFW_KEY_DOWN:
+
+				camera->setObservationDistance(camera->getObservationDistance() - 1.0f);
+
+				if (camera->getObservationDistance() < 1.0f) camera->setObservationDistance(1.0f);
+				break;
+			}
+		}
 	}
 }
 
@@ -5486,8 +5694,12 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 	}
 }
 
-void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
+void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool)
 {
+	vkCmdResetQueryPool(cb, queryPool, 0, 2);
+
+vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+
 	for (size_t s = 0; s < particleSystem.size(); s++)
 	{
 		auto& ps = particleSystem[s];
@@ -5521,6 +5733,7 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
 			0, 0, nullptr, 2, barriers, 0, nullptr
 		);
 	}
+	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, queryPool, 1);
 }
 
 void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
@@ -5556,6 +5769,54 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 		vkCmdDraw(cb, particleCount, 1, 0, 0);
 	}
 }
+
+void GESene::ControlsGUI() 
+{
+
+	ImGui::Begin("Controles de Camara", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+	ImGui::Text("Modo actual: ");
+	ImGui::SameLine();
+
+	auto mode = camera->getCurrentMode();
+
+	if (mode == GECamera::CameraMode::FREE) {
+
+		ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
+		ImGui::Separator();
+
+		ImGui::Text("M: Cambiar modo de camara");
+		ImGui::Text("Flechas: Rotar camara (Pitch/Yaw)");
+		ImGui::Text("K / L: Rotar Izquierda / Derecha (Roll)");
+		ImGui::Text("Q / A: Mover Arriba / Abajo");
+		ImGui::Text("O / P: Mover Izquierda / Derecha");
+		ImGui::Text("1 / 2: Aumentar / Reducir velocidad de avance");
+		ImGui::Text("S: Detener movimiento (Velocidad 0)");
+	}
+	else if (mode == GECamera::CameraMode::FPS) {
+
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "FPS");
+		ImGui::Separator();
+
+		ImGui::Text("M: Cambiar modo de camara");
+		ImGui::Text("W / S: Avanzar / Retroceder");
+		ImGui::Text("A / D: Mover Izquierda / Derecha");
+		ImGui::Text("Espacio: Subir (Ascender)");
+		ImGui::Text("Shift: Bajar (Descender)");
+		ImGui::Text("Raton: Mirar alrededor");
+	}
+	else if (mode == GECamera::CameraMode::OBSERVING) {
+
+		ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "OBSERVACION");
+		ImGui::Separator();
+
+		ImGui::Text("M: Cambiar modo de camara");
+		ImGui::Text("Izquierda / Derecha: Cambiar objetivo (Agua, Fuego, Humo...)");
+		ImGui::Text("Arriba / Abajo: Alejar / Acercar camara al objetivo");
+		ImGui::Text("Raton: Orbitar alrededor del objetivo");
+	}
+
+	ImGui::End();
 
 ========================================
 FILE: Project6\GEScene.h
@@ -5623,9 +5884,11 @@ public:
 
 	GERenderingContext* getRenderingContext() { return rc.get(); }
 
-	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
+	void recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool);
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 	GECamera* getCamera() { return camera.get(); }
+
+	void ControlsGUI();
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

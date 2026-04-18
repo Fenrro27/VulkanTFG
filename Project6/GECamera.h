@@ -1,12 +1,18 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <vector>
+#include <string>
 
+struct ObservationPoint {
+	glm::mat4 location;
+	std::string name;
+};
 
 class GECamera {
 public:
 
-	enum class CameraMode { FREE, FPS, THIRD_PERSON };
+	enum class CameraMode { FREE, FPS, OBSERVING};
 
 	GECamera();
 	glm::mat4 getViewMatrix();
@@ -39,9 +45,24 @@ public:
 	CameraMode getCurrentMode() { return currentMode; }
 
 	void processMouse(float xoffset, float yoffset);
+	void addObservationPoint(glm::mat4 location, std::string s);
+	void nextObservationPoint();
+	void prevObservationPoint();
+	std::string getCurrentObservationName();
 
+	void setMoveFront(bool flag);
+	void setMoveBack(bool flag);
+
+	void setObservationDistance(float dist) { observationDistance = dist; }
+	float getObservationDistance() const { return observationDistance; }
+	// Función para detener cualquier movimiento residual
+	void stopAllMovement();
 
 private:
+
+	std::vector<ObservationPoint> observationPoints;
+	int currentObservationIndex = 0;
+
 	CameraMode currentMode = CameraMode::FREE;
 
 	glm::vec3 Pos;
@@ -64,6 +85,11 @@ private:
 	bool moveRightPressed;
 	bool moveUpPressed;
 	bool moveDownPressed;
+
+	bool moveFrontPressed;
+	bool moveBackPressed;
+
+	float observationDistance = 8.0f; // Distancia inicial por defecto
 
 	void turnRight();
 	void turnLeft();

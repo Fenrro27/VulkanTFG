@@ -146,18 +146,21 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
 	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	camera->addObservationPoint(particleSystem[0]->getLocation(), "Humo");
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
 	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	camera->addObservationPoint(particleSystem[1]->getLocation(), "Fuego");
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
 	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
 
 
 }
@@ -258,59 +261,74 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 //
 void GEScene::key_action(int key, bool pressed)
 {
-	switch (key)
-	{
-	case GLFW_KEY_UP:
-		camera->setTurnDown(pressed);
-		break;
-	case GLFW_KEY_DOWN:
-		camera->setTurnUp(pressed);
-		break;
-	case GLFW_KEY_LEFT:
-		camera->setTurnCCW(pressed);
-		break;
-	case GLFW_KEY_RIGHT:
-		camera->setTurnCW(pressed);
-		break;
-	case GLFW_KEY_S:
-		camera->setMoveStep(0.0f);
-		break;
-	case GLFW_KEY_KP_ADD:
-	case GLFW_KEY_1:
-		camera->setMoveStep(camera->getMoveStep() + 0.1f);
-		break;
-	case GLFW_KEY_KP_SUBTRACT:
-	case GLFW_KEY_2:
-		camera->setMoveStep(camera->getMoveStep() - 0.1f);
-		break;
-	case GLFW_KEY_Q:
-		camera->setMoveUp(pressed);
-		break;
-	case GLFW_KEY_A:
-		camera->setMoveDown(pressed);
-		break;
-	case GLFW_KEY_O:
-		camera->setMoveLeft(pressed);
-		break;
-	case GLFW_KEY_P:
-		camera->setMoveRight(pressed);
-		break;
-	case GLFW_KEY_K:
-		camera->setTurnLeft(pressed);
-		break;
-	case GLFW_KEY_L:
-		camera->setTurnRight(pressed);
-		break;
-	case GLFW_KEY_M:
-		if (pressed) {
-			camera->setNextMode();
-			firstMouse = true; // Resetea el ratón al cambiar de modo
-			GE_DEBUG_INFO("Modo camara alternado");
+	// Cambiar de modo siempre funcionará con M
+	if (key == GLFW_KEY_M && pressed) {
+		camera->stopAllMovement();
+		camera->setNextMode();
+		firstMouse = true;
+		GE_DEBUG_INFO("Modo camara alternado");
+		return; // Salimos de la función si cambiamos de modo
+	}
+
+	// Comportamiento dependiendo del modo en el que estemos
+	auto mode = camera->getCurrentMode();
+
+	if (mode == GECamera::CameraMode::FREE) {
+		// Movimiento Normal (NO TOCADO)
+		switch (key) {
+		case GLFW_KEY_UP: camera->setTurnDown(pressed); break;
+		case GLFW_KEY_DOWN: camera->setTurnUp(pressed); break;
+		case GLFW_KEY_LEFT: camera->setTurnCCW(pressed); break;
+		case GLFW_KEY_RIGHT: camera->setTurnCW(pressed); break;
+		case GLFW_KEY_S: if (pressed) camera->setMoveStep(0.0f); break;
+		case GLFW_KEY_KP_ADD:
+		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.1f); break;
+		case GLFW_KEY_KP_SUBTRACT:
+		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.1f); break;
+		case GLFW_KEY_Q: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_A: camera->setMoveDown(pressed); break;
+		case GLFW_KEY_O: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_P: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_K: camera->setTurnLeft(pressed); break;
+		case GLFW_KEY_L: camera->setTurnRight(pressed); break;
 		}
-		break;
+	}
+	else if (mode == GECamera::CameraMode::FPS) {
+		if (pressed) camera->setMoveStep(0.25f);
+		// Movimiento FPS: WASD para moverse, Espacio y Shift para subir/bajar
+		switch (key) {
+		case GLFW_KEY_W: camera->setMoveFront(pressed); break;
+		case GLFW_KEY_S: camera->setMoveBack(pressed); break;
+		case GLFW_KEY_A: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_D: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_SPACE: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_LEFT_SHIFT: camera->setMoveDown(pressed); break;
+		}
+	}
+	else if (mode == GECamera::CameraMode::OBSERVING) {
+		// Modo Observación: Cambiar objetivo y acercar/alejar la cámara
+		if (pressed) {
+			switch (key) {
+			case GLFW_KEY_RIGHT:
+				camera->nextObservationPoint();
+				break;
+			case GLFW_KEY_LEFT:
+				camera->prevObservationPoint();
+				break;
+			case GLFW_KEY_UP:
+				// Alejar la cámara
+				camera->setObservationDistance(camera->getObservationDistance() + 1.0f);
+				break;
+			case GLFW_KEY_DOWN:
+				// Acercar la cámara
+				camera->setObservationDistance(camera->getObservationDistance() - 1.0f);
+				// Evitamos que la cámara atraviese el centro del objeto por accidente
+				if (camera->getObservationDistance() < 1.0f) camera->setObservationDistance(1.0f);
+				break;
+			}
+		}
 	}
 }
-
 
 void GEScene::mouse_action(double xpos, double ypos)
 {
@@ -679,3 +697,6 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 		vkCmdDraw(cb, particleCount, 1, 0, 0);
 	}
 }
+
+
+

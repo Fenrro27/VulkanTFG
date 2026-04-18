@@ -12,10 +12,7 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
-GEApplication::GEApplication() {
 
-
-}
 //
 // FUNCIÓN: GEApplication::run()
 //
@@ -225,11 +222,15 @@ void GEApplication::draw(float deltaTime)
 		switch (camera->getCurrentMode()) {
 		case GECamera::CameraMode::FREE:         ImGui::Text("Modo: Libre"); break;
 		case GECamera::CameraMode::FPS:          ImGui::Text("Modo: FPS"); break;
-		case GECamera::CameraMode::THIRD_PERSON: ImGui::Text("Modo: Tercera Persona"); break;
+		case GECamera::CameraMode::OBSERVING:	 ImGui::Text("Observando: %s", camera->getCurrentObservationName().c_str()); break;
 		}
 
 		ImGui::End();
 	}
+
+
+	ControlsGUI(scene->getCamera());
+
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 	// -----------------------------------------------------------------------
@@ -476,4 +477,86 @@ void GEApplication::inicializarImGui() {
 	std::cout << "[INFO] RenderPass utilizado: " << renderContext->getRenderPass() << std::endl;
 	std::cout << "[INFO] Imágenes en Swapchain: " << renderContext->getImageCount() << std::endl;
 	std::cout << "--------------------------------------------------" << std::endl;
+}
+
+
+void GEApplication::ControlsGUI(GECamera* cam)
+{
+	if (cam == nullptr) return;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	const float MARGEN = 15.0f;
+
+	ImVec2 posicionEsqInfIzq = ImVec2(
+		viewport->WorkPos.x + MARGEN,
+		viewport->WorkPos.y + viewport->WorkSize.y - MARGEN
+	);
+
+	ImGui::SetNextWindowPos(posicionEsqInfIzq, ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+
+	// AÑADIMOS ImGuiWindowFlags_NoTitleBar para quitar la barra superior por defecto
+	ImGuiWindowFlags flags =
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoTitleBar;
+
+	// Variable estática para recordar si el panel está abierto o cerrado
+	static bool mostrarControles = true;
+
+	ImGui::Begin("Controles de Camara", nullptr, flags);
+
+	// 1. DIBUJAMOS EL CONTENIDO PRIMERO (Quedará en la parte de arriba)
+	if (mostrarControles)
+	{
+		ImGui::Text("Modo actual: ");
+		ImGui::SameLine();
+
+		auto mode = cam->getCurrentMode();
+
+		if (mode == GECamera::CameraMode::FREE) {
+			ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("Flechas: Rotar camara (Pitch/Yaw)");
+			ImGui::Text("K / L: Rotar Izquierda / Derecha (Roll)");
+			ImGui::Text("Q / A: Mover Arriba / Abajo");
+			ImGui::Text("O / P: Mover Izquierda / Derecha");
+			ImGui::Text("1 / 2: Aumentar / Reducir velocidad de avance");
+			ImGui::Text("S: Detener movimiento (Velocidad 0)");
+		}
+		else if (mode == GECamera::CameraMode::FPS) {
+			ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "FPS");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("W / S: Avanzar / Retroceder");
+			ImGui::Text("A / D: Mover Izquierda / Derecha");
+			ImGui::Text("Espacio: Subir (Ascender)");
+			ImGui::Text("Shift: Bajar (Descender)");
+			ImGui::Text("Raton: Mirar alrededor");
+		}
+		else if (mode == GECamera::CameraMode::OBSERVING) {
+			ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "OBSERVACION");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("Izquierda / Derecha: Cambiar objetivo");
+			ImGui::Text("Arriba / Abajo: Alejar / Acercar camara");
+			ImGui::Text("Raton: Orbitar alrededor del objetivo");
+		}
+
+		ImGui::Separator(); // Una línea visual para separar el contenido del botón inferior
+	}
+
+	// 2. DIBUJAMOS EL "TÍTULO/BOTÓN" AL FINAL (Quedará en la base)
+	// Cambiamos el texto del botón dependiendo de si está abierto o cerrado
+	const char* textoBoton = mostrarControles ? "v  Ocultar Controles de Camara  v" : "^  Mostrar Controles de Camara  ^";
+
+	// Usamos un botón que ocupe todo el ancho disponible
+	if (ImGui::Button(textoBoton, ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+	{
+		mostrarControles = !mostrarControles; // Invertimos el estado al hacer clic
+	}
+
+	ImGui::End();
 }

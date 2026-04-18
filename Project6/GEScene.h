@@ -77,6 +77,7 @@ public:
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 	GECamera* getCamera() { return camera.get(); }
 
+
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);
 	std::unique_ptr < GEPipelineConfig> createScenePipelineConfig(VkExtent2D extent);

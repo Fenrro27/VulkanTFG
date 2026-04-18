@@ -31,7 +31,7 @@ struct GLFWWindowDeleter {
 class GEApplication
 {
 public:
-	GEApplication();
+	
 	void run();
 
 private:
@@ -63,6 +63,8 @@ private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 	void inicializarImGui();
+
+	void ControlsGUI(GECamera* cam);
 
 };
 
