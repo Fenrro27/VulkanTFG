@@ -163,14 +163,29 @@ GEWindowPosition GEApplication::initWindowPos()
 
 void GEApplication::mainLoop()
 {
+	double lastTime = glfwGetTime();
+
 	while (!glfwWindowShouldClose(window.get()))
 	{
 		glfwPollEvents();
-		draw();
+
+		double currentTime = glfwGetTime();
+		float deltaTime = static_cast<float>(currentTime - lastTime);
+		lastTime = currentTime;
+
+		if (deltaTime <= 0.0f) {
+			deltaTime = 0.001f;
+		}
+
+		if (deltaTime > 0.1f) {
+			deltaTime = 0.1f;
+		}
+
+		draw(deltaTime);
 	}
 }
 
-void GEApplication::draw()
+void GEApplication::draw(float deltaTime)
 {
 
 	dc->waitForNextImage(gc.get());
@@ -228,7 +243,7 @@ void GEApplication::draw()
 
 	ImGui::Render(); 
 
-	scene->update(gc.get(), i);
+	scene->update(gc.get(), i, deltaTime);
 	scene->recordComputeCommands(cb, i); 
 
 	auto rc = scene->getRenderingContext();
@@ -468,7 +483,7 @@ private:
 	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 
 	void mainLoop();
-	void draw();
+	void draw(float deltaTime);
 	void cleanup();
 	void swapFullScreen();
 	void resize();
@@ -2028,7 +2043,7 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 
 	createInfo.preTransform = capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(gc->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
@@ -3992,6 +4007,7 @@ void GEParticlesSystem::addCommands(VkCommandBuffer commandBuffer, VkPipelineLay
 
 void GEParticlesSystem::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection)
 {
+
 	GETransform transform;
 	transform.MVP = projection * view * location;
 	transform.ModelViewMatrix = view * location;
@@ -4000,15 +4016,6 @@ void GEParticlesSystem::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 
 	transformBuffer->update(gc, index, sizeof(GETransform), &transform);
 	materialBuffer->update(gc, index, sizeof(GEMaterial), &material);
 	lightBuffer->update(gc, index, sizeof(GELight), &light);
-
-	float currentTime = (float)glfwGetTime();
-	if (lastTime == 0.0f) lastTime = currentTime; 
-
-	emitterParams.deltaTime = currentTime - lastTime;
-	emitterParams.time = currentTime;
-	lastTime = currentTime;
-
-	emitterParamsBuffer->update(gc, index, sizeof(GEEmitterParams), &emitterParams);
 }
 
 void GEParticlesSystem::resetLocation()
@@ -4044,6 +4051,14 @@ void GEParticlesSystem::setLight(GELight l)
 void GEParticlesSystem::addParticle(GEParticle p)
 {
 	this->particles.push_back(p);
+}
+
+void GEParticlesSystem::updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime) {
+
+	emitterParams.deltaTime = fixedDeltaTime;
+	emitterParams.time += fixedDeltaTime; 
+
+	emitterParamsBuffer->update(gc, index, sizeof(GEEmitterParams), &emitterParams);
 }
 
 ========================================
@@ -4092,6 +4107,7 @@ class GEParticlesSystem
 		void destroy(GEGraphicsContext* gc);
 		void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
 		void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
+
 		void resetLocation();
 		void setLocation(glm::mat4 m);
 		void translate(glm::vec3 t);
@@ -4106,6 +4122,8 @@ class GEParticlesSystem
 		void addParticle(GEParticle p);
 		VkDescriptorSet getDescriptorSet(int index) { return dset->descriptorSets[index]; }
 		GEUniformBuffer* getEmitterParamsBuffer() { return emitterParamsBuffer.get();  }
+
+		void updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime);
 
 	};
 
@@ -4129,7 +4147,7 @@ void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
 		this->texture = std::shared_ptr<GETexture>(
 			new GETexture(gc, "textures/wood.jpg"),
-			[gc](GETexture* t) { t->destroy(gc); delete t; }
+			[gc](GETexture* t) { t->destroy(gc); }
 		);
 	}
 
@@ -5142,29 +5160,14 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 
 }
 
-void GEScene::update(GEGraphicsContext* gc, uint32_t index)
+void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 {
-
-	static auto lastTime = std::chrono::high_resolution_clock::now();
-	static int frameCount = 0;
-	static int currentFPS = 0;
-	static float timeAccumulator = 0.0f;
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
-	lastTime = currentTime;
-
-	timeAccumulator += deltaTime;
-	frameCount++;
-
-	if (timeAccumulator >= 1.0f) {
-		currentFPS = frameCount;
-		frameCount = 0;
-		timeAccumulator = 0.0f;
-	}
-
 	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
+
+	for (auto& ps : particleSystem) {
+		ps->updatePhysics(gc, index, deltaTime);
+	}
 
 	skybox->update(gc, index, view, projection);
 
@@ -5610,7 +5613,7 @@ public:
 	GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
 	void destroy(GEGraphicsContext* gc);
 	void recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
-	void update(GEGraphicsContext* gc, uint32_t index);
+	void update(GEGraphicsContext* gc, uint32_t index, float deltaTime);
 	void key_action(int key, bool pressed);
 	void aspect_ratio(double aspect);
 
@@ -77875,30 +77878,59 @@ void main() {
 
     if (p.currentTtl <= 0.0) {
         p.currentTtl = max(p.ttl, 0.1); 
+
+        float angulo = random(index) * 6.283185; 
+        float radio = sqrt(random(index + 1000)) * params.randomness * 0.5; 
+
         p.pos = params.emitterPos.xyz;
+        p.pos.x += cos(angulo) * radio;
+        p.pos.z += sin(angulo) * radio;
 
-        float randX = (random(index) - 0.5) * params.randomness;
-        float randY = (random(index + 10000) - 0.5) * params.randomness;
-        float randZ = (random(index + 20000) - 0.5) * params.randomness;
+        float randX = (random(index + 2000) - 0.5) * params.randomness * 0.5;
+        float randY = (random(index + 3000) * 0.5 + 0.2) * params.randomness; 
+        float randZ = (random(index + 4000) - 0.5) * params.randomness * 0.5;
 
-        p.norm = vec3(randX, abs(randY) * 2.0, randZ); 
+        p.norm = vec3(randX, randY, randZ); 
         p.color = params.startColor;
         p.size = params.startSize;
-    } else {
-        p.norm += params.force.xyz * params.deltaTime;
+    } 
+
+    else {
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        float upwardProgress = max(p.pos.y - params.emitterPos.y, 0.0); 
+        float seed = float(index % 100u);
+
+        bool esChispa = (index % 15 == 0);
+
+        float aceleracionTermica = 2.0 + params.force.y; 
+        p.norm.y += aceleracionTermica * params.deltaTime;
+
+        float turbX = sin(params.time * 6.0 + upwardProgress * 2.0 + seed) * params.randomness;
+        float turbZ = cos(params.time * 5.0 + upwardProgress * 2.2 + seed) * params.randomness;
+
+        vec2 direccionAlCentro = params.emitterPos.xz - p.pos.xz;
+        float fuerzaCentro = upwardProgress * 2.0; 
+
+        if (esChispa) {
+
+            fuerzaCentro *= 0.05; 
+
+            float velocidadGiro = 12.0;
+            float amplitudGiro = 1.8;
+            turbX += sin(params.time * velocidadGiro + upwardProgress * 3.0 + seed) * amplitudGiro;
+            turbZ += cos(params.time * velocidadGiro + upwardProgress * 3.0 + seed) * amplitudGiro;
+        }
+
+        p.norm.x += (turbX * 0.5 + direccionAlCentro.x * fuerzaCentro) * params.deltaTime;
+        p.norm.z += (turbZ * 0.5 + direccionAlCentro.y * fuerzaCentro) * params.deltaTime;
+
         p.pos += p.norm * params.deltaTime;
 
-        float seed = float(index % 100u);
-        float upwardProgress = p.pos.y - params.emitterPos.y;
-        float flicker = sin(params.time * 10.0 + seed) * 0.2;
-
-        p.pos.x += sin(params.time * 4.0 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-        p.pos.z += cos(params.time * 3.5 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-        p.pos.y += flicker * params.deltaTime;
-
-        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
         p.color = mix(params.startColor, params.endColor, lifeFactor);
-        p.size = mix(params.startSize, params.endSize, lifeFactor);
+        float tamaCurva = 1.0 - pow(lifeFactor, 2.0); 
+
+        float baseSize = esChispa ? params.startSize * 0.4 : params.startSize;
+        p.size = mix(params.endSize, baseSize, tamaCurva);
     }
 
     particlesOut[index] = p;
@@ -77917,22 +77949,26 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
 
+    float angleY = inAngle; 
+
+    vec2 uv = gl_PointCoord - 0.5;
+
+    uv.x /= cos(angleY); 
+
     float s = sin(inAngle);
     float c = cos(inAngle);
     mat2 rot = mat2(c, -s, s, c);
 
-    vec2 uv = gl_PointCoord - 0.5;
     uv = rot * uv;
     uv += 0.5;
 
+    if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard;
+
     vec4 texColor = texture(particleTexture, uv);
-
-     vec3 finalRGB = texColor.rgb * inColor.rgb;
-
+    vec3 finalRGB = texColor.rgb * inColor.rgb;
     float finalAlpha = texColor.a * inColor.a;
 
     outColor = vec4(finalRGB, finalAlpha);
-
     if (outColor.a < 0.001) discard;
 }
 
@@ -78235,7 +78271,9 @@ void main() {
 
         float gravedad = 9.8; 
         p.norm.y -= gravedad * params.deltaTime; 
-        p.norm.xz *= 0.99;                        
+
+        float retencionPorSegundo = 0.5; 
+        p.norm.xz *= pow(retencionPorSegundo, params.deltaTime);        
 
         p.pos += p.norm * params.deltaTime;
 

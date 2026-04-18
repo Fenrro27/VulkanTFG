@@ -23,6 +23,7 @@ enum PipelineType {
 	PARTICLE_PIPELINE = 2
 };
 
+
 //
 // CLASE: GEScene
 //
@@ -61,7 +62,7 @@ public:
 	GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
 	void destroy(GEGraphicsContext* gc);
 	void recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
-	void update(GEGraphicsContext* gc, uint32_t index);
+	void update(GEGraphicsContext* gc, uint32_t index, float deltaTime);
 	void key_action(int key, bool pressed);
 	void aspect_ratio(double aspect);
 
@@ -72,7 +73,7 @@ public:
 	GERenderingContext* getRenderingContext() { return rc.get(); }
 //	void drawScene(VkCommandBuffer cb, uint32_t i);
 
-	void recordComputeCommands(VkCommandBuffer cb, uint32_t i);
+	void recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool);
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 	GECamera* getCamera() { return camera.get(); }
 

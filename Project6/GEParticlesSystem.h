@@ -47,10 +47,12 @@ class GEParticlesSystem
 		float lastTime = 0.0f;
 
 	public:
+		GEParticlesSystem();
 		void initialize(GEGraphicsContext* gc, GERenderingContext* rc, GETexture* sceneTexture);
 		void destroy(GEGraphicsContext* gc);
 		void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
 		void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
+		//void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection, float fixedDeltaTime);
 		void resetLocation();
 		void setLocation(glm::mat4 m);
 		void translate(glm::vec3 t);
@@ -58,7 +60,6 @@ class GEParticlesSystem
 		void setMaterial(GEMaterial m);
 		void setLight(GELight l);
 
-		// compute shader
 		GEParticleBuffer* getParticlesBufferA() { return pboA.get(); }
 		GEParticleBuffer* getParticlesBufferB() { return pboB.get(); }
 		size_t getParticlesSize() { return sizeof(GEParticle) * particles.size(); }
@@ -67,6 +68,7 @@ class GEParticlesSystem
 		VkDescriptorSet getDescriptorSet(int index) { return dset->descriptorSets[index]; }
 		GEUniformBuffer* getEmitterParamsBuffer() { return emitterParamsBuffer.get();  }
 
+		void updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime);
 
 	};
 

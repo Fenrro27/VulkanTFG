@@ -19,7 +19,7 @@ void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
 		this->texture = std::shared_ptr<GETexture>(
 			new GETexture(gc, "textures/wood.jpg"),
-			[gc](GETexture* t) { t->destroy(gc); delete t; }
+			[gc](GETexture* t) { t->destroy(gc); }
 		);
 	}
 

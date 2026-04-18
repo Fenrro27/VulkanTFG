@@ -12,6 +12,29 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+GEParticlesSystem::GEParticlesSystem() {
+	std::cout << "GEPS" << std::endl;
+	// --- VALORES POR DEFECTO DEL EMISOR ---
+	// Previene lecturas de basura (NaN) en la GPU en el frame 1
+
+	emitterParams.emitterPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Origen
+	emitterParams.force = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Sin fuerzas externas
+
+	emitterParams.startColor = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f); // Naranja por defecto
+	emitterParams.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f); // Transparente por defecto
+
+	// ¡MUY IMPORTANTE! 
+	// Asignamos un deltaTime simulado inicial (~60fps) para evitar que el shader 
+	// multiplique por 0.0 o por un número corrupto antes del primer update.
+	emitterParams.deltaTime = 0.016f;
+	emitterParams.time = 0.0f;
+
+	emitterParams.randomness = 1.0f;
+	emitterParams.startSize = 1.0f;
+	emitterParams.endSize = 0.1f;
+	emitterParams.particleType = 0;
+}
+
 //
 // FUNCI�N: GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
 //
@@ -109,6 +132,8 @@ void GEParticlesSystem::addCommands(VkCommandBuffer commandBuffer, VkPipelineLay
 
 }
 
+
+
 //
 // FUNCI�N: GEFigure::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection)
 //
@@ -116,25 +141,16 @@ void GEParticlesSystem::addCommands(VkCommandBuffer commandBuffer, VkPipelineLay
 //
 void GEParticlesSystem::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection)
 {
+	// 1. Actualización de transformaciones (Visual)
 	GETransform transform;
 	transform.MVP = projection * view * location;
 	transform.ModelViewMatrix = view * location;
 	transform.ViewMatrix = view;
 
+	// 2. Actualización de Buffers de materiales y luces
 	transformBuffer->update(gc, index, sizeof(GETransform), &transform);
 	materialBuffer->update(gc, index, sizeof(GEMaterial), &material);
 	lightBuffer->update(gc, index, sizeof(GELight), &light);
-
-	// Calcular el deltaTime real usando GLFW
-	float currentTime = (float)glfwGetTime();
-	if (lastTime == 0.0f) lastTime = currentTime; // Evitar salto en el primer frame
-
-	emitterParams.deltaTime = currentTime - lastTime;
-	emitterParams.time = currentTime;
-	lastTime = currentTime;
-
-	// Enviar a la GPU
-	emitterParamsBuffer->update(gc, index, sizeof(GEEmitterParams), &emitterParams);
 }
 
 //
@@ -206,4 +222,15 @@ void GEParticlesSystem::setLight(GELight l)
 void GEParticlesSystem::addParticle(GEParticle p)
 {
 	this->particles.push_back(p);
+}
+
+
+// En GEParticlesSystem.cpp
+void GEParticlesSystem::updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime) {
+	// Usamos el tiempo fijo en lugar del variable calculado por glfwGetTime
+	emitterParams.deltaTime = fixedDeltaTime;
+	emitterParams.time += fixedDeltaTime; // Acumulamos tiempo de simulación
+
+	// Subimos los parámetros actualizados a la GPU
+	emitterParamsBuffer->update(gc, index, sizeof(GEEmitterParams), &emitterParams);
 }

@@ -12,6 +12,10 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 
+GEApplication::GEApplication() {
+
+
+}
 //
 // FUNCIÓN: GEApplication::run()
 //
@@ -26,6 +30,15 @@ void GEApplication::run()
 	this->dc = std::make_unique <GEDrawingContext>(this->gc.get(), this->windowPos);
 	this->cc = std::make_unique < GECommandContext>(this->gc.get(), this->dc->getImageCount());
 
+	VkQueryPoolCreateInfo queryPoolInfo{};
+	queryPoolInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+	queryPoolInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
+	queryPoolInfo.queryCount = 2; // Necesitamos 2, uno para el inicio y otro para el fin
+
+	if (vkCreateQueryPool(gc->device, &queryPoolInfo, nullptr, &this->queryPool) != VK_SUCCESS) {
+		std::cout << "[ERROR FATAL] Fallo al crear el Query Pool." << std::endl;
+	}
+
 	this->scene = std::make_unique <GEScene>(gc.get(), dc.get(), cc.get());
 
 	if (scene->getRenderingContext() != nullptr) {
@@ -37,6 +50,7 @@ void GEApplication::run()
 	}
 
 	mainLoop();
+
 
 	cleanup();
 }
@@ -89,10 +103,25 @@ GEWindowPosition GEApplication::initWindowPos()
 //
 void GEApplication::mainLoop()
 {
+	double lastTime = glfwGetTime();
+
 	while (!glfwWindowShouldClose(window.get()))
 	{
 		glfwPollEvents();
-		draw();
+
+		double currentTime = glfwGetTime();
+		float deltaTime = static_cast<float>(currentTime - lastTime);
+		lastTime = currentTime;
+
+		if (deltaTime <= 0.0f) {
+			deltaTime = 0.001f;
+		}
+
+		if (deltaTime > 0.1f) {
+			deltaTime = 0.1f;
+		}
+
+		draw(deltaTime);
 	}
 }
 
@@ -101,57 +130,95 @@ void GEApplication::mainLoop()
 //
 // PROPÓSITO: Lanza la generación del dibujo
 //
-void GEApplication::draw()
+//
+// FUNCIÓN: GEApplication::draw()
+//
+void GEApplication::draw(float deltaTime)
 {
-	// 1. SINCRONIZACIÓN (Esto limpia el camino para el Command Buffer)
+	// 1. SINCRONIZACIÓN
 	dc->waitForNextImage(gc.get());
 	uint32_t i = dc->getCurrentImage();
 	VkCommandBuffer cb = cc->commandBuffers[i];
 
-	// 2. RESET Y BEGIN (Si esto falla, nada se dibuja)
+	// =========================================================================
+	// NUEVO: LEER EL TIEMPO DE LA GPU DEL FOTOGRAMA ANTERIOR
+	// =========================================================================
+	static float computeShaderTimeMs = 0.0f; // Static para que mantenga el valor entre frames
+	static bool isFirstFrame = true;
+
+	if (!isFirstFrame) {
+		uint64_t timeStamps[2] = { 0, 0 };
+
+		VkResult result = vkGetQueryPoolResults(
+			gc->device, queryPool, 0, 2,
+			sizeof(timeStamps), timeStamps, sizeof(uint64_t),
+			VK_QUERY_RESULT_64_BIT
+		);
+
+		if (result == VK_SUCCESS) {
+			VkPhysicalDeviceProperties props;
+			vkGetPhysicalDeviceProperties(gc->physicalDevice, &props);
+
+			uint64_t timeElapsedTicks = timeStamps[1] - timeStamps[0];
+			float tick_en_nanosegundos = props.limits.timestampPeriod;
+
+			computeShaderTimeMs = (timeElapsedTicks * tick_en_nanosegundos) / 1000000.0f;
+		}
+	}
+	else 
+		isFirstFrame = false;
+	
+
+
+	// 2. RESET Y BEGIN 
 	vkResetCommandBuffer(cb, 0);
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; // Añade este flag
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	if (vkBeginCommandBuffer(cb, &beginInfo) != VK_SUCCESS) return;
 
-	// 3. PREPARAR IMGUI (Cálculos de vértices de la UI)
+	// 3. PREPARAR IMGUI 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	// -----------------------Dibujamos la UI con ImGui-----------------------
 
-	// 1. Configurar la posición y el tamaño fijo
-	// Usamos el ancho de la ventana actual (dc->getExtent())
+	// -----------------------Dibujamos la UI con ImGui-----------------------
 	float windowWidth = (float)dc->getExtent().width;
-	ImGui::SetNextWindowPos(ImVec2(0, 0)); // Esquina superior izquierda
-	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f)); // Altura fija de 60px (puedes ajustarla)
-	
-	// 1. EMPUJAR ESTILO: Color de fondo (Oscuro semitransparente)
-// RGBA: 0,0,0 es negro. 0.7f es el 70% de opacidad.
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, 40.0f));
+
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.9f));
-	// Quitamos el borde para que se fusione perfectamente con el marco
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-	// 2. Definir las banderas para bloquear la ventana
 	ImGuiWindowFlags window_flags = 0;
-	window_flags |= ImGuiWindowFlags_NoTitleBar;   // Quita la barra de título
-	window_flags |= ImGuiWindowFlags_NoResize;     // Bloquea el cambio de tamaño
-	window_flags |= ImGuiWindowFlags_NoMove;       // Bloquea que el usuario la mueva
-	window_flags |= ImGuiWindowFlags_NoCollapse;   // Evita que se minimice
-	window_flags |= ImGuiWindowFlags_NoScrollbar;  // Quita el scroll
+	window_flags |= ImGuiWindowFlags_NoTitleBar;
+	window_flags |= ImGuiWindowFlags_NoResize;
+	window_flags |= ImGuiWindowFlags_NoMove;
+	window_flags |= ImGuiWindowFlags_NoCollapse;
+	window_flags |= ImGuiWindowFlags_NoScrollbar;
 
-	// 3. Dibujar la ventana
 	if (ImGui::Begin("TopBar", nullptr, window_flags))
 	{
 		ImGui::SetCursorPosY(10.0f);
-		// Mostrar FPS (ImGui lo calcula automáticamente)
-		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms/frame)",
-			ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
 
-		ImGui::SameLine(); // Pone el siguiente elemento en la misma línea
+		// MOSTRAR FPS DE LA APLICACIÓN (CPU)
+		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms)",
+			ImGui::GetIO().Framerate,
+			1000.0f / ImGui::GetIO().Framerate);
+
+		ImGui::SameLine();
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
+
+		// =====================================================================
+		// NUEVO: MOSTRAR TIEMPO DE LA GPU (PARTÍCULAS)
+		// =====================================================================
+		ImGui::Text("Particulas GPU: %.4f ms", computeShaderTimeMs);
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+		// =====================================================================
 
 		auto camera = scene->getCamera();
 
@@ -165,21 +232,20 @@ void GEApplication::draw()
 	}
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
-
-
 	// -----------------------------------------------------------------------
-	ImGui::Render(); 
+
+	ImGui::Render();
 
 	// 4. ACTUALIZAR Y DIBUJAR ESCENA
-	scene->update(gc.get(), i);
-	scene->recordComputeCommands(cb, i); // Tus partículas
+	scene->update(gc.get(), i, deltaTime);
+	scene->recordComputeCommands(cb, i, queryPool); // Aquí se guardan los nuevos tiempos para el siguiente frame
 
 	auto rc = scene->getRenderingContext();
-	rc->insertBeginCommands(cb, i); // Inicia RenderPass
+	rc->insertBeginCommands(cb, i);
 
 	scene->drawGraphicsObjects(cb, i);
 
-	// 5. DIBUJAR IMGUI (Dentro del RenderPass, al final para que esté encima)
+	// 5. DIBUJAR IMGUI 
 	ImDrawData* drawData = ImGui::GetDrawData();
 	if (drawData) {
 		ImGui_ImplVulkan_RenderDrawData(drawData, cb);
@@ -192,7 +258,6 @@ void GEApplication::draw()
 	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
 	dc->submitPresentCommands(gc.get());
 }
-
 //
 // FUNCIÓN: GEApplication::cleanup()
 //
@@ -201,6 +266,8 @@ void GEApplication::draw()
 void GEApplication::cleanup()
 {
 	if(gc) vkDeviceWaitIdle(gc->device); // ESPERA A LA GPU ANTES DE DESTRUIR NADA
+
+	vkDestroyQueryPool(gc->device, queryPool, nullptr);
 
 	if (imguiPool != VK_NULL_HANDLE) {
 		ImGui_ImplVulkan_Shutdown();

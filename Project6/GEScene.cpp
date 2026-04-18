@@ -224,30 +224,14 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 //
 // PROP�SITO: Actualiza la informaci�n para generar la imagen 
 //
-void GEScene::update(GEGraphicsContext* gc, uint32_t index)
+void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 {
-	// CÁLCULO DE FPS
-	static auto lastTime = std::chrono::high_resolution_clock::now();
-	static int frameCount = 0;
-	static int currentFPS = 0;
-	static float timeAccumulator = 0.0f;
-
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
-	lastTime = currentTime;
-
-	timeAccumulator += deltaTime;
-	frameCount++;
-
-	if (timeAccumulator >= 1.0f) {
-		currentFPS = frameCount;
-		frameCount = 0;
-		timeAccumulator = 0.0f;
-	}
-
-	
 	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
+
+	for (auto& ps : particleSystem) {
+		ps->updatePhysics(gc, index, deltaTime);
+	}
 
 	skybox->update(gc, index, view, projection);
 
@@ -613,9 +597,13 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 	}
 }
 
-// --- NUEVO MÉTODO 1: Solo Cómputo (FUERA del Render Pass) ---
-void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
+void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool)
 {
+	vkCmdResetQueryPool(cb, queryPool, 0, 2);
+
+// Anotamos el tiempo de inicio (índice 0)
+vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+
 	for (size_t s = 0; s < particleSystem.size(); s++)
 	{
 		auto& ps = particleSystem[s];
@@ -653,6 +641,7 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i)
 			0, 0, nullptr, 2, barriers, 0, nullptr
 		);
 	}
+	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, queryPool, 1);
 }
 
 void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)

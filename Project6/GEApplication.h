@@ -31,6 +31,7 @@ struct GLFWWindowDeleter {
 class GEApplication
 {
 public:
+	GEApplication();
 	void run();
 
 private:
@@ -47,8 +48,10 @@ private:
 
 	VkDescriptorPool imguiPool = VK_NULL_HANDLE;
 
+	VkQueryPool queryPool = VK_NULL_HANDLE;
+
 	void mainLoop();
-	void draw();
+	void draw(float deltaTime);
 	void cleanup();
 	void swapFullScreen();
 	void resize();

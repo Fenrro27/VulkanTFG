@@ -6,14 +6,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////                                                                                 /////
-/////                               Métodos públicos                                  /////
+/////                               Mï¿½todos pï¿½blicos                                  /////
 /////                                                                                 /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //
-// FUNCIÓN: GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc)
+// FUNCIï¿½N: GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc)
 //
-// PROPÓSITO: Crea el contexto de dibujo (imágenes y cadena de intercambio)
+// PROPï¿½SITO: Crea el contexto de dibujo (imï¿½genes y cadena de intercambio)
 //
 GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc, GEWindowPosition wpos)
 {
@@ -24,9 +24,9 @@ GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc, GEWindowPosition wpos)
 }
 
 //
-// FUNCIÓN: GEDrawingContext::destroy(GEGraphicsContext* gc)
+// FUNCIï¿½N: GEDrawingContext::destroy(GEGraphicsContext* gc)
 //
-// PROPÓSITO: Destruye los componentes del contexto de dibujo
+// PROPï¿½SITO: Destruye los componentes del contexto de dibujo
 //
 void GEDrawingContext::destroy(GEGraphicsContext* gc)
 {
@@ -40,16 +40,16 @@ void GEDrawingContext::destroy(GEGraphicsContext* gc)
 	// Destruir objetos que dependen de imageCount
 	for (uint32_t i = 0; i < imageCount; i++)
 	{
-		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr); // MUEVE ESTO AQUÍ
+		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr); // MUEVE ESTO AQUï¿½
 		vkDestroyImageView(gc->device, imageViews[i], nullptr);
 	}
 
 	vkDestroySwapchainKHR(gc->device, swapChain, nullptr);
 }
 //
-// FUNCIÓN: GEDrawingContext::recreate(GEGraphicsContext* gc,  GEWindowPosition wpos)
+// FUNCIï¿½N: GEDrawingContext::recreate(GEGraphicsContext* gc,  GEWindowPosition wpos)
 //
-// PROPÓSITO: Reconstruye los componentes del contexto de dibujo
+// PROPï¿½SITO: Reconstruye los componentes del contexto de dibujo
 //
 void GEDrawingContext::recreate(GEGraphicsContext* gc, GEWindowPosition wpos)
 {
@@ -64,9 +64,9 @@ void GEDrawingContext::recreate(GEGraphicsContext* gc, GEWindowPosition wpos)
 }
 
 //
-// FUNCIÓN: GEDrawingContext::getFormat()
+// FUNCIï¿½N: GEDrawingContext::getFormat()
 //
-// PROPÓSITO: Obtiene el formato de las imágenes
+// PROPï¿½SITO: Obtiene el formato de las imï¿½genes
 //
 VkFormat GEDrawingContext::getFormat()
 {
@@ -74,9 +74,9 @@ VkFormat GEDrawingContext::getFormat()
 }
 
 //
-// FUNCIÓN: GEDrawingContext::getExtent()
+// FUNCIï¿½N: GEDrawingContext::getExtent()
 //
-// PROPÓSITO: Obtiene el tamaño de las imágenes
+// PROPï¿½SITO: Obtiene el tamaï¿½o de las imï¿½genes
 //
 VkExtent2D GEDrawingContext::getExtent()
 {
@@ -84,9 +84,9 @@ VkExtent2D GEDrawingContext::getExtent()
 }
 
 //
-// FUNCIÓN: GEDrawingContext::getImageCount()
+// FUNCIï¿½N: GEDrawingContext::getImageCount()
 //
-// PROPÓSITO: Obtiene el número de imágenes
+// PROPï¿½SITO: Obtiene el nï¿½mero de imï¿½genes
 //
 uint32_t GEDrawingContext::getImageCount()
 {
@@ -94,9 +94,9 @@ uint32_t GEDrawingContext::getImageCount()
 }
 
 //
-// FUNCIÓN: GEDrawingContext::getCurrentImage()
+// FUNCIï¿½N: GEDrawingContext::getCurrentImage()
 //
-// PROPÓSITO: Obtiene el índice de la imagen a generar
+// PROPï¿½SITO: Obtiene el ï¿½ndice de la imagen a generar
 //
 uint32_t GEDrawingContext::getCurrentImage()
 {
@@ -105,15 +105,15 @@ uint32_t GEDrawingContext::getCurrentImage()
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////                                                                                 /////
-/////                     Métodos de creación de los componentes                      /////
+/////                     Mï¿½todos de creaciï¿½n de los componentes                      /////
 /////                                                                                 /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //
-// FUNCIÓN: GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition wpos)
+// FUNCIï¿½N: GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition wpos)
 //
-// PROPÓSITO: Crea los buffers de intercambio de imágenes, el vector de imágenes
-//            y sus formatos y tamaños
+// PROPï¿½SITO: Crea los buffers de intercambio de imï¿½genes, el vector de imï¿½genes
+//            y sus formatos y tamaï¿½os
 //
 void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition wpos)
 {
@@ -174,7 +174,7 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 
 	createInfo.preTransform = capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;// VK_PRESENT_MODE_FIFO_KHR;
+	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(gc->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
@@ -191,9 +191,9 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 }
 
 //
-// FUNCIÓN: GEDrawingContext::createImageViews()
+// FUNCIï¿½N: GEDrawingContext::createImageViews()
 //
-// PROPÓSITO: Crea una vista para cada imagen de la cadena de intercambio
+// PROPï¿½SITO: Crea una vista para cada imagen de la cadena de intercambio
 //
 void GEDrawingContext::createImageViews(VkDevice device)
 {
@@ -225,14 +225,14 @@ void GEDrawingContext::createImageViews(VkDevice device)
 }
 
 //
-// FUNCIÓN: GEDrawingContext::createSyncObjects(VkDevice device)
+// FUNCIï¿½N: GEDrawingContext::createSyncObjects(VkDevice device)
 //
-// PROPÓSITO: Crea los semáforos y los fences para no sobreescribir las imágenes
+// PROPï¿½SITO: Crea los semï¿½foros y los fences para no sobreescribir las imï¿½genes
 //
 void GEDrawingContext::createSyncObjects(VkDevice device)
 {
 	// Compute shader, error fix
-	// Forzamos que frameCount sea el máximo de frames que permitimos en paralelo (normalmente 2)
+	// Forzamos que frameCount sea el mï¿½ximo de frames que permitimos en paralelo (normalmente 2)
 	this->frameCount = MAX_FRAMES_IN_FLIGHT;
 
 	imageAvailableSemaphores.resize(frameCount);
@@ -253,16 +253,16 @@ void GEDrawingContext::createSyncObjects(VkDevice device)
 		vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]);
 	}
 
-	// Crear semáforos de renderizado terminado (bucle de 4)
+	// Crear semï¿½foros de renderizado terminado (bucle de 4)
 	for (size_t i = 0; i < imageCount; i++) {
 		vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]);
 	}
 }
 
 //
-// FUNCIÓN: GEDrawingContext::createQueues(GEGraphicsContext* gc)
+// FUNCIï¿½N: GEDrawingContext::createQueues(GEGraphicsContext* gc)
 //
-// PROPÓSITO: Obtiene las colas del dispositivo para enviar los comandos de generación y presentación de los gráficos
+// PROPï¿½SITO: Obtiene las colas del dispositivo para enviar los comandos de generaciï¿½n y presentaciï¿½n de los grï¿½ficos
 //
 void GEDrawingContext::createQueues(GEGraphicsContext* gc)
 {
@@ -272,14 +272,14 @@ void GEDrawingContext::createQueues(GEGraphicsContext* gc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////                                                                                 /////
-/////                       Métodos de generación de la imagen                        /////
+/////                       Mï¿½todos de generaciï¿½n de la imagen                        /////
 /////                                                                                 /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //
-// FUNCIÓN: GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
+// FUNCIï¿½N: GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
 //
-// PROPÓSITO: Espera hasta que la próxima imagen esté lista para ser generada
+// PROPï¿½SITO: Espera hasta que la prï¿½xima imagen estï¿½ lista para ser generada
 //
 void GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
 {
@@ -297,18 +297,18 @@ void GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
 
 	currentImage = imageIndex;
 
-	// Si esta imagen específica todavía está siendo usada por un frame anterior, esperamos por ella
+	// Si esta imagen especï¿½fica todavï¿½a estï¿½ siendo usada por un frame anterior, esperamos por ella
 	if (imagesInFlight[currentImage] != VK_NULL_HANDLE) {
 		vkWaitForFences(gc->device, 1, &imagesInFlight[currentImage], VK_TRUE, UINT64_MAX);
 	}
-	// Marcamos que esta imagen está ahora en uso por el frame actual
+	// Marcamos que esta imagen estï¿½ ahora en uso por el frame actual
 	imagesInFlight[currentImage] = inFlightFences[currentFrame];
 }
 
 //
-// FUNCIÓN: GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
+// FUNCIï¿½N: GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
 //
-// PROPÓSITO: Envía los comandos gráficos al dispositivo
+// PROPï¿½SITO: Envï¿½a los comandos grï¿½ficos al dispositivo
 //
 void GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
 {
@@ -345,9 +345,9 @@ void GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector
 }
 
 //
-// FUNCIÓN: GEDrawingContext::submitPresentCommands(GEGraphicsContext* gc)
+// FUNCIï¿½N: GEDrawingContext::submitPresentCommands(GEGraphicsContext* gc)
 //
-// PROPÓSITO: Envía los comandos de presentación al dispositivo
+// PROPï¿½SITO: Envï¿½a los comandos de presentaciï¿½n al dispositivo
 //
 void GEDrawingContext::submitPresentCommands(GEGraphicsContext* gc)
 {
@@ -374,15 +374,15 @@ void GEDrawingContext::submitPresentCommands(GEGraphicsContext* gc)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /////                                                                                 /////
-/////                              Métodos auxiliares                                 /////
+/////                              Mï¿½todos auxiliares                                 /////
 /////                                                                                 /////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
 //
-// FUNCIÓN: GEDrawingContext::chooseSwapSurfaceFormat()
+// FUNCIï¿½N: GEDrawingContext::chooseSwapSurfaceFormat()
 //
-// PROPÓSITO: Escoge el formato de imagen entre los soportados por la superficie
+// PROPï¿½SITO: Escoge el formato de imagen entre los soportados por la superficie
 //
 VkSurfaceFormatKHR GEDrawingContext::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
@@ -398,9 +398,9 @@ VkSurfaceFormatKHR GEDrawingContext::chooseSwapSurfaceFormat(const std::vector<V
 }
 
 //
-// FUNCIÓN: GEDrawingContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GEWindowPosition wpos)
+// FUNCIï¿½N: GEDrawingContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GEWindowPosition wpos)
 //
-// PROPÓSITO: Escoge el tamaño de las imágenes asegurando que puede ser soportado por
+// PROPï¿½SITO: Escoge el tamaï¿½o de las imï¿½genes asegurando que puede ser soportado por
 //            la superficie
 //
 VkExtent2D GEDrawingContext::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GEWindowPosition wpos)

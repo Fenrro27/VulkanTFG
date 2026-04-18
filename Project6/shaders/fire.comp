@@ -41,32 +41,72 @@ void main() {
     Particle p = particlesIn[index];
     p.currentTtl -= params.deltaTime;
 
+    // --- REAPARICIÓN (Nacimiento de la llama) ---
     if (p.currentTtl <= 0.0) {
         p.currentTtl = max(p.ttl, 0.1); 
-        p.pos = params.emitterPos.xyz;
-
-        float randX = (random(index) - 0.5) * params.randomness;
-        float randY = (random(index + 10000) - 0.5) * params.randomness;
-        float randZ = (random(index + 20000) - 0.5) * params.randomness;
         
-        p.norm = vec3(randX, abs(randY) * 2.0, randZ); 
+        float angulo = random(index) * 6.283185; 
+        float radio = sqrt(random(index + 1000)) * params.randomness * 0.5; 
+        
+        p.pos = params.emitterPos.xyz;
+        p.pos.x += cos(angulo) * radio;
+        p.pos.z += sin(angulo) * radio;
+
+        float randX = (random(index + 2000) - 0.5) * params.randomness * 0.5;
+        float randY = (random(index + 3000) * 0.5 + 0.2) * params.randomness; 
+        float randZ = (random(index + 4000) - 0.5) * params.randomness * 0.5;
+        
+        p.norm = vec3(randX, randY, randZ); 
         p.color = params.startColor;
         p.size = params.startSize;
-    } else {
-        p.norm += params.force.xyz * params.deltaTime;
+    } 
+    // --- FÍSICA CONSTANTE DEL FUEGO ---
+    else {
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        float upwardProgress = max(p.pos.y - params.emitterPos.y, 0.0); 
+        float seed = float(index % 100u);
+
+        // --- LÓGICA DE CHISPAS ---
+        // Decidimos que 1 de cada 15 partículas (aprox 6.6%) sea una chispa libre
+        bool esChispa = (index % 15 == 0);
+
+        // 1. FLOTABILIDAD
+        float aceleracionTermica = 2.0 + params.force.y; 
+        p.norm.y += aceleracionTermica * params.deltaTime;
+
+        // 2. TURBULENCIA BASE
+        float turbX = sin(params.time * 6.0 + upwardProgress * 2.0 + seed) * params.randomness;
+        float turbZ = cos(params.time * 5.0 + upwardProgress * 2.2 + seed) * params.randomness;
+
+        // 3. CONVECCIÓN (Atracción al centro)
+        vec2 direccionAlCentro = params.emitterPos.xz - p.pos.xz;
+        float fuerzaCentro = upwardProgress * 2.0; 
+
+        // --- APLICACIÓN DE LA REBELDÍA ---
+        if (esChispa) {
+            // A) Casi no sienten atracción hacia el centro (escapan hacia afuera)
+            fuerzaCentro *= 0.05; 
+            
+            // B) Añadimos un movimiento circular/espiral mucho más agresivo
+            // Aumentamos la velocidad del seno/coseno y su amplitud
+            float velocidadGiro = 12.0;
+            float amplitudGiro = 1.8;
+            turbX += sin(params.time * velocidadGiro + upwardProgress * 3.0 + seed) * amplitudGiro;
+            turbZ += cos(params.time * velocidadGiro + upwardProgress * 3.0 + seed) * amplitudGiro;
+        }
+
+        p.norm.x += (turbX * 0.5 + direccionAlCentro.x * fuerzaCentro) * params.deltaTime;
+        p.norm.z += (turbZ * 0.5 + direccionAlCentro.y * fuerzaCentro) * params.deltaTime;
+
         p.pos += p.norm * params.deltaTime;
 
-        float seed = float(index % 100u);
-        float upwardProgress = p.pos.y - params.emitterPos.y;
-        float flicker = sin(params.time * 10.0 + seed) * 0.2;
-        
-        p.pos.x += sin(params.time * 4.0 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-        p.pos.z += cos(params.time * 3.5 + upwardProgress + seed) * upwardProgress * 0.05 * params.randomness;
-        p.pos.y += flicker * params.deltaTime;
-
-        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        // 4. APARIENCIA
         p.color = mix(params.startColor, params.endColor, lifeFactor);
-        p.size = mix(params.startSize, params.endSize, lifeFactor);
+        float tamaCurva = 1.0 - pow(lifeFactor, 2.0); 
+        
+        // C) Las chispas suelen ser un poco más pequeñas que el resto del fuego
+        float baseSize = esChispa ? params.startSize * 0.4 : params.startSize;
+        p.size = mix(params.endSize, baseSize, tamaCurva);
     }
 
     particlesOut[index] = p;

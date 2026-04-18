@@ -67,7 +67,9 @@ void main() {
         // FÍSICA CONSTANTE
         float gravedad = 9.8; 
         p.norm.y -= gravedad * params.deltaTime; // Cae con el tiempo
-        p.norm.xz *= 0.99;                        // Rozamiento del aire
+
+        float retencionPorSegundo = 0.5; // 0.5 significa que retiene el 50% de la velocidad cada segundo
+        p.norm.xz *= pow(retencionPorSegundo, params.deltaTime);        
         
         p.pos += p.norm * params.deltaTime;
 
