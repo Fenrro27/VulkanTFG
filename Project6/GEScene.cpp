@@ -125,14 +125,13 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
 	//particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
-
-	computeHumo = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount());
-	computeFuego = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount());
-	computeAgua = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount());
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount()));
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount()));
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount()));
 
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
-	particleSystem.push_back(std::make_unique<GEFuego>(50));
-	particleSystem.push_back(std::make_unique<GEAgua>(1000));
+	particleSystem.push_back(std::make_unique<GEFuego>(100));
+	particleSystem.push_back(std::make_unique<GEAgua>(600));
 
 	
 	GEMaterial particle1Mat = {};
@@ -145,21 +144,21 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
-	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	computeShaders[0]->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 	camera->addObservationPoint(particleSystem[0]->getLocation(), "Humo");
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
-	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	computeShaders[1]->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 	camera->addObservationPoint(particleSystem[1]->getLocation(), "Fuego");
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
-	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	computeShaders[2]->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
 
 
@@ -172,9 +171,9 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 //
 void GEScene::destroy(GEGraphicsContext* gc)
 {
-	computeAgua->destroy(gc);
-	computeFuego->destroy(gc);
-	computeHumo->destroy(gc);
+	for (auto& cs : computeShaders) {
+		cs->destroy(gc);
+	}
 	
 	rc->destroy(gc);
 	skybox->destroy(gc);
@@ -232,10 +231,6 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
 
-	for (auto& ps : particleSystem) {
-		ps->updatePhysics(gc, index, deltaTime);
-	}
-
 	skybox->update(gc, index, view, projection);
 
 	for (auto& figure:figures)
@@ -282,9 +277,9 @@ void GEScene::key_action(int key, bool pressed)
 		case GLFW_KEY_RIGHT: camera->setTurnCW(pressed); break;
 		case GLFW_KEY_S: if (pressed) camera->setMoveStep(0.0f); break;
 		case GLFW_KEY_KP_ADD:
-		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.1f); break;
+		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.10f); break;
 		case GLFW_KEY_KP_SUBTRACT:
-		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.1f); break;
+		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.10f); break;
 		case GLFW_KEY_Q: camera->setMoveUp(pressed); break;
 		case GLFW_KEY_A: camera->setMoveDown(pressed); break;
 		case GLFW_KEY_O: camera->setMoveLeft(pressed); break;
@@ -294,13 +289,13 @@ void GEScene::key_action(int key, bool pressed)
 		}
 	}
 	else if (mode == GECamera::CameraMode::FPS) {
-		if (pressed) camera->setMoveStep(0.25f);
+		if (pressed) camera->setMoveStep(3.0f);
 		// Movimiento FPS: WASD para moverse, Espacio y Shift para subir/bajar
 		switch (key) {
 		case GLFW_KEY_W: camera->setMoveFront(pressed); break;
 		case GLFW_KEY_S: camera->setMoveBack(pressed); break;
-		case GLFW_KEY_A: camera->setMoveRight(pressed); break;
-		case GLFW_KEY_D: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_A: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_D: camera->setMoveRight(pressed); break;
 		case GLFW_KEY_SPACE: camera->setMoveUp(pressed); break;
 		case GLFW_KEY_LEFT_SHIFT: camera->setMoveDown(pressed); break;
 		}
@@ -367,7 +362,7 @@ void GEScene::aspect_ratio(double aspect)
 	projection[1][1] *= -1.0f;
 }
 
-void GEScene::fillCommandBuffers(GECommandContext* cc)
+/*void GEScene::fillCommandBuffers(GECommandContext* cc)
 {
 	cc->beginCommandBuffers();
 
@@ -461,6 +456,8 @@ void GEScene::fillCommandBuffers(GECommandContext* cc)
 
 		cc->endCommandBuffers(); 
 }
+
+*/
 	//
 	// FUNCIÓN: GEScene::createSkyboxPipelineConfig()
 	//
@@ -615,50 +612,145 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 	}
 }
 
-void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool)
+/*void GEScene::dispatchCompute(GEGraphicsContext* gc,
+	GECommandContext* cc,
+	uint32_t imageIndex,
+	float deltaTime)
 {
-	vkCmdResetQueryPool(cb, queryPool, 0, 2);
+	VkCommandBuffer cb = cc->commandBuffers[imageIndex];
 
-// Anotamos el tiempo de inicio (índice 0)
-vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+	// ⚠️ IMPORTANTE:
+	// Aquí asumimos que TU engine ya sincroniza internamente.
+	// Si no, el problema está en GECommandContext, no aquí.
 
-	for (size_t s = 0; s < particleSystem.size(); s++)
+	// 1. Resetear command buffer
+	vkResetCommandBuffer(cb, 0);
+
+	// 2. Begin
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	vkBeginCommandBuffer(cb, &beginInfo);
+
+	// 3. Ejecutar compute shaders
+	for (size_t s = 0; s < computeShaders.size(); s++)
 	{
 		auto& ps = particleSystem[s];
+		if (!ps) continue;
+
 		uint32_t particleCount = ps->getParticlesCount();
-		//uint32_t groupCount = (particleCount + 255) / 256;
+		uint32_t groupCount = (particleCount + 255) / 256;
 
-		//particleCompute->recordCommands(cb, (uint32_t)s, (uint32_t)i, groupCount);
+		computeShaders[s]->recordCommands(cb, 0, imageIndex, groupCount);
 
-		uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
-		uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
-		uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+		// Barrera (MUY IMPORTANTE)
+		VkBufferMemoryBarrier barrier{};
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-		// Cada uno usa su propio Pipeline
-		computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
-		computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
-		computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
+		barrier.buffer = (imageIndex % 2 == 0)
+			? ps->getParticlesBufferB()->buffer
+			: ps->getParticlesBufferA()->buffer;
 
-		VkBufferMemoryBarrier barriers[2] = {};
-		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[0].buffer = ps->getParticlesBufferA()->buffer;
-		barriers[0].offset = 0;
-		barriers[0].size = VK_WHOLE_SIZE;
-
-		barriers[1] = barriers[0];
-		barriers[1].buffer = ps->getParticlesBufferB()->buffer;
+		barrier.offset = 0;
+		barrier.size = VK_WHOLE_SIZE;
 
 		vkCmdPipelineBarrier(
 			cb,
 			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 			VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-			0, 0, nullptr, 2, barriers, 0, nullptr
+			0,
+			0, nullptr,
+			1, &barrier,
+			0, nullptr
 		);
 	}
+
+	// 4. End
+	vkEndCommandBuffer(cb);
+
+	// 5. Submit usando TU engine
+	cc->submitCompute(cb, imageIndex); // ← ESTA FUNCIÓN TIENES QUE TENERLA
+}*/
+
+void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
+	VkQueryPool queryPool, int physicsSteps)
+{
+	vkCmdResetQueryPool(cb, queryPool, 0, 2);
+	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+
+	for (int step = 0; step < physicsSteps; step++)
+	{
+		// Despachar todos los sistemas en este paso
+		for (size_t s = 0; s < particleSystem.size(); s++)
+		{
+			if (!particleSystem[s] || s >= computeShaders.size() || !computeShaders[s])
+				continue;
+
+			uint32_t groupCount = (particleSystem[s]->getParticlesCount() + 255) / 256;
+			computeShaders[s]->recordCommands(cb, 0, i, groupCount);
+		}
+
+		// Si hay más pasos, barrera COMPUTE→COMPUTE para encadenar correctamente
+		if (step < physicsSteps - 1)
+		{
+			std::vector<VkBufferMemoryBarrier> stepBarriers;
+			stepBarriers.reserve(particleSystem.size() * 2);
+
+			for (auto& ps : particleSystem)
+			{
+				VkBufferMemoryBarrier b{};
+				b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+				b.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;   // ← COMPUTE lee en el sig. paso
+				b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				b.offset = 0;
+				b.size = VK_WHOLE_SIZE;
+
+				b.buffer = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer
+					: ps->getParticlesBufferA()->buffer;
+				stepBarriers.push_back(b);
+			}
+
+			vkCmdPipelineBarrier(cb,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				0, 0, nullptr,
+				(uint32_t)stepBarriers.size(), stepBarriers.data(),
+				0, nullptr);
+		}
+	}
+
+	// Barrera final COMPUTE→VERTEX para que el vertex shader lea el resultado
+	std::vector<VkBufferMemoryBarrier> finalBarriers;
+	finalBarriers.reserve(particleSystem.size());
+
+	for (auto& ps : particleSystem)
+	{
+		VkBufferMemoryBarrier b{};
+		b.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		b.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		b.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		b.offset = 0;
+		b.size = VK_WHOLE_SIZE;
+
+		b.buffer = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer
+			: ps->getParticlesBufferA()->buffer;
+		finalBarriers.push_back(b);
+	}
+
+	vkCmdPipelineBarrier(cb,
+		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+		0, 0, nullptr,
+		(uint32_t)finalBarriers.size(), finalBarriers.data(),
+		0, nullptr);
+
 	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, queryPool, 1);
 }
 
@@ -699,4 +791,20 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 }
 
 
+uint32_t GEScene::getTotalParticleCount() const
+{
+	uint32_t total = 0;
+	for (const auto& ps : particleSystem) {
+		total += ps->getParticlesCount();
+	}
+	return total;
+}
 
+
+
+void GEScene::updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime) {
+	// Actualizamos los buffers de los sistemas de partículas con el tiempo fijo
+		for (auto& ps : particleSystem) {
+		ps->updatePhysics(gc, index, fixedDeltaTime);
+	}
+}

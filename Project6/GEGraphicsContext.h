@@ -19,6 +19,7 @@ public:
 	uint32_t graphicsQueueFamilyIndex;
 	uint32_t presentQueueFamilyIndex;
 
+
 private:
 	VkPhysicalDeviceMemoryProperties memProperties;
 

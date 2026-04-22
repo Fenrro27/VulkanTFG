@@ -23,7 +23,6 @@ enum PipelineType {
 	PARTICLE_PIPELINE = 2
 };
 
-
 //
 // CLASE: GEScene
 //
@@ -36,9 +35,7 @@ private:
 	std::unique_ptr<GESkybox> skybox;
 	std::unique_ptr<GECamera> camera;
 
-	std::unique_ptr<GEComputeShader> computeHumo;
-	std::unique_ptr<GEComputeShader> computeFuego;
-	std::unique_ptr<GEComputeShader> computeAgua;
+	std::vector<std::unique_ptr<GEComputeShader>> computeShaders;
 
 	//GEObject* plane; 
 	std::vector<std::unique_ptr<GEFigure>> figures;
@@ -49,7 +46,6 @@ private:
 
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
-	void fillCommandBuffers(GECommandContext* commandBuffers);
 
 
 	bool isDragging = false;
@@ -71,12 +67,13 @@ public:
 	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 	GERenderingContext* getRenderingContext() { return rc.get(); }
-//	void drawScene(VkCommandBuffer cb, uint32_t i);
+	void updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime);
 
-	void recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool);
+	void recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool, int physicsSteps);
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 	GECamera* getCamera() { return camera.get(); }
 
+	uint32_t getTotalParticleCount() const;
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);

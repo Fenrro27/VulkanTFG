@@ -46,9 +46,14 @@ void main() {
         p.currentTtl = p.ttl; // Usamos el TTL original asignado en C++
         p.pos = params.emitterPos.xyz;
 
+float velocidadRotacion = 1.25; // radianes por segundo
+float offsetTiempo = params.time * velocidadRotacion;
+offsetTiempo += (random(index + 999) - 0.5) * 0.1;
+
         // Lógica de 4 chorros
         uint chorroID = index % 4;
-        float anguloBase = (90.0 * chorroID) * 0.0174533; 
+float anguloBase = (90.0 * chorroID) * 0.0174533 + offsetTiempo;
+
         float dispersion = (random(index + 500) - 0.5) * params.randomness;
         float anguloFinal = anguloBase + dispersion;
 

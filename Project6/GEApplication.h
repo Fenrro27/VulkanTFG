@@ -16,7 +16,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-// Estructura para decirle a unique_ptr cómo borrar la ventana de GLFW
+// Estructura para decirle a unique_ptr como borrar la ventana de GLFW
 struct GLFWWindowDeleter {
 	void operator()(GLFWwindow* window) const {
 		if (window) glfwDestroyWindow(window);
@@ -26,7 +26,7 @@ struct GLFWWindowDeleter {
 //
 // CLASE: GEApplication
 //
-// DESCRIPCIÓN: Clase que crea y lanza la aplicación gráfica.
+// DESCRIPCION: Clase que crea y lanza la aplicacion grafica.
 //
 class GEApplication
 {
@@ -42,7 +42,7 @@ private:
 	std::unique_ptr<GECommandContext> cc;
 	std::unique_ptr<GEScene> scene;
 
-	// Métodos principales
+	// Metodos principales
 	GLFWwindow* initWindow();
 	GEWindowPosition initWindowPos();
 
@@ -51,7 +51,7 @@ private:
 	VkQueryPool queryPool = VK_NULL_HANDLE;
 
 	void mainLoop();
-	void draw(float deltaTime);
+	void draw(double deltaTime, int physicsSteps, double alpha, double frameTime);
 	void cleanup();
 	void swapFullScreen();
 	void resize();
@@ -67,4 +67,3 @@ private:
 	void ControlsGUI(GECamera* cam);
 
 };
-

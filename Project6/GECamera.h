@@ -12,7 +12,7 @@ struct ObservationPoint {
 class GECamera {
 public:
 
-	enum class CameraMode { FREE, FPS, OBSERVING};
+	enum class CameraMode { FREE, FPS, OBSERVING };
 
 	GECamera();
 	glm::mat4 getViewMatrix();
@@ -109,4 +109,3 @@ private:
 	float pitch = 0.0f;
 	void updateCameraVectorsFromEuler();
 };
-

@@ -225,7 +225,7 @@ void GECamera::moveBack()
 //
 void GECamera::moveLeft()
 {
-//	Pos -= moveStep * Right;
+	//	Pos -= moveStep * Right;
 	Pos -= 0.1f * Right;
 }
 
@@ -236,7 +236,7 @@ void GECamera::moveLeft()
 //
 void GECamera::moveRight()
 {
-//	Pos += moveStep * Right;
+	//	Pos += moveStep * Right;
 	Pos += 0.1f * Right;
 }
 
@@ -247,7 +247,7 @@ void GECamera::moveRight()
 //
 void GECamera::moveUp()
 {
-//	Pos += moveStep * Up;
+	//	Pos += moveStep * Up;
 	Pos += 0.1f * Up;
 }
 
@@ -258,7 +258,7 @@ void GECamera::moveUp()
 //
 void GECamera::moveDown()
 {
-//	Pos -= moveStep * Up;
+	//	Pos -= moveStep * Up;
 	Pos -= 0.1f * Up;
 }
 

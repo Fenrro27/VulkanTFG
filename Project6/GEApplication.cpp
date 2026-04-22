@@ -11,12 +11,13 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
+#include <chrono>
 
 
 //
-// FUNCIÓN: GEApplication::run()
+// FUNCION: GEApplication::run()
 //
-// PROPÓSITO: Ejecuta la aplicación
+// PROPOSITO: Ejecuta la aplicacion
 //
 void GEApplication::run()
 {
@@ -43,7 +44,7 @@ void GEApplication::run()
 		inicializarImGui();
 	}
 	else {
-		std::cout << "[ERROR FATAL] La escena no creó el RenderingContext" << std::endl;
+		std::cout << "[ERROR FATAL] La escena no creo el RenderingContext" << std::endl;
 	}
 
 	mainLoop();
@@ -53,9 +54,9 @@ void GEApplication::run()
 }
 
 //
-// FUNCIÓN: GEApplication::initWindow()
+// FUNCION: GEApplication::initWindow()
 //
-// PROPÓSITO: Inicializa la ventana
+// PROPOSITO: Inicializa la ventana
 //
 GLFWwindow* GEApplication::initWindow()
 {
@@ -74,9 +75,9 @@ GLFWwindow* GEApplication::initWindow()
 }
 
 //
-// FUNCIÓN: GEApplication::initWindowPos()
+// FUNCION: GEApplication::initWindowPos()
 //
-// PROPÓSITO: Inicializa la posición de la ventana
+// PROPOSITO: Inicializa la posicion de la ventana
 //
 GEWindowPosition GEApplication::initWindowPos()
 {
@@ -94,48 +95,56 @@ GEWindowPosition GEApplication::initWindowPos()
 
 
 //
-// FUNCIÓN: GEApplication::mainLoop()
+// FUNCION: GEApplication::mainLoop()
 //
-// PROPÓSITO: Bucle principal que procesa los eventos de la aplicación
+// PROPOSITO: Bucle principal que procesa los eventos de la aplicacion
 //
 void GEApplication::mainLoop()
 {
-	double lastTime = glfwGetTime();
+	using clock = std::chrono::steady_clock;
+
+	auto lastTime = clock::now();
+	double accumulator = 0.0;
+
+	const double fixedDeltaTime = 1.0 / 60.0;
 
 	while (!glfwWindowShouldClose(window.get()))
 	{
 		glfwPollEvents();
 
-		double currentTime = glfwGetTime();
-		float deltaTime = static_cast<float>(currentTime - lastTime);
+		auto currentTime = clock::now();
+		double frameTime = std::chrono::duration<double>(currentTime - lastTime).count();
 		lastTime = currentTime;
 
-		if (deltaTime <= 0.0f) {
-			deltaTime = 0.001f;
+		if (frameTime > 0.25) frameTime = 0.25;
+
+		accumulator += frameTime;
+
+
+		int physicsSteps = 0;
+		while (accumulator >= fixedDeltaTime) {
+			physicsSteps++;
+			accumulator -= fixedDeltaTime;
 		}
 
-		if (deltaTime > 0.1f) {
-			deltaTime = 0.1f;
-		}
+		double alpha = accumulator / fixedDeltaTime;
 
-		draw(deltaTime);
+		draw(fixedDeltaTime, physicsSteps, alpha, frameTime);
 	}
 }
 
 //
-// FUNCIÓN: GEApplication::draw()
+// FUNCION: GEApplication::draw()
 //
-// PROPÓSITO: Lanza la generación del dibujo
-//
-//
-// FUNCIÓN: GEApplication::draw()
-//
-void GEApplication::draw(float deltaTime)
+void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double frameTime)
 {
-	// 1. SINCRONIZACIÓN
+	// 1. SINCRONIZACION
 	dc->waitForNextImage(gc.get());
 	uint32_t i = dc->getCurrentImage();
 	VkCommandBuffer cb = cc->commandBuffers[i];
+
+	int steps = 1;
+	scene->updatePhysics(gc.get(), i, frameTime);
 
 	// =========================================================================
 	// NUEVO: LEER EL TIEMPO DE LA GPU DEL FOTOGRAMA ANTERIOR
@@ -168,6 +177,8 @@ void GEApplication::draw(float deltaTime)
 
 
 	// 2. RESET Y BEGIN 
+	// Esperar a que la GPU termine con este frame
+
 	vkResetCommandBuffer(cb, 0);
 	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -198,7 +209,7 @@ void GEApplication::draw(float deltaTime)
 	{
 		ImGui::SetCursorPosY(10.0f);
 
-		// MOSTRAR FPS DE LA APLICACIÓN (CPU)
+		// MOSTRAR FPS DE LA APLICACION (CPU)
 		ImGui::Text("Rendimiento: %.1f FPS (%.3f ms)",
 			ImGui::GetIO().Framerate,
 			1000.0f / ImGui::GetIO().Framerate);
@@ -207,8 +218,13 @@ void GEApplication::draw(float deltaTime)
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 
+
+		
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
 		// =====================================================================
-		// NUEVO: MOSTRAR TIEMPO DE LA GPU (PARTÍCULAS)
+		// MOSTRAR TIEMPO DE LA GPU (PARTICULAS)
 		// =====================================================================
 		ImGui::Text("Particulas GPU: %.4f ms", computeShaderTimeMs);
 
@@ -216,6 +232,11 @@ void GEApplication::draw(float deltaTime)
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 		// =====================================================================
+		ImGui::Text("nParticulas: %u", scene->getTotalParticleCount()); // %u es para imprimir uint32_t
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
 
 		auto camera = scene->getCamera();
 
@@ -238,8 +259,8 @@ void GEApplication::draw(float deltaTime)
 	ImGui::Render();
 
 	// 4. ACTUALIZAR Y DIBUJAR ESCENA
-	scene->update(gc.get(), i, deltaTime);
-	scene->recordComputeCommands(cb, i, queryPool); // Aquí se guardan los nuevos tiempos para el siguiente frame
+	scene->update(gc.get(), i, alpha);
+    scene->recordComputeCommands(cb, i, queryPool, steps); 
 
 	auto rc = scene->getRenderingContext();
 	rc->insertBeginCommands(cb, i);
@@ -260,9 +281,9 @@ void GEApplication::draw(float deltaTime)
 	dc->submitPresentCommands(gc.get());
 }
 //
-// FUNCIÓN: GEApplication::cleanup()
+// FUNCION: GEApplication::cleanup()
 //
-// PROPÓSITO: Libera los recursos y finaliza la aplicación
+// PROPOSITO: Libera los recursos y finaliza la aplicacion
 //
 void GEApplication::cleanup()
 {
@@ -284,9 +305,9 @@ void GEApplication::cleanup()
 }
 
 //
-// FUNCIÓN: GEApplication::swapFullScreen()
+// FUNCION: GEApplication::swapFullScreen()
 //
-// PROPÓSITO: Dibuja la ventana a pantalla completa o a tamaño configurable
+// PROPOSITO: Dibuja la ventana a pantalla completa o a tamao configurable
 //
 void GEApplication::swapFullScreen()
 {
@@ -307,9 +328,9 @@ void GEApplication::swapFullScreen()
 }
 
 //
-// FUNCIÓN: GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+// FUNCION: GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 //
-// PROPÓSITO: Respuesta a un evento de teclado sobre la aplicación
+// PROPOSITO: Respuesta a un evento de teclado sobre la aplicacion
 //
 void GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -323,9 +344,9 @@ void GEApplication::keyCallback(GLFWwindow* window, int key, int scancode, int a
 }
 
 //
-// FUNCIÓN: GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+// FUNCION: GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 //
-// PROPÓSITO: Respuesta a un evento de ratón sobre la aplicación
+// PROPOSITO: Respuesta a un evento de raton sobre la aplicacion
 //
 void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -336,9 +357,9 @@ void GEApplication::mouseButtonCallback(GLFWwindow* window, int button, int acti
 }
 
 //
-// FUNCIÓN: GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
+// FUNCION: GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 //
-// PROPÓSITO: Respuesta a un evento de movimiento del cursor sobre la aplicación
+// PROPOSITO: Respuesta a un evento de movimiento del cursor sobre la aplicacion
 //
 void GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -349,9 +370,9 @@ void GEApplication::cursorPositionCallback(GLFWwindow* window, double xpos, doub
 }
 
 //
-// FUNCIÓN: GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+// FUNCION: GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 //
-// PROPÓSITO: Respuesta a un evento de redimensionamiento de la ventana de la aplicación
+// PROPOSITO: Respuesta a un evento de redimensionamiento de la ventana de la aplicacion
 //
 void GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -363,9 +384,9 @@ void GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int
 }
 
 //
-// FUNCIÓN: GEApplication::resize()
+// FUNCION: GEApplication::resize()
 //
-// PROPÓSITO: Reconstruye los objetos con el nuevo tamaño de ventana
+// PROPOSITO: Reconstruye los objetos con el nuevo tamao de ventana
 //
 void GEApplication::resize()
 {
@@ -410,7 +431,7 @@ void GEApplication::inicializarImGui() {
 		return;
 	}
 
-	// 2. Crear Pool de Descriptores con verificación
+	// 2. Crear Pool de Descriptores con verificacion
 	VkDescriptorPoolSize pool_sizes[] = {
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
 	};
@@ -438,18 +459,18 @@ void GEApplication::inicializarImGui() {
 
 	// 4. Inicializar Binding de GLFW
 	if (!ImGui_ImplGlfw_InitForVulkan(this->window.get(), true)) {
-		std::cerr << "[ImGui] ERROR: Falló la inicialización de ImGui para GLFW." << std::endl;
+		std::cerr << "[ImGui] ERROR: Fallo la inicializacion de ImGui para GLFW." << std::endl;
 		return;
 	}
 
-	// 5. Configurar información de inicialización para Vulkan
+	// 5. Configurar informacion de inicializacion para Vulkan
 	ImGui_ImplVulkan_InitInfo init_info = {};
 	init_info.Instance = gc->instance;
 	init_info.PhysicalDevice = gc->physicalDevice;
 	init_info.Device = gc->device;
 	init_info.QueueFamily = gc->graphicsQueueFamilyIndex;
 
-	// Obtenemos la cola de gráficos directamente
+	// Obtenemos la cola de graficos directamente
 	vkGetDeviceQueue(gc->device, gc->graphicsQueueFamilyIndex, 0, &init_info.Queue);
 	if (init_info.Queue == VK_NULL_HANDLE) {
 		std::cerr << "[ImGui] ERROR: No se pudo obtener la cola (Queue) de Vulkan." << std::endl;
@@ -460,22 +481,22 @@ void GEApplication::inicializarImGui() {
 	init_info.MinImageCount = 2;
 	init_info.ImageCount = renderContext->getImageCount();
 
-	// Configuración del Pipeline (Tu versión de ImGui usa PipelineInfoMain)
+	// Configuracion del Pipeline (Tu version de ImGui usa PipelineInfoMain)
 	init_info.PipelineInfoMain.RenderPass = renderContext->getRenderPass();
 	init_info.PipelineInfoMain.Subpass = 0;
 	init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
 	// 6. Inicializar Binding de Vulkan
 	if (!ImGui_ImplVulkan_Init(&init_info)) {
-		std::cerr << "[ImGui] ERROR: Falló la inicialización de ImGui para Vulkan." << std::endl;
+		std::cerr << "[ImGui] ERROR: Fallo la inicializacion de ImGui para Vulkan." << std::endl;
 		return;
 	}
 
-	// MENSAJE DE ÉXITO
+	// MENSAJE DE EXITO
 	std::cout << "--------------------------------------------------" << std::endl;
 	std::cout << "[SUCCESS] ImGui inicializado correctamente!" << std::endl;
 	std::cout << "[INFO] RenderPass utilizado: " << renderContext->getRenderPass() << std::endl;
-	std::cout << "[INFO] Imágenes en Swapchain: " << renderContext->getImageCount() << std::endl;
+	std::cout << "[INFO] Imagenes en Swapchain: " << renderContext->getImageCount() << std::endl;
 	std::cout << "--------------------------------------------------" << std::endl;
 }
 
@@ -494,7 +515,7 @@ void GEApplication::ControlsGUI(GECamera* cam)
 
 	ImGui::SetNextWindowPos(posicionEsqInfIzq, ImGuiCond_Always, ImVec2(0.0f, 1.0f));
 
-	// AÑADIMOS ImGuiWindowFlags_NoTitleBar para quitar la barra superior por defecto
+	// AADIMOS ImGuiWindowFlags_NoTitleBar para quitar la barra superior por defecto
 	ImGuiWindowFlags flags =
 		ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoMove |
@@ -502,12 +523,12 @@ void GEApplication::ControlsGUI(GECamera* cam)
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoTitleBar;
 
-	// Variable estática para recordar si el panel está abierto o cerrado
+	// Variable estatica para recordar si el panel esta abierto o cerrado
 	static bool mostrarControles = true;
 
 	ImGui::Begin("Controles de Camara", nullptr, flags);
 
-	// 1. DIBUJAMOS EL CONTENIDO PRIMERO (Quedará en la parte de arriba)
+	// 1. DIBUJAMOS EL CONTENIDO PRIMERO (Quedara en la parte de arriba)
 	if (mostrarControles)
 	{
 		ImGui::Text("Modo actual: ");
@@ -545,14 +566,14 @@ void GEApplication::ControlsGUI(GECamera* cam)
 			ImGui::Text("Raton: Orbitar alrededor del objetivo");
 		}
 
-		ImGui::Separator(); // Una línea visual para separar el contenido del botón inferior
+		ImGui::Separator(); // Una linea visual para separar el contenido del boton inferior
 	}
 
-	// 2. DIBUJAMOS EL "TÍTULO/BOTÓN" AL FINAL (Quedará en la base)
-	// Cambiamos el texto del botón dependiendo de si está abierto o cerrado
+	// 2. DIBUJAMOS EL "TITULO/BOTON" AL FINAL (Quedara en la base)
+	// Cambiamos el texto del boton dependiendo de si esta abierto o cerrado
 	const char* textoBoton = mostrarControles ? "v  Ocultar Controles de Camara  v" : "^  Mostrar Controles de Camara  ^";
 
-	// Usamos un botón que ocupe todo el ancho disponible
+	// Usamos un boton que ocupe todo el ancho disponible
 	if (ImGui::Button(textoBoton, ImVec2(ImGui::GetContentRegionAvail().x, 0)))
 	{
 		mostrarControles = !mostrarControles; // Invertimos el estado al hacer clic

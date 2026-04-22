@@ -174,7 +174,7 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 
 	createInfo.preTransform = capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(gc->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)

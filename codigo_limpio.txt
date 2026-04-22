@@ -107,6 +107,7 @@ FILE: Project6\GEApplication.cpp
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui_internal.h>
+#include <chrono>
 
 void GEApplication::run()
 {
@@ -172,25 +173,39 @@ GEWindowPosition GEApplication::initWindowPos()
 
 void GEApplication::mainLoop()
 {
-	double lastTime = glfwGetTime();
+	using clock = std::chrono::steady_clock;
+
+	auto lastTime = clock::now();
+	double accumulator = 0.0;
+
+	const double fixedDeltaTime = 1.0 / 60.0;
 
 	while (!glfwWindowShouldClose(window.get()))
 	{
 		glfwPollEvents();
 
-		double currentTime = glfwGetTime();
-		float deltaTime = static_cast<float>(currentTime - lastTime);
+		auto currentTime = clock::now();
+		std::chrono::duration<double> delta = currentTime - lastTime;
 		lastTime = currentTime;
 
-		if (deltaTime <= 0.0f) {
-			deltaTime = 0.001f;
+		double frameTime = delta.count();
+
+		if (frameTime > 0.25)
+			frameTime = 0.25;
+
+		accumulator += frameTime;
+
+		while (accumulator >= fixedDeltaTime) {
+			scene->updatePhysics(gc.get(), dc->getCurrentImage(), fixedDeltaTime);
+
+			accumulator -= fixedDeltaTime;
 		}
 
-		if (deltaTime > 0.1f) {
-			deltaTime = 0.1f;
-		}
+		uint32_t i = dc->getCurrentImage();
 
-		draw(deltaTime);
+		double alpha = accumulator / fixedDeltaTime;
+
+		draw(alpha);
 	}
 }
 
@@ -262,7 +277,17 @@ void GEApplication::draw(float deltaTime)
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+
 		ImGui::Text("Particulas GPU: %.4f ms", computeShaderTimeMs);
+
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+
+		ImGui::Text("nParticulas: %u", scene->getTotalParticleCount()); 
 
 		ImGui::SameLine();
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
@@ -278,13 +303,16 @@ void GEApplication::draw(float deltaTime)
 
 		ImGui::End();
 	}
+
+	ControlsGUI(scene->getCamera());
+
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 
 	ImGui::Render();
 
 	scene->update(gc.get(), i, deltaTime);
-	scene->recordComputeCommands(cb, i, queryPool); 
+    scene->recordComputeCommands(cb, i, queryPool); 
 
 	auto rc = scene->getRenderingContext();
 	rc->insertBeginCommands(cb, i);
@@ -480,6 +508,79 @@ void GEApplication::inicializarImGui() {
 	std::cout << "--------------------------------------------------" << std::endl;
 }
 
+void GEApplication::ControlsGUI(GECamera* cam)
+{
+	if (cam == nullptr) return;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	const float MARGEN = 15.0f;
+
+	ImVec2 posicionEsqInfIzq = ImVec2(
+		viewport->WorkPos.x + MARGEN,
+		viewport->WorkPos.y + viewport->WorkSize.y - MARGEN
+	);
+
+	ImGui::SetNextWindowPos(posicionEsqInfIzq, ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+
+	ImGuiWindowFlags flags =
+		ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoTitleBar;
+
+	static bool mostrarControles = true;
+
+	ImGui::Begin("Controles de Camara", nullptr, flags);
+
+	if (mostrarControles)
+	{
+		ImGui::Text("Modo actual: ");
+		ImGui::SameLine();
+
+		auto mode = cam->getCurrentMode();
+
+		if (mode == GECamera::CameraMode::FREE) {
+			ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("Flechas: Rotar camara (Pitch/Yaw)");
+			ImGui::Text("K / L: Rotar Izquierda / Derecha (Roll)");
+			ImGui::Text("Q / A: Mover Arriba / Abajo");
+			ImGui::Text("O / P: Mover Izquierda / Derecha");
+			ImGui::Text("1 / 2: Aumentar / Reducir velocidad de avance");
+			ImGui::Text("S: Detener movimiento (Velocidad 0)");
+		}
+		else if (mode == GECamera::CameraMode::FPS) {
+			ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "FPS");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("W / S: Avanzar / Retroceder");
+			ImGui::Text("A / D: Mover Izquierda / Derecha");
+			ImGui::Text("Espacio: Subir (Ascender)");
+			ImGui::Text("Shift: Bajar (Descender)");
+			ImGui::Text("Raton: Mirar alrededor");
+		}
+		else if (mode == GECamera::CameraMode::OBSERVING) {
+			ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "OBSERVACION");
+			ImGui::Separator();
+			ImGui::Text("M: Cambiar modo de camara");
+			ImGui::Text("Izquierda / Derecha: Cambiar objetivo");
+			ImGui::Text("Arriba / Abajo: Alejar / Acercar camara");
+			ImGui::Text("Raton: Orbitar alrededor del objetivo");
+		}
+
+		ImGui::Separator(); 
+	}
+
+	const char* textoBoton = mostrarControles ? "v  Ocultar Controles de Camara  v" : "^  Mostrar Controles de Camara  ^";
+
+	if (ImGui::Button(textoBoton, ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+	{
+		mostrarControles = !mostrarControles; 
+	}
+
+	ImGui::End();
 }
 
 ========================================
@@ -541,6 +642,8 @@ private:
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 	void inicializarImGui();
+
+	void ControlsGUI(GECamera* cam);
 
 };
 
@@ -958,7 +1061,7 @@ struct ObservationPoint {
 class GECamera {
 public:
 
-	enum class CameraMode { FREE, FPS, OBSERVING};
+	enum class CameraMode { FREE, FPS, OBSERVING };
 
 	GECamera();
 	glm::mat4 getViewMatrix();
@@ -1055,7 +1158,6 @@ private:
 	float pitch = 0.0f;
 	void updateCameraVectorsFromEuler();
 };
-
 
 ========================================
 FILE: Project6\GECommandContext.cpp
@@ -2213,7 +2315,7 @@ void GEDrawingContext::createSwapChain(GEGraphicsContext* gc, GEWindowPosition w
 
 	createInfo.preTransform = capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+	createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(gc->device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
@@ -5270,13 +5372,13 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
-	computeHumo = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount());
-	computeFuego = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount());
-	computeAgua = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount());
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount()));
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount()));
+	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount()));
 
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
-	particleSystem.push_back(std::make_unique<GEFuego>(50));
-	particleSystem.push_back(std::make_unique<GEAgua>(1000));
+	particleSystem.push_back(std::make_unique<GEFuego>(100));
+	particleSystem.push_back(std::make_unique<GEAgua>(600));
 
 	GEMaterial particle1Mat = {};
 	particle1Mat.Ka = glm::vec3(0.1f, 0.1f, 0.1f);
@@ -5288,30 +5390,30 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particleSystem[0]->translate(glm::vec3(-25.0f, 12.0f, 0.0f));
 	particleSystem[0]->setMaterial(particle1Mat);
 	particleSystem[0]->setLight(light);
-	computeHumo->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
+	computeShaders[0]->addParticleSystem(gc, dc->getImageCount(), particleSystem[0].get());
 	camera->addObservationPoint(particleSystem[0]->getLocation(), "Humo");
 
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
 	particleSystem[1]->setMaterial(particle1Mat);
 	particleSystem[1]->setLight(light);
-	computeFuego->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
+	computeShaders[1]->addParticleSystem(gc, dc->getImageCount(), particleSystem[1].get());
 	camera->addObservationPoint(particleSystem[1]->getLocation(), "Fuego");
 
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
 	particleSystem[2]->setMaterial(particle1Mat);
 	particleSystem[2]->setLight(light);
-	computeAgua->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
+	computeShaders[2]->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
 
 }
 
 void GEScene::destroy(GEGraphicsContext* gc)
 {
-	computeAgua->destroy(gc);
-	computeFuego->destroy(gc);
-	computeHumo->destroy(gc);
+	for (auto& cs : computeShaders) {
+		cs->destroy(gc);
+	}
 
 	rc->destroy(gc);
 	skybox->destroy(gc);
@@ -5358,10 +5460,6 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 	camera->update(deltaTime);
 	glm::mat4 view = camera->getViewMatrix();
 
-	for (auto& ps : particleSystem) {
-		ps->updatePhysics(gc, index, deltaTime);
-	}
-
 	skybox->update(gc, index, view, projection);
 
 	for (auto& figure:figures)
@@ -5402,9 +5500,9 @@ void GEScene::key_action(int key, bool pressed)
 		case GLFW_KEY_RIGHT: camera->setTurnCW(pressed); break;
 		case GLFW_KEY_S: if (pressed) camera->setMoveStep(0.0f); break;
 		case GLFW_KEY_KP_ADD:
-		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.1f); break;
+		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.10f); break;
 		case GLFW_KEY_KP_SUBTRACT:
-		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.1f); break;
+		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.10f); break;
 		case GLFW_KEY_Q: camera->setMoveUp(pressed); break;
 		case GLFW_KEY_A: camera->setMoveDown(pressed); break;
 		case GLFW_KEY_O: camera->setMoveLeft(pressed); break;
@@ -5414,7 +5512,7 @@ void GEScene::key_action(int key, bool pressed)
 		}
 	}
 	else if (mode == GECamera::CameraMode::FPS) {
-		if (pressed) camera->setMoveStep(0.25f);
+		if (pressed) camera->setMoveStep(3.0f);
 
 		switch (key) {
 		case GLFW_KEY_W: camera->setMoveFront(pressed); break;
@@ -5476,92 +5574,6 @@ void GEScene::aspect_ratio(double aspect)
 
 	projection = glm::perspective((float)fov, (float)aspect, 0.2f, 400.0f);
 	projection[1][1] *= -1.0f;
-}
-
-void GEScene::fillCommandBuffers(GECommandContext* cc)
-{
-	cc->beginCommandBuffers();
-
-	for (int i = 0; i < (int)cc->commandBuffers.size(); i++)
-		{
-			VkCommandBuffer cb = cc->commandBuffers[i];
-
-				for (size_t s = 0; s < particleSystem.size(); s++)
-				{
-						auto& ps = particleSystem[s]; 
-						uint32_t particleCount = ps->getParticlesCount(); 
-
-						uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
-						uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
-						uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
-
-						computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
-						computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
-						computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
-
-						VkBufferMemoryBarrier barriers[2] = {};
-					barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER; 
-						barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; 
-						barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-						barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; 
-						barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; 
-						barriers[0].buffer = ps->getParticlesBufferA()->buffer; 
-						barriers[0].offset = 0;
-						barriers[0].size = VK_WHOLE_SIZE; 
-
-						barriers[1] = barriers[0]; 
-						barriers[1].buffer = ps->getParticlesBufferB()->buffer; 
-
-						vkCmdPipelineBarrier(
-							cb,
-							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-							VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-							0, 0, nullptr, 2, barriers, 0, nullptr
-						); 
-				}
-
-				rc->insertBeginCommands(cb, i);
-
-			 	rc->setActivePipeline(SKYBOX_PIPELINE);
-
-				vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
-				skybox->addCommands(cb, rc->getActivePipelineLayout(), i); 
-
-				rc->setActivePipeline(SCENE_PIPELINE);
-
-				vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline()); 
-
-				for ( auto& figure:figures)
-				{
-					figure->addCommands(cb, rc->getActivePipelineLayout(), i);
-				}
-
-				for (auto& ob : objects)
-				{
-					ob->addCommands(cb, rc->getActivePipelineLayout(), i);
-				}
-
-				rc->setActivePipeline(PARTICLE_PIPELINE);
-
-				vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline()); 
-
-				for (auto& ps:particleSystem)
-				{
-						uint32_t particleCount = ps->getParticlesCount(); 
-
-						VkDescriptorSet ds = ps->getDescriptorSet(i);
-						vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipelineLayout(), 0, 1, &ds, 0, nullptr); 
-
-						VkDeviceSize offset = 0; 
-						VkBuffer bufferADibujar = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer : ps->getParticlesBufferA()->buffer; 
-
-						vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset); 
-						vkCmdDraw(cb, particleCount, 1, 0, 0); 
-				}
-				rc->insertEndCommands(cb);
-	}
-
-		cc->endCommandBuffers(); 
 }
 
 std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2D extent)
@@ -5696,46 +5708,46 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 
 void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool)
 {
-	vkCmdResetQueryPool(cb, queryPool, 0, 2);
 
-vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
+	vkCmdResetQueryPool(cb, queryPool, 0, 2);
+	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
 
 	for (size_t s = 0; s < particleSystem.size(); s++)
 	{
 		auto& ps = particleSystem[s];
+		if (!ps) continue;
+
 		uint32_t particleCount = ps->getParticlesCount();
+		uint32_t groupCount = (particleCount + 255) / 256;
 
-		uint32_t groupHumo = (particleSystem[0]->getParticlesCount() + 255) / 256;
-		uint32_t groupFuego = (particleSystem[1]->getParticlesCount() + 255) / 256;
-		uint32_t groupAgua = (particleSystem[2]->getParticlesCount() + 255) / 256;
+		if (s < computeShaders.size() && computeShaders[s]) {
+			computeShaders[s]->recordCommands(cb, 0, i, groupCount);
+		}
 
-		computeHumo->recordCommands(cb, 0, (uint32_t)i, groupHumo);
-		computeFuego->recordCommands(cb, 0, (uint32_t)i, groupFuego);
-		computeAgua->recordCommands(cb, 0, (uint32_t)i, groupAgua);
+		VkBufferMemoryBarrier barrier = {};
+		barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+		barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;         
+		barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT; 
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-		VkBufferMemoryBarrier barriers[2] = {};
-		barriers[0].sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-		barriers[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-		barriers[0].dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		barriers[0].srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[0].dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barriers[0].buffer = ps->getParticlesBufferA()->buffer;
-		barriers[0].offset = 0;
-		barriers[0].size = VK_WHOLE_SIZE;
-
-		barriers[1] = barriers[0];
-		barriers[1].buffer = ps->getParticlesBufferB()->buffer;
+		barrier.buffer = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer : ps->getParticlesBufferA()->buffer;
+		barrier.offset = 0;
+		barrier.size = VK_WHOLE_SIZE;
 
 		vkCmdPipelineBarrier(
 			cb,
-			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-			VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
-			0, 0, nullptr, 2, barriers, 0, nullptr
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
+			VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,   
+			0,
+			0, nullptr,
+			1, &barrier,
+			0, nullptr
 		);
 	}
+
 	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, queryPool, 1);
 }
-
 void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 {
 
@@ -5770,53 +5782,21 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 	}
 }
 
-void GESene::ControlsGUI() 
+uint32_t GEScene::getTotalParticleCount() const
 {
-
-	ImGui::Begin("Controles de Camara", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-	ImGui::Text("Modo actual: ");
-	ImGui::SameLine();
-
-	auto mode = camera->getCurrentMode();
-
-	if (mode == GECamera::CameraMode::FREE) {
-
-		ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
-		ImGui::Separator();
-
-		ImGui::Text("M: Cambiar modo de camara");
-		ImGui::Text("Flechas: Rotar camara (Pitch/Yaw)");
-		ImGui::Text("K / L: Rotar Izquierda / Derecha (Roll)");
-		ImGui::Text("Q / A: Mover Arriba / Abajo");
-		ImGui::Text("O / P: Mover Izquierda / Derecha");
-		ImGui::Text("1 / 2: Aumentar / Reducir velocidad de avance");
-		ImGui::Text("S: Detener movimiento (Velocidad 0)");
+	uint32_t total = 0;
+	for (const auto& ps : particleSystem) {
+		total += ps->getParticlesCount();
 	}
-	else if (mode == GECamera::CameraMode::FPS) {
+	return total;
+}
 
-		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "FPS");
-		ImGui::Separator();
+void GEScene::updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime) {
 
-		ImGui::Text("M: Cambiar modo de camara");
-		ImGui::Text("W / S: Avanzar / Retroceder");
-		ImGui::Text("A / D: Mover Izquierda / Derecha");
-		ImGui::Text("Espacio: Subir (Ascender)");
-		ImGui::Text("Shift: Bajar (Descender)");
-		ImGui::Text("Raton: Mirar alrededor");
+		for (auto& ps : particleSystem) {
+		ps->updatePhysics(gc, index, fixedDeltaTime);
 	}
-	else if (mode == GECamera::CameraMode::OBSERVING) {
-
-		ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "OBSERVACION");
-		ImGui::Separator();
-
-		ImGui::Text("M: Cambiar modo de camara");
-		ImGui::Text("Izquierda / Derecha: Cambiar objetivo (Agua, Fuego, Humo...)");
-		ImGui::Text("Arriba / Abajo: Alejar / Acercar camara al objetivo");
-		ImGui::Text("Raton: Orbitar alrededor del objetivo");
-	}
-
-	ImGui::End();
+}
 
 ========================================
 FILE: Project6\GEScene.h
@@ -5851,9 +5831,7 @@ private:
 	std::unique_ptr<GESkybox> skybox;
 	std::unique_ptr<GECamera> camera;
 
-	std::unique_ptr<GEComputeShader> computeHumo;
-	std::unique_ptr<GEComputeShader> computeFuego;
-	std::unique_ptr<GEComputeShader> computeAgua;
+	std::vector<std::unique_ptr<GEComputeShader>> computeShaders;
 
 	std::vector<std::unique_ptr<GEFigure>> figures;
 	std::vector<std::unique_ptr<GEObject>> objects;
@@ -5863,7 +5841,6 @@ private:
 
 	glm::mat4 projection;
 	uint32_t particleCount = 10000;
-	void fillCommandBuffers(GECommandContext* commandBuffers);
 
 	bool isDragging = false;
 	bool firstMouse = true;
@@ -5883,12 +5860,14 @@ public:
 	void mouse_button_action(GLFWwindow* window, int button, int action);
 
 	GERenderingContext* getRenderingContext() { return rc.get(); }
+	void updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime);
 
 	void recordComputeCommands(VkCommandBuffer cb, uint32_t i, VkQueryPool queryPool);
+
 	void drawGraphicsObjects(VkCommandBuffer cb, uint32_t i);
 	GECamera* getCamera() { return camera.get(); }
 
-	void ControlsGUI();
+	uint32_t getTotalParticleCount() const;
 
 private:
 	std::unique_ptr < GEPipelineConfig> createSkyboxPipelineConfig(VkExtent2D extent);
@@ -78514,8 +78493,13 @@ void main() {
         p.currentTtl = p.ttl; 
         p.pos = params.emitterPos.xyz;
 
+float velocidadRotacion = 1.25; 
+float offsetTiempo = params.time * velocidadRotacion;
+offsetTiempo += (random(index + 999) - 0.5) * 0.1;
+
         uint chorroID = index % 4;
-        float anguloBase = (90.0 * chorroID) * 0.0174533; 
+float anguloBase = (90.0 * chorroID) * 0.0174533 + offsetTiempo;
+
         float dispersion = (random(index + 500) - 0.5) * params.randomness;
         float anguloFinal = anguloBase + dispersion;
 
