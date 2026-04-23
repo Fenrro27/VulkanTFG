@@ -31,16 +31,13 @@ GEDrawingContext::GEDrawingContext(GEGraphicsContext* gc, GEWindowPosition wpos)
 void GEDrawingContext::destroy(GEGraphicsContext* gc)
 {
 	// Destruir objetos que dependen de frameCount
-	for (size_t i = 0; i < frameCount; i++)
-	{
+	for (size_t i = 0; i < frameCount; i++) {
 		vkDestroySemaphore(gc->device, imageAvailableSemaphores[i], nullptr);
 		vkDestroyFence(gc->device, inFlightFences[i], nullptr);
 	}
 
-	// Destruir objetos que dependen de imageCount
-	for (uint32_t i = 0; i < imageCount; i++)
-	{
-		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr); // MUEVE ESTO AQU�
+	for (uint32_t i = 0; i < imageCount; i++) {
+		vkDestroySemaphore(gc->device, renderFinishedSemaphores[i], nullptr);
 		vkDestroyImageView(gc->device, imageViews[i], nullptr);
 	}
 
@@ -231,14 +228,12 @@ void GEDrawingContext::createImageViews(VkDevice device)
 //
 void GEDrawingContext::createSyncObjects(VkDevice device)
 {
-	// Compute shader, error fix
-	// Forzamos que frameCount sea el m�ximo de frames que permitimos en paralelo (normalmente 2)
 	this->frameCount = MAX_FRAMES_IN_FLIGHT;
 
 	imageAvailableSemaphores.resize(frameCount);
-	inFlightFences.resize(frameCount);
 	
 	renderFinishedSemaphores.resize(imageCount);
+	inFlightFences.resize(frameCount);
 	imagesInFlight.resize(imageCount, VK_NULL_HANDLE);
 
 	VkSemaphoreCreateInfo semaphoreInfo = {};
@@ -252,8 +247,6 @@ void GEDrawingContext::createSyncObjects(VkDevice device)
 		vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]);
 		vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]);
 	}
-
-	// Crear sem�foros de renderizado terminado (bucle de 4)
 	for (size_t i = 0; i < imageCount; i++) {
 		vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]);
 	}
@@ -281,47 +274,40 @@ void GEDrawingContext::createQueues(GEGraphicsContext* gc)
 //
 // PROP�SITO: Espera hasta que la pr�xima imagen est� lista para ser generada
 //
-void GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
+bool GEDrawingContext::waitForNextImage(GEGraphicsContext* gc)
 {
-	// Esperar al fence del frame actual (CPU-GPU sync)
 	vkWaitForFences(gc->device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-	// Obtener la imagen
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(gc->device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-		// Manejar resize si es necesario
-		return;
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+		return false;
+	} else if (result != VK_SUCCESS) {
+		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
 	currentImage = imageIndex;
 
-	// Si esta imagen espec�fica todav�a est� siendo usada por un frame anterior, esperamos por ella
 	if (imagesInFlight[currentImage] != VK_NULL_HANDLE) {
 		vkWaitForFences(gc->device, 1, &imagesInFlight[currentImage], VK_TRUE, UINT64_MAX);
 	}
-	// Marcamos que esta imagen est� ahora en uso por el frame actual
 	imagesInFlight[currentImage] = inFlightFences[currentFrame];
+
+	return true;
 }
 
 //
-// FUNCI�N: GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
+// FUNCIN: GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
 //
-// PROP�SITO: Env�a los comandos gr�ficos al dispositivo
+// PROPSITO: Enva los comandos grficos al dispositivo
 //
 void GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers)
 {
-	if (imagesInFlight[currentImage] != VK_NULL_HANDLE)
-	{
-		vkWaitForFences(gc->device, 1, &imagesInFlight[currentImage], VK_TRUE, UINT64_MAX);
-	}
-	imagesInFlight[currentImage] = inFlightFences[currentFrame];
-
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentImage] }; // Compute shader, error fix
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentImage] };
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

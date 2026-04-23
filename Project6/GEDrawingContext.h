@@ -8,7 +8,7 @@
 //
 // CLASE: GEDrawingContext
 //
-// DESCRIPCIÓN: Clase que contiene la información sobre el destino de las imágenes a generar (swapchain, vistas, colas de comandos)
+// DESCRIPCIN: Clase que contiene la informacin sobre el destino de las imgenes a generar (swapchain, vistas, colas de comandos)
 //
 class GEDrawingContext
 {
@@ -22,7 +22,7 @@ private:
 	size_t currentFrame = 0;
 	uint32_t currentImage = 0;
 
-	// Componentes gráficos
+	// Componentes grficos
 	VkSwapchainKHR swapChain;
 	VkFormat imageFormat;
 	VkExtent2D imageExtent;
@@ -30,7 +30,7 @@ private:
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
 
-	// Sincronización entre imágenes
+	// Sincronizacin entre imgenes
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
@@ -48,20 +48,20 @@ public:
 	uint32_t getImageCount();
 	uint32_t getCurrentImage();
 
-	// Métodos de generación de la imagen
-	void waitForNextImage(GEGraphicsContext* gc);
+	// Mtodos de generacin de la imagen
+	bool waitForNextImage(GEGraphicsContext* gc);
 	void submitGraphicsCommands(GEGraphicsContext* gc, std::vector<VkCommandBuffer> commandBuffers);
 	void submitPresentCommands(GEGraphicsContext* gc);
 	void waitIdle(VkDevice device);
 
 private:
-	// Métodos de creación de componentes
+	// Mtodos de creacin de componentes
 	void createSwapChain(GEGraphicsContext* gc, GEWindowPosition wpos);
 	void createImageViews(VkDevice device);
 	void createSyncObjects(VkDevice device);
 	void createQueues(GEGraphicsContext* gc);
 
-	// Métodos auxiliares
+	// Mtodos auxiliares
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GEWindowPosition wpos);
 

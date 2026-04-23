@@ -139,7 +139,9 @@ void GEApplication::mainLoop()
 void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double frameTime)
 {
 	// 1. SINCRONIZACION
-	dc->waitForNextImage(gc.get());
+	if (!dc->waitForNextImage(gc.get())) {
+		return;
+	}
 	uint32_t i = dc->getCurrentImage();
 	VkCommandBuffer cb = cc->commandBuffers[i];
 
