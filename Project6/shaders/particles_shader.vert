@@ -1,3 +1,7 @@
+/**
+ * @file particles_shader.vert
+ * @brief Archivo particles_shader.vert
+ */
 #version 450
 
 layout(location = 0) in vec3 inPos;

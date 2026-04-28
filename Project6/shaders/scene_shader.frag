@@ -1,3 +1,7 @@
+/**
+ * @file scene_shader.frag
+ * @brief Archivo scene_shader.frag
+ */
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -31,6 +35,9 @@ layout(set=0, binding = 2) uniform LightInfo
 
 layout(set=0, binding = 3) uniform sampler2D BaseTex;
 
+/**
+ * @brief Función ads
+ */
 vec3 ads(vec3 TexColor) 
 {
   vec4 s4 = Transform.ViewMatrix*vec4(Light.Ldir, 0.0);

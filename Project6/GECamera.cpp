@@ -1,594 +1,727 @@
-#include "GECamera.h"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-//
-// FUNCIÓN: GECamera::GECamera()
-//
-// PROPÓSITO: Construye una cámara
-//
-// COMENTARIOS: 
-//     La posición inicial es (0,0,0).
-//     La orientación incial es el sistema de coordenadas del modelo
-//     El tamaño del paso inicial es 0.1
-//     El támaño del giro inicial es 1.0 grados
-//
-GECamera::GECamera()
-{
-	Pos = glm::vec3(0.0f, 0.0f, 0.0f);
-	Dir = glm::vec3(0.0f, 0.0f, 1.0f);
-	Up = glm::vec3(0.0f, 1.0f, 0.0f);
-	Right = glm::vec3(1.0f, 0.0f, 0.0f);
-
-	moveStep = 0.1f;
-	turnStep = 1.0f;
-	cosAngle = cos(glm::radians(turnStep));
-	sinAngle = sin(glm::radians(turnStep));
-
-	turnLeftPressed = false;
-	turnRightPressed = false;
-	turnUpPressed = false;
-	turnDownPressed = false;
-	turnCWPressed = false;
-	turnCCWPressed = false;
-	moveLeftPressed = false;
-	moveRightPressed = false;
-	moveUpPressed = false;
-	moveDownPressed = false;
-
-	moveFrontPressed = false;
-	moveBackPressed = false;
-}
-
-//
-// FUNCIÓN: GECamera::getViewMatrix()
-//
-// PROPÓSITO: Obtiene la matriz View para situar la cámara.
-//
-glm::mat4 GECamera::getViewMatrix()
-{
-	// Si estamos en modo observador, calculamos la vista de órbita
-	if (currentMode == CameraMode::OBSERVING) {
-		glm::vec3 targetPos;
-
-		if (observationPoints.empty()) {
-			// Comportamiento por defecto: Lista vacía -> Mirar al centro (0,0,0)
-			targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
-		}
-		else {
-			// Comportamiento normal: Mirar al elemento actual de la lista
-			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
-		}
-
-		// La cámara se coloca a 8 unidades de distancia del objetivo, en la dirección contraria a donde mira
-		glm::vec3 offsetPos = targetPos + (Dir * observationDistance);
-
-		return glm::lookAt(offsetPos, targetPos, Up);
-	}
-
-	// Comportamiento para modos FREE y FPS
-	return glm::lookAt(Pos, Pos - Dir, Up);
-}
-
-//
-// FUNCIÓN: GECamera::setPosition(glm::vec3 pos)
-//
-// PROPÓSITO: Asigna la posición de la cámara con respecto al sistema de coordenadas del modelo.
-//
-void GECamera::setPosition(glm::vec3 pos)
-{
-	Pos = glm::vec3(pos);
-}
-
-//
-// FUNCIÓN: GECamera::setDirection(glm::vec3 dir, glm::vec3 up)
-//
-// PROPÓSITO: Asigna la orientación de la cámara.
-//
-void GECamera::setDirection(glm::vec3 dir, glm::vec3 up)
-{
-	Dir = glm::vec3(dir);
-	Up = glm::vec3(up);
-	Right = glm::cross(Up, Dir);
-}
-
-//
-// FUNCIÓN: GECamera::setMoveStep(float step)
-//
-// PROPÓSITO: Asigna el avance en cada paso.
-//
-void GECamera::setMoveStep(float step)
-{
-	moveStep = step;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnStep(float step)
-//
-// PROPÓSITO: Asigna el ángulo de giro en cada paso.
-//
-void GECamera::setTurnStep(float step)
-{
-	turnStep = step;
-	cosAngle = cos(glm::radians(turnStep));
-	sinAngle = sin(glm::radians(turnStep));
-}
-
-//
-// FUNCIÓN: GECamera::getPosition()
-//
-// PROPÓSITO: Obtiene la posición de la cámara.
-//
-glm::vec3 GECamera::getPosition()
-{
-	return Pos;
-}
-
-//
-// FUNCIÓN: GECamera::getDirection()
-//
-// PROPÓSITO: Obtiene la orientación de la cámara (eje Z).
-//
-glm::vec3 GECamera::getDirection()
-{
-	return Dir;
-}
-
-//
-// FUNCIÓN: GECamera::getUpDirection()
-//
-// PROPÓSITO: Obtiene la orientación cenital de la cámara (eje Y).
-//
-glm::vec3 GECamera::getUpDirection()
-{
-	return Up;
-}
-
-//
-// FUNCIÓN: GECamera::getMoveStep()
-//
-// PROPÓSITO: Obtiene el avance en cada paso.
-//
-float GECamera::getMoveStep()
-{
-	return moveStep;
-}
-
-//
-// FUNCIÓN: GECamera::getTurnStep()
-//
-// PROPÓSITO: Obtiene el ángulo de giro en cada paso.
-//
-float GECamera::getTurnStep()
-{
-	return turnStep;
-}
-
-//
-// FUNCIÓN: GECamera::update()
-//
-// PROPÓSITO: Actualiza la posición y orientación de la cámara 
-//
-void GECamera::update(float deltaTime)
-{
-	if (currentMode == CameraMode::FREE) {
-		if (turnLeftPressed && !turnRightPressed) turnLeft();
-		if (!turnLeftPressed && turnRightPressed) turnRight();
-		if (turnUpPressed && !turnDownPressed) turnUp();
-		if (!turnUpPressed && turnDownPressed) turnDown();
-		if (turnCWPressed && !turnCCWPressed) turnCW();
-		if (!turnCWPressed && turnCCWPressed) turnCCW();
-
-		if (moveLeftPressed && !moveRightPressed) moveLeft();
-		if (!moveLeftPressed && moveRightPressed) moveRight();
-		if (moveUpPressed && !moveDownPressed) moveUp();
-		if (!moveUpPressed && moveDownPressed) moveDown();
-
-		moveFront(); // Comportamiento normal (se mueve constantemente hacia adelante)
-	}
-	else if (currentMode == CameraMode::FPS) {
-		// En FPS solo nos movemos si las teclas están siendo pulsadas
-		if (moveFrontPressed && !moveBackPressed) moveFront();
-		if (!moveFrontPressed && moveBackPressed) moveBack();
-		if (moveLeftPressed && !moveRightPressed) moveLeft();
-		if (!moveLeftPressed && moveRightPressed) moveRight();
-		if (moveUpPressed && !moveDownPressed) moveUp();
-		if (!moveUpPressed && moveDownPressed) moveDown();
-	}
-}
-
-//
-// FUNCIÓN: GECamera::moveFront()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) en la dirección -Dir 
-//
-void GECamera::moveFront()
-{
-	Pos -= moveStep * Dir;
-}
-
-//
-// FUNCIÓN: GECamera::moveBack()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) hacia atrás en la dirección Dir 
-//
-void GECamera::moveBack()
-{
-	Pos += moveStep * Dir;
-}
-
-//
-// FUNCIÓN: GECamera::moveLeft()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) hacia la izquierda. 
-//
-void GECamera::moveLeft()
-{
-	//	Pos -= moveStep * Right;
-	Pos -= 0.1f * Right;
-}
-
-//
-// FUNCIÓN: GECamera::moveRight()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) hacia la derecha. 
-//
-void GECamera::moveRight()
-{
-	//	Pos += moveStep * Right;
-	Pos += 0.1f * Right;
-}
-
-//
-// FUNCIÓN: GECamera::moveUp()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) hacia arriba. 
-//
-void GECamera::moveUp()
-{
-	//	Pos += moveStep * Up;
-	Pos += 0.1f * Up;
-}
-
-//
-// FUNCIÓN: GECamera::moveDown()
-//
-// PROPÓSITO: Mueve el observador un paso (moveStep) hacia abajo. 
-//
-void GECamera::moveDown()
-{
-	//	Pos -= moveStep * Up;
-	Pos -= 0.1f * Up;
-}
-
-//
-// FUNCIÓN: GECamera::turnRight()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) hacia su derecha.
-//
-void GECamera::turnRight()
-{
-	Dir.x = cosAngle * Dir.x - sinAngle * Right.x;
-	Dir.y = cosAngle * Dir.y - sinAngle * Right.y;
-	Dir.z = cosAngle * Dir.z - sinAngle * Right.z;
-
-	// Right = Up x Dir
-	Right = glm::cross(Up, Dir);
-}
-
-//
-// FUNCIÓN: CACamera::turnLeft()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) hacia su izquierda.
-//
-void GECamera::turnLeft()
-{
-	Dir.x = cosAngle * Dir.x + sinAngle * Right.x;
-	Dir.y = cosAngle * Dir.y + sinAngle * Right.y;
-	Dir.z = cosAngle * Dir.z + sinAngle * Right.z;
-
-	// Right = Up x Dir
-	Right = glm::cross(Up, Dir);
-}
-
-//
-// FUNCIÓN: GECamera::turnUp()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) hacia arriba.
-//
-void GECamera::turnUp()
-{
-	Dir.x = cosAngle * Dir.x - sinAngle * Up.x;
-	Dir.y = cosAngle * Dir.y - sinAngle * Up.y;
-	Dir.z = cosAngle * Dir.z - sinAngle * Up.z;
-
-	// Up = Dir x Right
-	Up = glm::cross(Dir, Right);
-}
-
-//
-// FUNCIÓN: GECamera::turnDown()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) hacia abajo.
-//
-void GECamera::turnDown()
-{
-	Dir.x = cosAngle * Dir.x + sinAngle * Up.x;
-	Dir.y = cosAngle * Dir.y + sinAngle * Up.y;
-	Dir.z = cosAngle * Dir.z + sinAngle * Up.z;
-
-	// Up = Dir x Right
-	Up = glm::cross(Dir, Right);
-}
-
-//
-// FUNCIÓN: GECamera::turnCW()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) en sentido del reloj.
-//
-void GECamera::turnCW()
-{
-	Up.x = cosAngle * Up.x + sinAngle * Right.x;
-	Up.y = cosAngle * Up.y + sinAngle * Right.y;
-	Up.z = cosAngle * Up.z + sinAngle * Right.z;
-
-	// Right = Up x Dir
-	Right = glm::cross(Up, Dir);
-}
-
-//
-// FUNCIÓN: GECamera::turnCCW()
-//
-// PROPÓSITO: Rota el observador un paso (angleStep) en sentido contrario al reloj.
-//
-void GECamera::turnCCW()
-{
-	Up.x = cosAngle * Up.x - sinAngle * Right.x;
-	Up.y = cosAngle * Up.y - sinAngle * Right.y;
-	Up.z = cosAngle * Up.z - sinAngle * Right.z;
-
-	// Right = Up x Dir
-	Right = glm::cross(Up, Dir);
-}
-
-//
-// FUNCIÓN: GECamera::setTurnLeft(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro a la izquierda
-//
-void GECamera::setTurnLeft(bool flag)
-{
-	turnLeftPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnRight(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro a la derecha
-//
-void GECamera::setTurnRight(bool flag)
-{
-	turnRightPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnUp(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro hacia arriba
-//
-void GECamera::setTurnUp(bool flag)
-{
-	turnUpPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnDown(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro hacia abajo
-//
-void GECamera::setTurnDown(bool flag)
-{
-	turnDownPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnCW(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro horario
-//
-void GECamera::setTurnCW(bool flag)
-{
-	turnCWPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setTurnCCW(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el giro antihorario
-//
-void GECamera::setTurnCCW(bool flag)
-{
-	turnCCWPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setMoveLeft(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el desplazamiento a la izquierda
-//
-void GECamera::setMoveLeft(bool flag)
-{
-	moveLeftPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setMoveRight(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el desplazamiento a la derecha
-//
-void GECamera::setMoveRight(bool flag)
-{
-	moveRightPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setMoveUp(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el desplazamiento hacia arriba
-//
-void GECamera::setMoveUp(bool flag)
-{
-	moveUpPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setMoveDown(bool flag)
-//
-// PROPÓSITO: Activa o desactiva el desplazamiento hacia abajo
-//
-void GECamera::setMoveDown(bool flag)
-{
-	moveDownPressed = flag;
-}
-
-//
-// FUNCIÓN: GECamera::setNextMode()
-//
-void GECamera::setNextMode()
-{
-	// Guardar la posición orbital al salir de OBSERVING
-	if (currentMode == CameraMode::OBSERVING) {
-		glm::vec3 targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
-
-		if (!observationPoints.empty()) {
-			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
-		}
-
-		// Sobrescribimos 'Pos' con la posición real en la que estaba la cámara.
-		// Así, al entrar a modo FREE, continuará el vuelo desde aquí sin saltos bruscos.
-		Pos = targetPos + (Dir * observationDistance);
-	}
-
-	// Ciclo entre FREE -> FPS -> OBSERVING -> FREE
-	if (currentMode == CameraMode::FREE) {
-		currentMode = CameraMode::FPS;
-	}
-	else if (currentMode == CameraMode::FPS) {
-		currentMode = CameraMode::OBSERVING;
-	}
-	else {
-		currentMode = CameraMode::FREE;
-	}
-
-	// Si entramos en un modo basado en Euler, sincronizamos ángulos con la dirección actual
-	if (currentMode == CameraMode::FPS || currentMode == CameraMode::OBSERVING)
-	{
-		glm::vec3 front = glm::normalize(Dir);
-		pitch = glm::degrees(asin(front.y));
-		yaw = glm::degrees(atan2(front.z, front.x));
-
-		if (pitch > 89.0f) pitch = 89.0f;
-		if (pitch < -89.0f) pitch = -89.0f;
-	}
-}
-
-void GECamera::processMouse(float xoffset, float yoffset)
-{
-	// Ahora el ratón afecta tanto a FPS como a Tercera Persona
-	if (currentMode == CameraMode::FREE) return;
-
-	float sensitivity = 0.1f;
-	yaw += xoffset * sensitivity;
-	pitch += yoffset * sensitivity;
-
-	if (pitch > 89.0f) pitch = 89.0f;
-	if (pitch < -89.0f) pitch = -89.0f;
-
-	updateCameraVectorsFromEuler();
-}
-
-void GECamera::updateCameraVectorsFromEuler()
-{
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-	Dir = glm::normalize(front);
-	Right = glm::normalize(glm::cross(Dir, glm::vec3(0.0f, 1.0f, 0.0f)));
-	Up = glm::normalize(glm::cross(Right, Dir));
-}
-
-// Añade una nueva matriz de localización a la lista
-void GECamera::addObservationPoint(glm::mat4 location, std::string s)
-{
-	observationPoints.push_back({ location,s });
-}
-
-// Cambia al siguiente punto a observar
-void GECamera::nextObservationPoint()
-{
-	if (!observationPoints.empty()) {
-		currentObservationIndex = (currentObservationIndex + 1) % observationPoints.size();
-	}
-}
-
-// Cambia al punto anterior a observar
-void GECamera::prevObservationPoint()
-{
-	if (!observationPoints.empty()) {
-		currentObservationIndex--;
-		if (currentObservationIndex < 0) {
-			currentObservationIndex = (int)observationPoints.size() - 1;
-		}
-	}
-}
-
-
-//
-// FUNCIÓN: GECamera::getCurrentObservationName()
-//
-std::string GECamera::getCurrentObservationName()
-{
-	// Si no hay nada añadido, devolvemos "null" explícitamente
-	if (observationPoints.empty()) {
-		return "null";
-	}
-
-	// Si hay elementos, devolvemos el nombre del elemento actual
-	return observationPoints[currentObservationIndex].name;
-}
-
-
-void GECamera::setMoveFront(bool flag)
-{
-	moveFrontPressed = flag;
-}
-
-void GECamera::setMoveBack(bool flag)
-{
-	moveBackPressed = flag;
-}
-
-void GECamera::stopAllMovement()
-{
-	// Reseteamos la velocidad de avance continuo
-	moveStep = 0.0f;
-
-	// Reseteamos todas las teclas de movimiento
-	moveFrontPressed = false;
-	moveBackPressed = false;
-	moveLeftPressed = false;
-	moveRightPressed = false;
-	moveUpPressed = false;
-	moveDownPressed = false;
-
-	// Reseteamos también las de rotación por si acaso
-	turnLeftPressed = false;
-	turnRightPressed = false;
-	turnUpPressed = false;
-	turnDownPressed = false;
-	turnCWPressed = false;
-	turnCCWPressed = false;
+/**
+ * @file GECamera.cpp
+ * @brief Archivo GECamera.cpp
+ */
+#include "GECamera.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+//
+// FUNCIÃ“N: GECamera::GECamera()
+//
+// PROPÃ“SITO: Construye una cÃ¡mara
+//
+// COMENTARIOS: 
+//     La posiciÃ³n inicial es (0,0,0).
+//     La orientaciÃ³n incial es el sistema de coordenadas del modelo
+//     El tamaÃ±o del paso inicial es 0.1
+//     El tÃ¡maÃ±o del giro inicial es 1.0 grados
+//
+GECamera::GECamera()
+{
+	Pos = glm::vec3(0.0f, 0.0f, 0.0f);
+	Dir = glm::vec3(0.0f, 0.0f, 1.0f);
+	Up = glm::vec3(0.0f, 1.0f, 0.0f);
+	Right = glm::vec3(1.0f, 0.0f, 0.0f);
+
+	moveStep = 0.1f;
+	turnStep = 1.0f;
+	cosAngle = cos(glm::radians(turnStep));
+	sinAngle = sin(glm::radians(turnStep));
+
+	turnLeftPressed = false;
+	turnRightPressed = false;
+	turnUpPressed = false;
+	turnDownPressed = false;
+	turnCWPressed = false;
+	turnCCWPressed = false;
+	moveLeftPressed = false;
+	moveRightPressed = false;
+	moveUpPressed = false;
+	moveDownPressed = false;
+
+	moveFrontPressed = false;
+	moveBackPressed = false;
+}
+
+//
+// FUNCIÃ“N: GECamera::getViewMatrix()
+//
+// PROPÃ“SITO: Obtiene la matriz View para situar la cÃ¡mara.
+//
+/**
+ * @brief FunciÃ³n GECamera::getViewMatrix
+ */
+glm::mat4 GECamera::getViewMatrix()
+{
+	// Si estamos en modo observador, calculamos la vista de Ã³rbita
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos;
+
+		if (observationPoints.empty()) {
+			// Comportamiento por defecto: Lista vacÃ­a -> Mirar al centro (0,0,0)
+			targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+		else {
+			// Comportamiento normal: Mirar al elemento actual de la lista
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		// La cÃ¡mara se coloca a 8 unidades de distancia del objetivo, en la direcciÃ³n contraria a donde mira
+		glm::vec3 offsetPos = targetPos + (Dir * observationDistance);
+
+		return glm::lookAt(offsetPos, targetPos, Up);
+	}
+
+	// Comportamiento para modos FREE y FPS
+	return glm::lookAt(Pos, Pos - Dir, Up);
+}
+
+//
+// FUNCIÃ“N: GECamera::setPosition(glm::vec3 pos)
+//
+// PROPÃ“SITO: Asigna la posiciÃ³n de la cÃ¡mara con respecto al sistema de coordenadas del modelo.
+//
+/**
+ * @brief FunciÃ³n GECamera::setPosition
+ */
+void GECamera::setPosition(glm::vec3 pos)
+{
+	Pos = glm::vec3(pos);
+}
+
+//
+// FUNCIÃ“N: GECamera::setDirection(glm::vec3 dir, glm::vec3 up)
+//
+// PROPÃ“SITO: Asigna la orientaciÃ³n de la cÃ¡mara.
+//
+/**
+ * @brief FunciÃ³n GECamera::setDirection
+ */
+void GECamera::setDirection(glm::vec3 dir, glm::vec3 up)
+{
+	Dir = glm::vec3(dir);
+	Up = glm::vec3(up);
+	Right = glm::cross(Up, Dir);
+}
+
+//
+// FUNCIÃ“N: GECamera::setMoveStep(float step)
+//
+// PROPÃ“SITO: Asigna el avance en cada paso.
+//
+/**
+ * @brief FunciÃ³n GECamera::setMoveStep
+ */
+void GECamera::setMoveStep(float step)
+{
+	moveStep = step;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnStep(float step)
+//
+// PROPÃ“SITO: Asigna el Ã¡ngulo de giro en cada paso.
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnStep
+ */
+void GECamera::setTurnStep(float step)
+{
+	turnStep = step;
+	cosAngle = cos(glm::radians(turnStep));
+	sinAngle = sin(glm::radians(turnStep));
+}
+
+//
+// FUNCIÃ“N: GECamera::getPosition()
+//
+// PROPÃ“SITO: Obtiene la posiciÃ³n de la cÃ¡mara.
+//
+/**
+ * @brief FunciÃ³n GECamera::getPosition
+ */
+glm::vec3 GECamera::getPosition()
+{
+	return Pos;
+}
+
+//
+// FUNCIÃ“N: GECamera::getDirection()
+//
+// PROPÃ“SITO: Obtiene la orientaciÃ³n de la cÃ¡mara (eje Z).
+//
+/**
+ * @brief FunciÃ³n GECamera::getDirection
+ */
+glm::vec3 GECamera::getDirection()
+{
+	return Dir;
+}
+
+//
+// FUNCIÃ“N: GECamera::getUpDirection()
+//
+// PROPÃ“SITO: Obtiene la orientaciÃ³n cenital de la cÃ¡mara (eje Y).
+//
+/**
+ * @brief FunciÃ³n GECamera::getUpDirection
+ */
+glm::vec3 GECamera::getUpDirection()
+{
+	return Up;
+}
+
+//
+// FUNCIÃ“N: GECamera::getMoveStep()
+//
+// PROPÃ“SITO: Obtiene el avance en cada paso.
+//
+/**
+ * @brief FunciÃ³n GECamera::getMoveStep
+ */
+float GECamera::getMoveStep()
+{
+	return moveStep;
+}
+
+//
+// FUNCIÃ“N: GECamera::getTurnStep()
+//
+// PROPÃ“SITO: Obtiene el Ã¡ngulo de giro en cada paso.
+//
+/**
+ * @brief FunciÃ³n GECamera::getTurnStep
+ */
+float GECamera::getTurnStep()
+{
+	return turnStep;
+}
+
+//
+// FUNCIÃ“N: GECamera::update()
+//
+// PROPÃ“SITO: Actualiza la posiciÃ³n y orientaciÃ³n de la cÃ¡mara 
+//
+/**
+ * @brief FunciÃ³n GECamera::update
+ */
+void GECamera::update(float deltaTime)
+{
+	if (currentMode == CameraMode::FREE) {
+		if (turnLeftPressed && !turnRightPressed) turnLeft();
+		if (!turnLeftPressed && turnRightPressed) turnRight();
+		if (turnUpPressed && !turnDownPressed) turnUp();
+		if (!turnUpPressed && turnDownPressed) turnDown();
+		if (turnCWPressed && !turnCCWPressed) turnCW();
+		if (!turnCWPressed && turnCCWPressed) turnCCW();
+
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+
+		moveFront(); // Comportamiento normal (se mueve constantemente hacia adelante)
+	}
+	else if (currentMode == CameraMode::FPS) {
+		// En FPS solo nos movemos si las teclas estÃ¡n siendo pulsadas
+		if (moveFrontPressed && !moveBackPressed) moveFront();
+		if (!moveFrontPressed && moveBackPressed) moveBack();
+		if (moveLeftPressed && !moveRightPressed) moveLeft();
+		if (!moveLeftPressed && moveRightPressed) moveRight();
+		if (moveUpPressed && !moveDownPressed) moveUp();
+		if (!moveUpPressed && moveDownPressed) moveDown();
+	}
+}
+
+//
+// FUNCIÃ“N: GECamera::moveFront()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) en la direcciÃ³n -Dir 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveFront
+ */
+void GECamera::moveFront()
+{
+	Pos -= moveStep * Dir;
+}
+
+//
+// FUNCIÃ“N: GECamera::moveBack()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) hacia atrÃ¡s en la direcciÃ³n Dir 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveBack
+ */
+void GECamera::moveBack()
+{
+	Pos += moveStep * Dir;
+}
+
+//
+// FUNCIÃ“N: GECamera::moveLeft()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) hacia la izquierda. 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveLeft
+ */
+void GECamera::moveLeft()
+{
+	//	Pos -= moveStep * Right;
+	Pos -= 0.1f * Right;
+}
+
+//
+// FUNCIÃ“N: GECamera::moveRight()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) hacia la derecha. 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveRight
+ */
+void GECamera::moveRight()
+{
+	//	Pos += moveStep * Right;
+	Pos += 0.1f * Right;
+}
+
+//
+// FUNCIÃ“N: GECamera::moveUp()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) hacia arriba. 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveUp
+ */
+void GECamera::moveUp()
+{
+	//	Pos += moveStep * Up;
+	Pos += 0.1f * Up;
+}
+
+//
+// FUNCIÃ“N: GECamera::moveDown()
+//
+// PROPÃ“SITO: Mueve el observador un paso (moveStep) hacia abajo. 
+//
+/**
+ * @brief FunciÃ³n GECamera::moveDown
+ */
+void GECamera::moveDown()
+{
+	//	Pos -= moveStep * Up;
+	Pos -= 0.1f * Up;
+}
+
+//
+// FUNCIÃ“N: GECamera::turnRight()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) hacia su derecha.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnRight
+ */
+void GECamera::turnRight()
+{
+	Dir.x = cosAngle * Dir.x - sinAngle * Right.x;
+	Dir.y = cosAngle * Dir.y - sinAngle * Right.y;
+	Dir.z = cosAngle * Dir.z - sinAngle * Right.z;
+
+	// Right = Up x Dir
+	Right = glm::cross(Up, Dir);
+}
+
+//
+// FUNCIÃ“N: CACamera::turnLeft()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) hacia su izquierda.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnLeft
+ */
+void GECamera::turnLeft()
+{
+	Dir.x = cosAngle * Dir.x + sinAngle * Right.x;
+	Dir.y = cosAngle * Dir.y + sinAngle * Right.y;
+	Dir.z = cosAngle * Dir.z + sinAngle * Right.z;
+
+	// Right = Up x Dir
+	Right = glm::cross(Up, Dir);
+}
+
+//
+// FUNCIÃ“N: GECamera::turnUp()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) hacia arriba.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnUp
+ */
+void GECamera::turnUp()
+{
+	Dir.x = cosAngle * Dir.x - sinAngle * Up.x;
+	Dir.y = cosAngle * Dir.y - sinAngle * Up.y;
+	Dir.z = cosAngle * Dir.z - sinAngle * Up.z;
+
+	// Up = Dir x Right
+	Up = glm::cross(Dir, Right);
+}
+
+//
+// FUNCIÃ“N: GECamera::turnDown()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) hacia abajo.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnDown
+ */
+void GECamera::turnDown()
+{
+	Dir.x = cosAngle * Dir.x + sinAngle * Up.x;
+	Dir.y = cosAngle * Dir.y + sinAngle * Up.y;
+	Dir.z = cosAngle * Dir.z + sinAngle * Up.z;
+
+	// Up = Dir x Right
+	Up = glm::cross(Dir, Right);
+}
+
+//
+// FUNCIÃ“N: GECamera::turnCW()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) en sentido del reloj.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnCW
+ */
+void GECamera::turnCW()
+{
+	Up.x = cosAngle * Up.x + sinAngle * Right.x;
+	Up.y = cosAngle * Up.y + sinAngle * Right.y;
+	Up.z = cosAngle * Up.z + sinAngle * Right.z;
+
+	// Right = Up x Dir
+	Right = glm::cross(Up, Dir);
+}
+
+//
+// FUNCIÃ“N: GECamera::turnCCW()
+//
+// PROPÃ“SITO: Rota el observador un paso (angleStep) en sentido contrario al reloj.
+//
+/**
+ * @brief FunciÃ³n GECamera::turnCCW
+ */
+void GECamera::turnCCW()
+{
+	Up.x = cosAngle * Up.x - sinAngle * Right.x;
+	Up.y = cosAngle * Up.y - sinAngle * Right.y;
+	Up.z = cosAngle * Up.z - sinAngle * Right.z;
+
+	// Right = Up x Dir
+	Right = glm::cross(Up, Dir);
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnLeft(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro a la izquierda
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnLeft
+ */
+void GECamera::setTurnLeft(bool flag)
+{
+	turnLeftPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnRight(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro a la derecha
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnRight
+ */
+void GECamera::setTurnRight(bool flag)
+{
+	turnRightPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnUp(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro hacia arriba
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnUp
+ */
+void GECamera::setTurnUp(bool flag)
+{
+	turnUpPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnDown(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro hacia abajo
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnDown
+ */
+void GECamera::setTurnDown(bool flag)
+{
+	turnDownPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnCW(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro horario
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnCW
+ */
+void GECamera::setTurnCW(bool flag)
+{
+	turnCWPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setTurnCCW(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el giro antihorario
+//
+/**
+ * @brief FunciÃ³n GECamera::setTurnCCW
+ */
+void GECamera::setTurnCCW(bool flag)
+{
+	turnCCWPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setMoveLeft(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el desplazamiento a la izquierda
+//
+/**
+ * @brief FunciÃ³n GECamera::setMoveLeft
+ */
+void GECamera::setMoveLeft(bool flag)
+{
+	moveLeftPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setMoveRight(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el desplazamiento a la derecha
+//
+/**
+ * @brief FunciÃ³n GECamera::setMoveRight
+ */
+void GECamera::setMoveRight(bool flag)
+{
+	moveRightPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setMoveUp(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el desplazamiento hacia arriba
+//
+/**
+ * @brief FunciÃ³n GECamera::setMoveUp
+ */
+void GECamera::setMoveUp(bool flag)
+{
+	moveUpPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setMoveDown(bool flag)
+//
+// PROPÃ“SITO: Activa o desactiva el desplazamiento hacia abajo
+//
+/**
+ * @brief FunciÃ³n GECamera::setMoveDown
+ */
+void GECamera::setMoveDown(bool flag)
+{
+	moveDownPressed = flag;
+}
+
+//
+// FUNCIÃ“N: GECamera::setNextMode()
+//
+/**
+ * @brief FunciÃ³n GECamera::setNextMode
+ */
+void GECamera::setNextMode()
+{
+	// Guardar la posiciÃ³n orbital al salir de OBSERVING
+	if (currentMode == CameraMode::OBSERVING) {
+		glm::vec3 targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
+
+		if (!observationPoints.empty()) {
+			targetPos = glm::vec3(observationPoints[currentObservationIndex].location[3]);
+		}
+
+		// Sobrescribimos 'Pos' con la posiciÃ³n real en la que estaba la cÃ¡mara.
+		// AsÃ­, al entrar a modo FREE, continuarÃ¡ el vuelo desde aquÃ­ sin saltos bruscos.
+		Pos = targetPos + (Dir * observationDistance);
+	}
+
+	// Ciclo entre FREE -> FPS -> OBSERVING -> FREE
+	if (currentMode == CameraMode::FREE) {
+		currentMode = CameraMode::FPS;
+	}
+	else if (currentMode == CameraMode::FPS) {
+		currentMode = CameraMode::OBSERVING;
+	}
+	else {
+		currentMode = CameraMode::FREE;
+	}
+
+	// Si entramos en un modo basado en Euler, sincronizamos Ã¡ngulos con la direcciÃ³n actual
+	if (currentMode == CameraMode::FPS || currentMode == CameraMode::OBSERVING)
+	{
+		glm::vec3 front = glm::normalize(Dir);
+		pitch = glm::degrees(asin(front.y));
+		yaw = glm::degrees(atan2(front.z, front.x));
+
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+	}
+}
+
+/**
+ * @brief FunciÃ³n GECamera::processMouse
+ */
+void GECamera::processMouse(float xoffset, float yoffset)
+{
+	// Ahora el ratÃ³n afecta tanto a FPS como a Tercera Persona
+	if (currentMode == CameraMode::FREE) return;
+
+	float sensitivity = 0.1f;
+	yaw += xoffset * sensitivity;
+	pitch += yoffset * sensitivity;
+
+	if (pitch > 89.0f) pitch = 89.0f;
+	if (pitch < -89.0f) pitch = -89.0f;
+
+	updateCameraVectorsFromEuler();
+}
+
+/**
+ * @brief FunciÃ³n GECamera::updateCameraVectorsFromEuler
+ */
+void GECamera::updateCameraVectorsFromEuler()
+{
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	Dir = glm::normalize(front);
+	Right = glm::normalize(glm::cross(Dir, glm::vec3(0.0f, 1.0f, 0.0f)));
+	Up = glm::normalize(glm::cross(Right, Dir));
+}
+
+// AÃ±ade una nueva matriz de localizaciÃ³n a la lista
+/**
+ * @brief FunciÃ³n GECamera::addObservationPoint
+ */
+void GECamera::addObservationPoint(glm::mat4 location, std::string s)
+{
+	observationPoints.push_back({ location,s });
+}
+
+// Cambia al siguiente punto a observar
+/**
+ * @brief FunciÃ³n GECamera::nextObservationPoint
+ */
+void GECamera::nextObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex = (currentObservationIndex + 1) % observationPoints.size();
+	}
+}
+
+// Cambia al punto anterior a observar
+/**
+ * @brief FunciÃ³n GECamera::prevObservationPoint
+ */
+void GECamera::prevObservationPoint()
+{
+	if (!observationPoints.empty()) {
+		currentObservationIndex--;
+		if (currentObservationIndex < 0) {
+			currentObservationIndex = (int)observationPoints.size() - 1;
+		}
+	}
+}
+
+
+//
+// FUNCIÃ“N: GECamera::getCurrentObservationName()
+//
+/**
+ * @brief FunciÃ³n GECamera::getCurrentObservationName
+ */
+std::string GECamera::getCurrentObservationName()
+{
+	// Si no hay nada aÃ±adido, devolvemos "null" explÃ­citamente
+	if (observationPoints.empty()) {
+		return "null";
+	}
+
+	// Si hay elementos, devolvemos el nombre del elemento actual
+	return observationPoints[currentObservationIndex].name;
+}
+
+
+/**
+ * @brief FunciÃ³n GECamera::setMoveFront
+ */
+void GECamera::setMoveFront(bool flag)
+{
+	moveFrontPressed = flag;
+}
+
+/**
+ * @brief FunciÃ³n GECamera::setMoveBack
+ */
+void GECamera::setMoveBack(bool flag)
+{
+	moveBackPressed = flag;
+}
+
+/**
+ * @brief FunciÃ³n GECamera::stopAllMovement
+ */
+void GECamera::stopAllMovement()
+{
+	// Reseteamos la velocidad de avance continuo
+	moveStep = 0.0f;
+
+	// Reseteamos todas las teclas de movimiento
+	moveFrontPressed = false;
+	moveBackPressed = false;
+	moveLeftPressed = false;
+	moveRightPressed = false;
+	moveUpPressed = false;
+	moveDownPressed = false;
+
+	// Reseteamos tambiÃ©n las de rotaciÃ³n por si acaso
+	turnLeftPressed = false;
+	turnRightPressed = false;
+	turnUpPressed = false;
+	turnDownPressed = false;
+	turnCWPressed = false;
+	turnCCWPressed = false;
 }

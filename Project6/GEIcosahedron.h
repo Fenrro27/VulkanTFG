@@ -1,14 +1,25 @@
-#pragma once
-
-#include "GEFigure.h"
-
-//
-// CLASE: GEIcosahedron
-//
-// DESCRIPCI�N: Clase que describe un icosahedro
-//
-class GEIcosahedron : public GEFigure
-{
-public:
-	explicit GEIcosahedron(float r);
-};
+/**
+ * @file GEIcosahedron.h
+ * @brief Archivo GEIcosahedron.h
+ */
+#pragma once
+
+#include "GEFigure.h"
+
+//
+// CLASE: GEIcosahedron
+//
+// DESCRIPCIÓN: Clase que describe un icosahedro
+//
+/**
+ * @class GEIcosahedron
+ * @brief Class GEIcosahedron
+ */
+class GEIcosahedron : public GEFigure
+{
+public:
+	/**
+	 * @brief Función GEIcosahedron
+	 */
+	explicit GEIcosahedron(float r);
+};

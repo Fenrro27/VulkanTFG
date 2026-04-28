@@ -1,5 +1,13 @@
+/**
+ * @file smoke.comp
+ * @brief Archivo smoke.comp
+ */
 #version 450
 
+/**
+ * @struct Particle
+ * @brief Struct Particle
+ */
 struct Particle {
     vec4 color;
     vec3 pos;
@@ -28,6 +36,9 @@ layout(std140, binding = 2) uniform EmitterParams {
 
 layout(local_size_x = 256) in;
 
+/**
+ * @brief Función random
+ */
 float random(uint seed) {
     uint state = seed * 747796405u + 2891336453u;
     state = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;

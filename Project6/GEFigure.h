@@ -1,55 +1,99 @@
-#pragma once
-
-#include "GEGraphicsContext.h"
-#include "GERenderingContext.h"
-#include "GEVertex.h"
-#include "GETransform.h"
-#include "GEMaterial.h"
-#include "GELight.h"
-#include "GEVertexBuffer.h"
-#include "GEIndexBuffer.h"
-#include "GEUniformBuffer.h"
-#include "GEDescriptorSet.h"
-#include "GETexture.h"
-#include <glm/glm.hpp>
-#include <vector>
-
-//
-// CLASE: GEFigure
-//
-// DESCRIPCI覰: Clase que describe una figura formada por una malla de v閞tices
-//
-class GEFigure
-{
-protected:
-	std::vector<GEVertex> vertices;
-	std::vector<uint32_t> indices;
-	glm::mat4 location;
-	GEMaterial material;
-	GELight light;
-	GETexture* texture; // Gestionado externamente
-
-public:
-	void initialize(GEGraphicsContext* gc, GERenderingContext* rc);
-	void destroy(GEGraphicsContext* gc);
-	void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
-	void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
-	void resetLocation();
-	void setLocation(glm::mat4 m);
-	void translate(glm::vec3 t);
-	void rotate(float angle, glm::vec3 axis);
-	void setMaterial(GEMaterial m);
-	void setLight(GELight l);
-	void setTexture(GETexture* texture);
-
-	void scale(glm::vec3 s);
-
-private:
-	std::unique_ptr < GEVertexBuffer> vbo;
-	std::unique_ptr < GEIndexBuffer> ibo;
-	std::unique_ptr < GEUniformBuffer> transformBuffer;
-	std::unique_ptr < GEUniformBuffer> materialBuffer;
-	std::unique_ptr < GEUniformBuffer> lightBuffer;
-	std::unique_ptr < GEDescriptorSet> dset;
-};
-
+/**
+ * @file GEFigure.h
+ * @brief Archivo GEFigure.h
+ */
+#pragma once
+
+#include "GEGraphicsContext.h"
+#include "GERenderingContext.h"
+#include "GEVertex.h"
+#include "GETransform.h"
+#include "GEMaterial.h"
+#include "GELight.h"
+#include "GEVertexBuffer.h"
+#include "GEIndexBuffer.h"
+#include "GEUniformBuffer.h"
+#include "GEDescriptorSet.h"
+#include "GETexture.h"
+#include <glm/glm.hpp>
+#include <vector>
+
+//
+// CLASE: GEFigure
+//
+// DESCRIPCI脫N: Clase que describe una figura formada por una malla de v茅rtices
+//
+/**
+ * @class GEFigure
+ * @brief Class GEFigure
+ */
+class GEFigure
+{
+protected:
+	std::vector<GEVertex> vertices;
+	std::vector<uint32_t> indices;
+	glm::mat4 location;
+	GEMaterial material;
+	GELight light;
+	GETexture* texture; // Gestionado externamente
+
+public:
+	/**
+	 * @brief Funci贸n initialize
+	 */
+	void initialize(GEGraphicsContext* gc, GERenderingContext* rc);
+	/**
+	 * @brief Funci贸n destroy
+	 */
+	void destroy(GEGraphicsContext* gc);
+	/**
+	 * @brief Funci贸n addCommands
+	 */
+	void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
+	/**
+	 * @brief Funci贸n update
+	 */
+	void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
+	/**
+	 * @brief Funci贸n resetLocation
+	 */
+	void resetLocation();
+	/**
+	 * @brief Funci贸n setLocation
+	 */
+	void setLocation(glm::mat4 m);
+	/**
+	 * @brief Funci贸n translate
+	 */
+	void translate(glm::vec3 t);
+	/**
+	 * @brief Funci贸n rotate
+	 */
+	void rotate(float angle, glm::vec3 axis);
+	/**
+	 * @brief Funci贸n setMaterial
+	 */
+	void setMaterial(GEMaterial m);
+	/**
+	 * @brief Funci贸n setLight
+	 */
+	void setLight(GELight l);
+	/**
+	 * @brief Funci贸n setTexture
+	 */
+	void setTexture(GETexture* texture);
+
+	/**
+	 * @brief Funci贸n scale
+	 */
+	void scale(glm::vec3 s);
+
+private:
+	std::unique_ptr < GEVertexBuffer> vbo;
+	std::unique_ptr < GEIndexBuffer> ibo;
+	std::unique_ptr < GEUniformBuffer> transformBuffer;
+	std::unique_ptr < GEUniformBuffer> materialBuffer;
+	std::unique_ptr < GEUniformBuffer> lightBuffer;
+	std::unique_ptr < GEDescriptorSet> dset;
+};
+

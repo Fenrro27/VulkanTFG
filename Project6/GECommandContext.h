@@ -1,30 +1,53 @@
-#pragma once
-
-#include <vulkan/vulkan.h>
-#include <vector>
-#include "GEGraphicsContext.h"
-
-//
-// CLASE: GECommandContext
-//
-// DESCRIPCI覰: Clase que almacena los buffers de comandos vinculados a cada imagen de la swapchain
-//
-class GECommandContext
-{
-public:
-	std::vector<VkCommandBuffer> commandBuffers;
-
-	GECommandContext(GEGraphicsContext* gc, uint32_t imageCount);
-	void destroy(GEGraphicsContext* gc);
-
-	void beginCommandBuffers();
-	void endCommandBuffers();
-
-private:
-	VkCommandPool commandPool;
-	
-	// M閠odos de inicializaci髇 
-	void createCommandPool(GEGraphicsContext* gc);
-	void createCommandBuffers(GEGraphicsContext* gc, uint32_t imageCount);
-};
-
+/**
+ * @file GECommandContext.h
+ * @brief Archivo GECommandContext.h
+ */
+#pragma once
+
+#include <vulkan/vulkan.h>
+#include <vector>
+#include "GEGraphicsContext.h"
+
+//
+// CLASE: GECommandContext
+//
+// DESCRIPCI脫N: Clase que almacena los buffers de comandos vinculados a cada imagen de la swapchain
+//
+/**
+ * @class GECommandContext
+ * @brief Class GECommandContext
+ */
+class GECommandContext
+{
+public:
+	std::vector<VkCommandBuffer> commandBuffers;
+
+	GECommandContext(GEGraphicsContext* gc, uint32_t imageCount);
+	/**
+	 * @brief Funci贸n destroy
+	 */
+	void destroy(GEGraphicsContext* gc);
+
+	/**
+	 * @brief Funci贸n beginCommandBuffers
+	 */
+	void beginCommandBuffers();
+	/**
+	 * @brief Funci贸n endCommandBuffers
+	 */
+	void endCommandBuffers();
+
+private:
+	VkCommandPool commandPool;
+	
+	// M茅todos de inicializaci贸n 
+	/**
+	 * @brief Funci贸n createCommandPool
+	 */
+	void createCommandPool(GEGraphicsContext* gc);
+	/**
+	 * @brief Funci贸n createCommandBuffers
+	 */
+	void createCommandBuffers(GEGraphicsContext* gc, uint32_t imageCount);
+};
+

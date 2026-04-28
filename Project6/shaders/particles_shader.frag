@@ -1,3 +1,7 @@
+/**
+ * @file particles_shader.frag
+ * @brief Archivo particles_shader.frag
+ */
 #version 450
 
 layout(set = 0, binding = 3) uniform sampler2D particleTexture;

@@ -1,20 +1,31 @@
-#pragma once
-
-#include <vulkan/vulkan.h>
-#include "GEGraphicsContext.h"
-
-//
-// CLASE: GEVertexBuffer
-//
-// DESCRIPCIÓN: Clase que describe un buffer de vértices
-//
-class GEVertexBuffer
-{
-public:
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-
-	GEVertexBuffer(GEGraphicsContext* gc, size_t size, const void* data);
-	void destroy(GEGraphicsContext* gc);
-};
-
+/**
+ * @file GEVertexBuffer.h
+ * @brief Archivo GEVertexBuffer.h
+ */
+#pragma once
+
+#include <vulkan/vulkan.h>
+#include "GEGraphicsContext.h"
+
+//
+// CLASE: GEVertexBuffer
+//
+// DESCRIPCIÃ“N: Clase que describe un buffer de vÃ©rtices
+//
+/**
+ * @class GEVertexBuffer
+ * @brief Class GEVertexBuffer
+ */
+class GEVertexBuffer
+{
+public:
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+
+	GEVertexBuffer(GEGraphicsContext* gc, size_t size, const void* data);
+	/**
+	 * @brief FunciÃ³n destroy
+	 */
+	void destroy(GEGraphicsContext* gc);
+};
+

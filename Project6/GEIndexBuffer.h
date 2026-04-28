@@ -1,20 +1,31 @@
-#pragma once
-
-#include <vulkan/vulkan.h>
-#include "GEGraphicsContext.h"
-
-//
-// CLASE: GEIndexBuffer
-//
-// DESCRIPCIÓN: Clase que describe un buffer de índices
-//
-class GEIndexBuffer
-{
-public:
-	VkBuffer buffer;
-	VkDeviceMemory memory;
-
-	GEIndexBuffer(GEGraphicsContext* gc, size_t size, const void* data);
-	void destroy(GEGraphicsContext* gc);
-};
-
+/**
+ * @file GEIndexBuffer.h
+ * @brief Archivo GEIndexBuffer.h
+ */
+#pragma once
+
+#include <vulkan/vulkan.h>
+#include "GEGraphicsContext.h"
+
+//
+// CLASE: GEIndexBuffer
+//
+// DESCRIPCIÃ“N: Clase que describe un buffer de Ã­ndices
+//
+/**
+ * @class GEIndexBuffer
+ * @brief Class GEIndexBuffer
+ */
+class GEIndexBuffer
+{
+public:
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+
+	GEIndexBuffer(GEGraphicsContext* gc, size_t size, const void* data);
+	/**
+	 * @brief FunciÃ³n destroy
+	 */
+	void destroy(GEGraphicsContext* gc);
+};
+

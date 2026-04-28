@@ -1,3 +1,7 @@
+/**
+ * @file GEDescriptorSet.h
+ * @brief Definici贸n de la clase GEDescriptorSet para la gesti贸n de Descriptor Sets en Vulkan.
+ */
 #pragma once
 
 #include <vulkan/vulkan.h>
@@ -10,21 +14,34 @@
 
 class GERenderingContext;
 
-//
-// CLASE: GEDescriptorSet
-//
-// DESCRIPCI覰: Clase que describe un conjunto de descriptores 
-//
+/**
+ * @class GEDescriptorSet
+ * @brief Clase que encapsula la creaci贸n y gesti贸n de conjuntos de descriptores (Descriptor Sets).
+ * 
+ * Los conjuntos de descriptores se utilizan para vincular recursos como Uniform Buffers 
+ * y Texturas a los shaders.
+ */
 class GEDescriptorSet
 {
 private:
-	VkDescriptorPool descriptorPool;
+	VkDescriptorPool descriptorPool; /**< Pool de descriptores desde donde se asignan los sets. */
 
 public:
-	std::vector<VkDescriptorSet> descriptorSets;
+	std::vector<VkDescriptorSet> descriptorSets; /**< Lista de sets de descriptores asignados. */
 
 public:
+	/**
+	 * @brief Constructor de GEDescriptorSet.
+	 * @param gc Contexto de gr谩ficos.
+	 * @param rc Contexto de renderizado.
+	 * @param ubos Lista de punteros a Uniform Buffers.
+	 * @param tex Lista de punteros a Texturas.
+	 */
 	GEDescriptorSet(GEGraphicsContext* gc, GERenderingContext* rc, std::vector<GEUniformBuffer*> ubos, std::vector<GETexture*> tex);
+
+	/**
+	 * @brief Libera los recursos asociados al pool de descriptores.
+	 * @param gc Contexto de gr谩ficos.
+	 */
 	void destroy(GEGraphicsContext* gc);
 };
-

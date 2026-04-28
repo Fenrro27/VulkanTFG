@@ -1,15 +1,26 @@
-#pragma once
-
-#include "GEFigure.h"
-
-//
-// CLASE: GEPyramid
-//
-// DESCRIPCI”N: Clase que describe una pir·mide de base cuadrada
-//
-class GEPyramid : public GEFigure
-{
-public:
-	explicit GEPyramid(float s);
-};
-
+/**
+ * @file GEPyramid.h
+ * @brief Archivo GEPyramid.h
+ */
+#pragma once
+
+#include "GEFigure.h"
+
+//
+// CLASE: GEPyramid
+//
+// DESCRIPCI√ìN: Clase que describe una pir√°mide de base cuadrada
+//
+/**
+ * @class GEPyramid
+ * @brief Class GEPyramid
+ */
+class GEPyramid : public GEFigure
+{
+public:
+	/**
+	 * @brief Funci√≥n GEPyramid
+	 */
+	explicit GEPyramid(float s);
+};
+

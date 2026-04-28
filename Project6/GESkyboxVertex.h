@@ -1,13 +1,21 @@
-#pragma once
-
-#include <glm\glm.hpp>
-
-//
-// ESTRUCTURA: GESkyboxVertex
-//
-// DESCRIPCIÓN: Estructura que describe los atributos de un vértice de un skybox
-//
-struct GESkyboxVertex
-{
-	glm::vec3 pos;
+/**
+ * @file GESkyboxVertex.h
+ * @brief Archivo GESkyboxVertex.h
+ */
+#pragma once
+
+#include <glm\glm.hpp>
+
+//
+// ESTRUCTURA: GESkyboxVertex
+//
+// DESCRIPCIÃ“N: Estructura que describe los atributos de un vÃ©rtice de un skybox
+//
+/**
+ * @struct GESkyboxVertex
+ * @brief Struct GESkyboxVertex
+ */
+struct GESkyboxVertex
+{
+	glm::vec3 pos;
 };

@@ -1,3 +1,7 @@
+/**
+ * @file skybox_shader.vert
+ * @brief Archivo skybox_shader.vert
+ */
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 

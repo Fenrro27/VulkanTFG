@@ -1,168 +1,214 @@
-#include "GEPiece.h"
-
-#include "GEVertex.h"
-#include "GETransform.h"
-#include "GEMaterial.h"
-#include "GELight.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
-
-//
-// FUNCI”N: GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
-//
-// PROP”SITO: Crea la pieza
-//
-void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
-{
-	if (this->texture == nullptr) {
-		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
-		this->texture = std::shared_ptr<GETexture>(
-			new GETexture(gc, "textures/wood.jpg"),
-			[gc](GETexture* t) { t->destroy(gc); }
-		);
-	}
-
-	size_t vertexSize = sizeof(GEVertex) * vertices.size();
-	vbo = std::make_unique <GEVertexBuffer>(gc, vertexSize, vertices.data());
-
-	size_t indexSize = sizeof(indices[0]) * indices.size();
-	ibo = std::make_unique < GEIndexBuffer>(gc, indexSize, indices.data());
-
-	size_t transformBufferSize = sizeof(GETransform);
-	transformBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, transformBufferSize);
-
-	size_t materialBufferSize = sizeof(GEMaterial);
-	materialBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, materialBufferSize);
-
-	size_t lightBufferSize = sizeof(GELight);
-	lightBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, lightBufferSize);
-
-	std::vector<GEUniformBuffer*> ubos(3);
-	ubos[0] = transformBuffer.get();
-	ubos[1] = materialBuffer.get();
-	ubos[2] = lightBuffer.get();
-
-	std::vector<GETexture*> tex(1);
-	tex[0] = texture.get();
-
-	dset = std::make_unique<GEDescriptorSet>(gc, rc, ubos, tex);
-
-	location = glm::mat4(1.0f);
-}
-
-//
-// FUNCI”N: GEPiece::destroy(GEGraphicsContext* gc)
-//
-// PROP”SITO: Libera los buffers de la pieza
-//
-void GEPiece::destroy(GEGraphicsContext* gc)
-{
-	vbo->destroy(gc);
-	ibo->destroy(gc);
-	transformBuffer->destroy(gc);
-	materialBuffer->destroy(gc);
-	lightBuffer->destroy(gc);
-	dset->destroy(gc);
-}
-
-//
-// FUNCI”N: GEPiece::addCommands(VkCommandBuffer commandBuffer, int index)
-//
-// PROP”SITO: AÒade los comandos de renderizado al command buffer
-//
-void GEPiece::addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index)
-{
-	VkDeviceSize offset = 0;
-	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(vbo->buffer), &offset);
-	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
-	vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
-}
-
-//
-// FUNCI”N: GEPiece::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection)
-//
-// PROP”SITO: Actualiza las variables uniformes sobre una imagen del swapchain
-//
-void GEPiece::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
-{
-	GETransform transform;
-	transform.MVP = projection * view * model * location;
-	transform.ModelViewMatrix = view * model * location;
-	transform.ViewMatrix = view;
-
-	transformBuffer->update(gc, index, sizeof(GETransform), &transform);
-	materialBuffer->update(gc, index, sizeof(GEMaterial), &material);
-	lightBuffer->update(gc, index, sizeof(GELight), &light);
-}
-
-//
-// FUNCI”N: GEPiece::resetLocation()
-//
-// PROP”SITO: Resetea la matriz de localizaciÛn (Model).
-//
-void GEPiece::resetLocation()
-{
-	location = glm::mat4(1.0f);
-}
-
-//
-// FUNCI”N: GEPiece::setLocation()
-//
-// PROP”SITO: Resetea la matriz de localizaciÛn (Model).
-//
-void GEPiece::setLocation(glm::mat4 m)
-{
-	location = glm::mat4(m);
-}
-
-//
-// FUNCI”N: GEPiece::translate(glm::vec3 t)
-//
-// PROP”SITO: AÒade un desplazamiento la matriz de localizaciÛn (Model).
-//
-void GEPiece::translate(glm::vec3 t)
-{
-	location = glm::translate(location, t);
-}
-
-//
-// FUNCI”N: GEPiece::rotate(float angle, glm::vec3 axis)
-//
-// PROP”SITO: AÒade una rotaciÛn la matriz de localizaciÛn (Model).
-//
-void GEPiece::rotate(float angle, glm::vec3 axis)
-{
-	location = glm::rotate(location, glm::radians(angle), axis);
-}
-
-//
-// FUNCI”N: GEPiece::setMaterial(GEMaterial m)
-//
-// PROP”SITO: Asigna las propiedades del material del que est· formada la pieza
-//
-void GEPiece::setMaterial(GEMaterial m)
-{
-	this->material = m;
-}
-
-//
-// FUNCI”N: GEPiece::setLight(GELight l)
-//
-// PROP”SITO: Asigna las propiedades de la luz que ilumina la pieza
-//
-void GEPiece::setLight(GELight l)
-{
-	this->light = l;
-}
-
-//
-// FUNCI”N: GEPiece::setTexture(GETexture* tex)
-//
-// PROP”SITO: Asigna la textura
-//
-void GEPiece::setTexture(std::shared_ptr<GETexture> tex)
-{
-	this->texture = tex;
-}
+/**
+ * @file GEPiece.cpp
+ * @brief Archivo GEPiece.cpp
+ */
+#include "GEPiece.h"
+
+#include "GEVertex.h"
+#include "GETransform.h"
+#include "GEMaterial.h"
+#include "GELight.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
+
+//
+// FUNCI√ìN: GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
+//
+// PROP√ìSITO: Crea la pieza
+//
+/**
+ * @brief Funci√≥n GEPiece::initialize
+ */
+void GEPiece::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
+{
+	if (this->texture == nullptr) {
+		std::cout << "[DEBUG_WARN] GEPiece sin textura detectada. Cargando wood.jpg por defecto." << std::endl;
+		this->texture = std::shared_ptr<GETexture>(
+			/**
+			 * @brief Funci√≥n GETexture
+			 */
+			new GETexture(gc, "textures/wood.jpg"),
+			[gc](GETexture* t) { t->destroy(gc); }
+		);
+	}
+
+	size_t vertexSize = sizeof(GEVertex) * vertices.size();
+	vbo = std::make_unique <GEVertexBuffer>(gc, vertexSize, vertices.data());
+
+	size_t indexSize = sizeof(indices[0]) * indices.size();
+	ibo = std::make_unique < GEIndexBuffer>(gc, indexSize, indices.data());
+
+	size_t transformBufferSize = sizeof(GETransform);
+	transformBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, transformBufferSize);
+
+	size_t materialBufferSize = sizeof(GEMaterial);
+	materialBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, materialBufferSize);
+
+	size_t lightBufferSize = sizeof(GELight);
+	lightBuffer = std::make_unique < GEUniformBuffer>(gc, rc->imageCount, lightBufferSize);
+
+	/**
+	 * @brief Funci√≥n ubos
+	 */
+	std::vector<GEUniformBuffer*> ubos(3);
+	ubos[0] = transformBuffer.get();
+	ubos[1] = materialBuffer.get();
+	ubos[2] = lightBuffer.get();
+
+	/**
+	 * @brief Funci√≥n tex
+	 */
+	std::vector<GETexture*> tex(1);
+	tex[0] = texture.get();
+
+	dset = std::make_unique<GEDescriptorSet>(gc, rc, ubos, tex);
+
+	location = glm::mat4(1.0f);
+}
+
+//
+// FUNCI√ìN: GEPiece::destroy(GEGraphicsContext* gc)
+//
+// PROP√ìSITO: Libera los buffers de la pieza
+//
+/**
+ * @brief Funci√≥n GEPiece::destroy
+ */
+void GEPiece::destroy(GEGraphicsContext* gc)
+{
+	vbo->destroy(gc);
+	ibo->destroy(gc);
+	transformBuffer->destroy(gc);
+	materialBuffer->destroy(gc);
+	lightBuffer->destroy(gc);
+	dset->destroy(gc);
+}
+
+//
+// FUNCI√ìN: GEPiece::addCommands(VkCommandBuffer commandBuffer, int index)
+//
+// PROP√ìSITO: A√±ade los comandos de renderizado al command buffer
+//
+/**
+ * @brief Funci√≥n GEPiece::addCommands
+ */
+void GEPiece::addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index)
+{
+	VkDeviceSize offset = 0;
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(vbo->buffer), &offset);
+	vkCmdBindIndexBuffer(commandBuffer, ibo->buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &(dset->descriptorSets[index]), 0, nullptr);
+	vkCmdDrawIndexed(commandBuffer, (uint32_t)indices.size(), 1, 0, 0, 0);
+}
+
+//
+// FUNCI√ìN: GEPiece::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection)
+//
+// PROP√ìSITO: Actualiza las variables uniformes sobre una imagen del swapchain
+//
+/**
+ * @brief Funci√≥n GEPiece::update
+ */
+void GEPiece::update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection, glm::mat4 model)
+{
+	GETransform transform;
+	transform.MVP = projection * view * model * location;
+	transform.ModelViewMatrix = view * model * location;
+	transform.ViewMatrix = view;
+
+	transformBuffer->update(gc, index, sizeof(GETransform), &transform);
+	materialBuffer->update(gc, index, sizeof(GEMaterial), &material);
+	lightBuffer->update(gc, index, sizeof(GELight), &light);
+}
+
+//
+// FUNCI√ìN: GEPiece::resetLocation()
+//
+// PROP√ìSITO: Resetea la matriz de localizaci√≥n (Model).
+//
+/**
+ * @brief Funci√≥n GEPiece::resetLocation
+ */
+void GEPiece::resetLocation()
+{
+	location = glm::mat4(1.0f);
+}
+
+//
+// FUNCI√ìN: GEPiece::setLocation()
+//
+// PROP√ìSITO: Resetea la matriz de localizaci√≥n (Model).
+//
+/**
+ * @brief Funci√≥n GEPiece::setLocation
+ */
+void GEPiece::setLocation(glm::mat4 m)
+{
+	location = glm::mat4(m);
+}
+
+//
+// FUNCI√ìN: GEPiece::translate(glm::vec3 t)
+//
+// PROP√ìSITO: A√±ade un desplazamiento la matriz de localizaci√≥n (Model).
+//
+/**
+ * @brief Funci√≥n GEPiece::translate
+ */
+void GEPiece::translate(glm::vec3 t)
+{
+	location = glm::translate(location, t);
+}
+
+//
+// FUNCI√ìN: GEPiece::rotate(float angle, glm::vec3 axis)
+//
+// PROP√ìSITO: A√±ade una rotaci√≥n la matriz de localizaci√≥n (Model).
+//
+/**
+ * @brief Funci√≥n GEPiece::rotate
+ */
+void GEPiece::rotate(float angle, glm::vec3 axis)
+{
+	location = glm::rotate(location, glm::radians(angle), axis);
+}
+
+//
+// FUNCI√ìN: GEPiece::setMaterial(GEMaterial m)
+//
+// PROP√ìSITO: Asigna las propiedades del material del que est√° formada la pieza
+//
+/**
+ * @brief Funci√≥n GEPiece::setMaterial
+ */
+void GEPiece::setMaterial(GEMaterial m)
+{
+	this->material = m;
+}
+
+//
+// FUNCI√ìN: GEPiece::setLight(GELight l)
+//
+// PROP√ìSITO: Asigna las propiedades de la luz que ilumina la pieza
+//
+/**
+ * @brief Funci√≥n GEPiece::setLight
+ */
+void GEPiece::setLight(GELight l)
+{
+	this->light = l;
+}
+
+//
+// FUNCI√ìN: GEPiece::setTexture(GETexture* tex)
+//
+// PROP√ìSITO: Asigna la textura
+//
+/**
+ * @brief Funci√≥n GEPiece::setTexture
+ */
+void GEPiece::setTexture(std::shared_ptr<GETexture> tex)
+{
+	this->texture = tex;
+}

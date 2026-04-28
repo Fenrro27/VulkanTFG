@@ -1,45 +1,86 @@
-#pragma once
-
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
-
-//
-// CLASE: GEGraphicsContext
-//
-// DESCRIPCI覰: Clase que almacena el contexto gr醘ico de vulkan (instancia y dispositivo)
-//
-class GEGraphicsContext
-{
-public:
-	VkInstance instance;
-	VkSurfaceKHR surface;
-	VkPhysicalDevice physicalDevice;
-	VkDevice device;
-	uint32_t graphicsQueueFamilyIndex;
-	uint32_t presentQueueFamilyIndex;
-
-
-private:
-	VkPhysicalDeviceMemoryProperties memProperties;
-
-public:
-	explicit GEGraphicsContext(GLFWwindow* window);
-	~GEGraphicsContext();
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	VkFormat findDepthFormat();
-
-private:
-	// M閠odos de inicializaci髇 de Vulkan
-	void createInstance();
-	void createSurface(GLFWwindow* window);
-	void pickPhysicalDevice();
-	void createLogicalDevice();
-
-	// M閠odos auxiliares
-	void showInstanceProperties();
-	bool isDeviceSuitable(VkPhysicalDevice pDevice);
-	void showDevices();
-	void resumeDeviceProperties(VkPhysicalDevice pDevice, int index);
-};
-
+/**
+ * @file GEGraphicsContext.h
+ * @brief Archivo GEGraphicsContext.h
+ */
+#pragma once
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+
+//
+// CLASE: GEGraphicsContext
+//
+// DESCRIPCI脫N: Clase que almacena el contexto gr谩fico de vulkan (instancia y dispositivo)
+//
+/**
+ * @class GEGraphicsContext
+ * @brief Class GEGraphicsContext
+ */
+class GEGraphicsContext
+{
+public:
+	VkInstance instance;
+	VkSurfaceKHR surface;
+	VkPhysicalDevice physicalDevice;
+	VkDevice device;
+	uint32_t graphicsQueueFamilyIndex;
+	uint32_t presentQueueFamilyIndex;
+
+
+private:
+	VkPhysicalDeviceMemoryProperties memProperties;
+
+public:
+	/**
+	 * @brief Funci贸n GEGraphicsContext
+	 */
+	explicit GEGraphicsContext(GLFWwindow* window);
+	~GEGraphicsContext();
+	/**
+	 * @brief Funci贸n findMemoryType
+	 */
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	/**
+	 * @brief Funci贸n findDepthFormat
+	 */
+	VkFormat findDepthFormat();
+
+private:
+	// M茅todos de inicializaci贸n de Vulkan
+	/**
+	 * @brief Funci贸n createInstance
+	 */
+	void createInstance();
+	/**
+	 * @brief Funci贸n createSurface
+	 */
+	void createSurface(GLFWwindow* window);
+	/**
+	 * @brief Funci贸n pickPhysicalDevice
+	 */
+	void pickPhysicalDevice();
+	/**
+	 * @brief Funci贸n createLogicalDevice
+	 */
+	void createLogicalDevice();
+
+	// M茅todos auxiliares
+	/**
+	 * @brief Funci贸n showInstanceProperties
+	 */
+	void showInstanceProperties();
+	/**
+	 * @brief Funci贸n isDeviceSuitable
+	 */
+	bool isDeviceSuitable(VkPhysicalDevice pDevice);
+	/**
+	 * @brief Funci贸n showDevices
+	 */
+	void showDevices();
+	/**
+	 * @brief Funci贸n resumeDeviceProperties
+	 */
+	void resumeDeviceProperties(VkPhysicalDevice pDevice, int index);
+};
+
