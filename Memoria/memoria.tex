@@ -1,0 +1,64 @@
+\documentclass[12pt,a4paper,oneside]{book}
+
+% --- Paquetes Esenciales ---
+\usepackage[utf8]{inputenc}    % Codificación de caracteres
+\usepackage[spanish,es-tabla]{babel} % Idioma español y "Tabla" en vez de "Cuadro"
+\usepackage[margin=2.5cm]{geometry} % Márgenes
+\usepackage{graphicx}          % Para insertar imágenes
+\usepackage{amsmath,amssymb}   % Matemáticas avanzadas
+\usepackage{setspace}          % Interlineado
+\usepackage{hyperref}          % Enlaces y marcadores PDF
+\usepackage[numbers]{natbib}   % Bibliografía (estilo numérico)
+\usepackage{eso-pic}           % Para imagen de fondo en portada
+\usepackage{fancyhdr}          % Cabeceras y pies de página personalizados
+
+% --- Configuración de Párrafo ---
+\onehalfspacing                % Interlineado 1.5
+\setlength{\parindent}{1em}    % Sangría de primera línea
+\setlength{\parskip}{0.5em}    % Espaciado entre párrafos
+
+% --- Inicio del Documento ---
+\begin{document}
+
+% --- PORTADA ---
+\input{Secciones/Portada.tex}
+\clearpage
+\setcounter{page}{1}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+    \fancyhf{}
+    \fancyfoot[R]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+\pagenumbering{arabic}
+
+% --- RESUMEN Y AGRADECIMIENTOS ---
+\input{Secciones/Resumen.tex}
+\input{Secciones/Abstract.tex}
+\input{Secciones/Agradecimientos.tex}
+
+% --- ÍNDICES ---
+\tableofcontents % Índice general
+\listoffigures   % Índice de figuras
+\listoftables    % Índice de tablas
+
+% --- CUERPO DEL TRABAJO ---
+\input{Secciones/Introduccion.tex}
+\input{Secciones/EstadoDelArte.tex}
+\input{Secciones/Desarrollo.tex}
+\input{Secciones/ResultadosyDiscusion.tex}
+\input{Secciones/ConclusionyTrabajoFuturo.tex}
+
+
+\nocite{8685588}
+\nocite{10.1145/2542266.2542276}
+\nocite{11102583}
+% --- BIBLIOGRAFÍA ---
+\backmatter
+\bibliographystyle{plainnat} 
+\bibliography{bibliografia}  
+
+\end{document} 

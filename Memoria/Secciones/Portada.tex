@@ -1,0 +1,47 @@
+% --- PORTADA CON MARCO Y LOGOS ---
+\begin{titlepage}
+    % 1. Imagen de fondo (El "cuadrado" o borde)
+    \AddToShipoutPictureBG*{%
+        \AtPageCenter{%
+            \makebox(0,0){%
+                \includegraphics[width=0.85\paperwidth,height=0.85\paperheight]{Media/Portada_Borde}%
+            }%
+        }%
+    }
+
+    \centering
+    \fontfamily{pbk}\selectfont
+    \fontsize{20}{24}\selectfont
+    
+    % 2. Logos en las esquinas superiores
+    \begin{minipage}[t]{0.45\textwidth}
+        \flushleft
+        \includegraphics[width=4cm]{Media/Portada_ETSI}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \flushright
+        \includegraphics[width=4cm]{Media/Portada_Uhu.es}
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    % 3. Títulos Centrales
+    \textbf{ESCUELA TÉCNICA SUPERIOR DE INGENIERÍA}\\[0.3cm]
+    \textbf{Universidad de Huelva}\\[0.3cm]
+    Grado en Ingeniería Informática\\[0.8cm]
+    \textbf{Trabajo Fin de Grado}\\[0.2cm]
+    Sistema de generación de partículas en Vulkan\\[1.5cm]
+    
+    \vfill
+    
+    % 4. Bloque de Autoría y Fecha (abajo a la derecha)
+    \begin{flushright}
+        \begin{minipage}{0.6\textwidth}
+            \flushright
+            Kevin Jesús Banda Azogil \\[0.2cm]
+            \today
+        \end{minipage}
+        \hspace{1.5cm} % Espacio para no chocar con el borde
+    \end{flushright}
+\end{titlepage}

@@ -1,0 +1,15 @@
+% --- RESUMEN ---
+\chapter*{Resumen}
+
+El presente Trabajo de Fin de Grado describe el diseño e implementación de un motor de renderizado de alto rendimiento basado en la API Vulkan, orientado a la generación y visualización de sistemas de partículas complejos en tiempo real. El núcleo del proyecto reside en la creación de un sistema capaz de simular fenómenos visuales como fuego, humo y agua mediante el uso de Compute Shaders. Esta arquitectura permite trasladar toda la carga computacional del ciclo de vida de las partículas (actualización de posición, color y tamaño) íntegramente a la GPU, eliminando los cuellos de botella tradicionales entre la CPU y la memoria de vídeo.
+A nivel técnico, el motor gestiona de forma explícita los recursos de hardware mediante una estructura modular que incluye:
+\begin{itemize}
+    \item Pipeline de Computación: Implementa lógica procedural y ruido para dotar de movimiento orgánico al humo (vórtices sinuosos) y al fuego (efecto de parpadeo y ascenso dinámico).
+    \item Sincronización Avanzada: Utiliza barreras de memoria (VkBufferMemoryBarrier) para garantizar la integridad de los datos entre las etapas de cálculo físico y el renderizado gráfico final.
+    \item Renderizado de Partículas: Emplea técnicas de Point Sprites y Alpha Blending para lograr la transparencia y densidad visual necesarias en efectos volumétricos.
+    \item Entorno Gráfico Completo: El sistema se integra en una escena 3D que incluye iluminación ADS (Ambiental, Difusa, Especular), mapeado de texturas, modelos 3D y un fondo dinámico mediante Skybox con cubemaps.
+\end{itemize}
+Los resultados demuestran la eficiencia de Vulkan para manejar miles de partículas concurrentes, logrando una representación visual fluida y altamente parametrizable, sentando las bases para aplicaciones en videojuegos y simulaciones visuales interactivas.
+
+\vspace{1cm}
+\noindent \textbf{Palabras clave:} Vulkan, Compute Shaders, Sistemas de Partículas, Tiempo Real, GPU, Gráficos por Computadora.

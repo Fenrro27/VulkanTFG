@@ -1,0 +1,33 @@
+------------------------------------------------------------------------
+Cosas que decirle a Fran:
+------------------------------------------------------------------------
+
+- Como activar la capa de validacion
+- Error de 	std::vector<VkVertexInputBindingDescription> bindingDescriptions; y std::vector<VkVertexInputAttributeDescription> attributeDescriptions; en rendering context
+- Opcion de debug añadida por mi
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+Cosas que tener en cuenta
+------------------------------------------------------------------------
+
+Enlaces:
+    - https://free3d.com/3d-model/little-train-53996.html
+    - https://sketchfab.com/3d-models/optimized-stylized-campfire-game-ready-f5cb633628cb422ea676a12dcffa7909
+    - https://sketchfab.com/3d-models/fountain-300ff8f626fe44e2a9dafc665cea81c5
+    
+
+
+
+Poner mejor pedestal 
+Cambiar textura de fuente
+Aumentar el tamaño del fuego de la hoguera
+Aumentar numero de partículas de agua, q haya 8 focos no solo 4

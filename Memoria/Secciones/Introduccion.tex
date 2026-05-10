@@ -1,0 +1,21 @@
+\chapter{Introducción}
+\section{Motivación}
+La creación de efectos visuales atmosféricos como el fuego, el agua y el humo es un pilar fundamental en la narrativa visual de los entornos virtuales modernos. Lograr que estos elementos se vean orgánicos y dinámicos en tiempo real requiere una gestión masiva de datos que las APIs gráficas tradicionales a menudo limitan debido a su sobrecarga de CPU (CPU overhead).
+
+La motivación de este proyecto reside en explorar el potencial estético y técnico de Vulkan para el renderizado masivo de partículas. A diferencia de otros entornos, Vulkan permite una comunicación directa con el hardware, lo que nos habilita para renderizar densidades de partículas sin precedentes. Este trabajo se centra en el desafío de traducir fenómenos visuales complejos en instanciación de geometría y manipulación de fragmentos, buscando el equilibrio perfecto entre la fidelidad visual y una tasa de refresco estable.
+
+\section{Objetivos}
+Desarrollar un motor de partículas de alto rendimiento mediante la API Vulkan enfocado en la representación visual de fuego, agua y humo, priorizando la estética visual y la optimización de los pipelines de renderizado.
+A continuación, algunos de los objetivos específicos que se intentan alcanzar:
+
+\begin{itemize}
+    \item Implementación de un Sistema de Partículas en GPU: Crear un sistema donde el ciclo de vida, el color y la transformación de las partículas se gestionen íntegramente en la GPU mediante Compute Shaders, maximizando la carga visual.
+
+    \item Simulación Visual de Fluidos y Gases: Diseñar comportamientos visuales.
+
+    \item Técnicas de Renderizado Volumétrico: Aplicar técnicas de Alpha Blending avanzado y Point Sprites para generar la ilusión de densidad y volumen en el humo y las llamas.
+
+    \item Sincronización y Gestión de Memoria en Vulkan: Configurar las barreras de ejecución y las colas gráficas para permitir el renderizado fluido de miles de partículas concurrentes sin errores de carrera (race conditions).
+
+    \item Optimización Estética: Implementar un sistema de materiales que permita variar las propiedades visuales (opacidad, brillo, gradientes de color) de las partículas en función de su tiempo de vida.
+\end{itemize}
