@@ -1,15 +1,16 @@
 % --- RESUMEN ---
-\chapter*{Resumen}
+\begin{center}
+    \textbf{Resumen}
+\end{center}
 
-El presente Trabajo de Fin de Grado describe el diseño e implementación de un motor de renderizado de alto rendimiento basado en la API Vulkan, orientado a la generación y visualización de sistemas de partículas complejos en tiempo real. El núcleo del proyecto reside en la creación de un sistema capaz de simular fenómenos visuales como fuego, humo y agua mediante el uso de Compute Shaders. Esta arquitectura permite trasladar toda la carga computacional del ciclo de vida de las partículas (actualización de posición, color y tamaño) íntegramente a la GPU, eliminando los cuellos de botella tradicionales entre la CPU y la memoria de vídeo.
-A nivel técnico, el motor gestiona de forma explícita los recursos de hardware mediante una estructura modular que incluye:
+\noindent El presente Trabajo de Fin de Grado detalla el diseño, desarrollo e implementación de un motor de renderizado de alto rendimiento utilizando la API Vulkan, con un enfoque especializado en la simulación y visualización de sistemas de partículas complejos en tiempo real. El núcleo del proyecto se fundamenta en la creación de una arquitectura de computación paralela que permite simular fenómenos atmosféricos y dinámicos como fuego, humo y agua mediante el uso intensivo de Compute Shaders. Esta aproximación técnica traslada íntegramente la carga computacional del ciclo de vida de las partículas —incluyendo la actualización de posición, color, opacidad y transformaciones físicas— a la GPU, eliminando de forma efectiva los cuellos de botella de comunicación entre la CPU y la memoria de vídeo habituales en APIs de nivel superior. A nivel de implementación, el motor destaca por una gestión explícita de los recursos de hardware a través de una estructura modular que integra un pipeline de computación procedural, sistemas de sincronización avanzada mediante barreras de memoria (VkBufferMemoryBarrier) y técnicas de renderizado volumétrico basadas en Point Sprites y Alpha Blending. Además, la aplicación integra un entorno gráfico tridimensional completo con iluminación ADS (Ambiental, Difusa, Especular), carga de modelos 3D optimizados y un sistema de Skybox dinámico. La modularidad del motor permite una extensibilidad sencilla, mientras que la gestión de memoria optimizada mediante descriptores y buffers locales asegura una baja latencia en el acceso a datos. Los resultados obtenidos validan la alta eficiencia de Vulkan para procesar más de un millón de partículas concurrentes, manteniendo una tasa de refresco superior a los 60 FPS en hardware de gama media y permitiendo una alta parametrización estética. Esto posiciona a esta herramienta como una base sólida, escalable y robusta para futuras simulaciones interactivas y aplicaciones avanzadas en la industria del videojuego.
+
+\vspace{0.5cm}
+\textit{Palabras clave:} vulkan, compute shaders, sistemas de partículas, tiempo real, gpu
+
+\vspace{0.5cm}
+\textit{Competencias específicas:} 
+En este trabajo se han desarrollado las siguientes competencias específicas:
 \begin{itemize}
-    \item Pipeline de Computación: Implementa lógica procedural y ruido para dotar de movimiento orgánico al humo (vórtices sinuosos) y al fuego (efecto de parpadeo y ascenso dinámico).
-    \item Sincronización Avanzada: Utiliza barreras de memoria (VkBufferMemoryBarrier) para garantizar la integridad de los datos entre las etapas de cálculo físico y el renderizado gráfico final.
-    \item Renderizado de Partículas: Emplea técnicas de Point Sprites y Alpha Blending para lograr la transparencia y densidad visual necesarias en efectos volumétricos.
-    \item Entorno Gráfico Completo: El sistema se integra en una escena 3D que incluye iluminación ADS (Ambiental, Difusa, Especular), mapeado de texturas, modelos 3D y un fondo dinámico mediante Skybox con cubemaps.
+    \item Capacidad para desarrollar y evaluar sistemas interactivos y de presentación de información compleja y su aplicación a la resolución de problemas de diseño de interacción persona computadora.
 \end{itemize}
-Los resultados demuestran la eficiencia de Vulkan para manejar miles de partículas concurrentes, logrando una representación visual fluida y altamente parametrizable, sentando las bases para aplicaciones en videojuegos y simulaciones visuales interactivas.
-
-\vspace{1cm}
-\noindent \textbf{Palabras clave:} Vulkan, Compute Shaders, Sistemas de Partículas, Tiempo Real, GPU, Gráficos por Computadora.

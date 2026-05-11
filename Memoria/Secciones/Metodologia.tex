@@ -1,0 +1,19 @@
+\chapter{Metodologías}
+\label{sec:metodologia}
+
+En este capítulo se detallan los fundamentos teóricos y las decisiones técnicas que sustentan la implementación del motor de partículas.
+
+\section{Definición de Partícula}
+Descripción de qué es una partícula en el contexto de este motor, sus atributos (posición, velocidad, color, vida) y cómo se representan en memoria.
+
+\section{Sistemas de Partículas en CPU vs GPU}
+Comparativa técnica entre el enfoque tradicional (actualización en CPU) y el enfoque moderno (actualización en GPU mediante Compute Shaders). Se justifica el uso de la GPU para manejar densidades masivas de datos.
+
+\subsection{La Pipeline de Computación}
+Explicación de cómo funciona el pipeline de computación en Vulkan y su independencia del pipeline gráfico.
+
+\subsection{Técnicas de Renderizado Visual y Compute Shader}
+Descripción de la interacción entre los shaders de computación para la física y los shaders de fragmentos para la visualización.
+
+\subsection{Simulaciones Procedurales} 
+El uso de ruidos (Perlin, Simplex) para generar movimiento orgánico sin coste físico elevado, permitiendo que las partículas se comporten de forma natural.

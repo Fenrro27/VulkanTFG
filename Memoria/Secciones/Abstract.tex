@@ -1,17 +1,16 @@
 % --- ABSTRACT ---
-\chapter*{Abstract}
+\begin{center}
+    \textbf{Abstract}
+\end{center}
 
-This Final Degree Project describes the design and implementation of a high-performance rendering engine based on the Vulkan API, oriented towards the generation and visualization of complex particle systems in real time. The core of the project lies in the creation of a system capable of simulating visual phenomena such as fire, smoke, and water through the use of Compute Shaders. This architecture enables the transfer of the entire computational load of the particle lifecycle (position, color, and size updates) entirely to the GPU, eliminating traditional bottlenecks between the CPU and video memory.
+\noindent This Final Degree Project details the design, development, and implementation of a high-performance rendering engine using the Vulkan API, with a specialized focus on the simulation and visualization of complex particle systems in real time. The core of the project is based on the creation of a parallel computing architecture that allows for the simulation of atmospheric and dynamic phenomena such as fire, smoke, and water through the intensive use of Compute Shaders. This technical approach transfers the entire computational load of the particle lifecycle —including position, color, opacity, and physical transformation updates— entirely to the GPU, effectively eliminating the communication bottlenecks between the CPU and video memory typically found in higher-level APIs. At the implementation level, the engine stands out for its explicit management of hardware resources through a modular structure that integrates a procedural computation pipeline, advanced synchronization systems via memory barriers (VkBufferMemoryBarrier), and volumetric rendering techniques based on Point Sprites and Alpha Blending. Furthermore, the application integrates a complete three-dimensional graphical environment with ADS (Ambient, Diffuse, Specular) lighting, optimized 3D model loading, and a dynamic Skybox system. The modular nature of the engine facilitates simple extensibility, while optimized memory management through descriptors and local buffers ensures low data access latency. The results obtained validate Vulkan's high efficiency in processing over one million concurrent particles while maintaining a stable frame rate above 60 FPS on mid-range hardware, allowing for high aesthetic parameterization. This positions the developed tool as a solid, scalable, and robust foundation for interactive simulations and advanced applications within the video game industry.
 
-On a technical level, the engine explicitly manages hardware resources through a modular structure that includes:
+\vspace{0.5cm}
+\textit{Keywords:} vulkan, compute shaders, particle systems, real-time, gpu
+
+\vspace{0.5cm}
+\textit{Specific competencies:} 
+In this work, the following specific competencies have been developed:
 \begin{itemize}
-    \item Computation Pipeline: Implements procedural logic and noise to provide organic movement to smoke (sinuous vortices) and fire (flickering effect and dynamic ascent).
-    \item Advanced Synchronization: Uses memory barriers (VkBufferMemoryBarrier) to guarantee data integrity between the physical computation stages and the final graphic rendering.
-    \item Particle Rendering: Employs Point Sprites and Alpha Blending techniques to achieve the transparency and visual density necessary in volumetric effects.
-    \item Complete Graphical Environment: The system is integrated into a 3D scene that includes ADS lighting (Ambient, Diffuse, Specular), texture mapping, 3D models, and a dynamic background via Skybox with cubemaps.
+    \item Ability to develop and evaluate interactive systems and complex information presentation and their application to solving human-computer interaction design problems.
 \end{itemize}
-
-The results demonstrate Vulkan's efficiency in handling thousands of concurrent particles, achieving smooth and highly parameterizable visual representation, laying the foundation for applications in video games and interactive visual simulations.
-
-\vspace{1cm}
-\noindent \textbf{Keywords:} Vulkan, Compute Shaders, Particle Systems, Real-Time, GPU, Computer Graphics.

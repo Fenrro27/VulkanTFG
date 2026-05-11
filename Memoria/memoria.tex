@@ -1,21 +1,38 @@
-\documentclass[12pt,a4paper,oneside]{book}
+\documentclass[11pt,a4paper,oneside,openany]{book}
 
 % --- Paquetes Esenciales ---
 \usepackage[utf8]{inputenc}    % Codificación de caracteres
 \usepackage[spanish,es-tabla]{babel} % Idioma español y "Tabla" en vez de "Cuadro"
+\usepackage[T1]{fontenc}       % Codificación de fuente para soporte de caracteres especiales
+\usepackage{helvet}            % Carga la fuente Helvetica (equivalente a Arial)
+\renewcommand{\familydefault}{\sfdefault} % Establece la fuente sans-serif como predeterminada
 \usepackage[margin=2.5cm]{geometry} % Márgenes
 \usepackage{graphicx}          % Para insertar imágenes
 \usepackage{amsmath,amssymb}   % Matemáticas avanzadas
 \usepackage{setspace}          % Interlineado
 \usepackage{hyperref}          % Enlaces y marcadores PDF
-\usepackage[numbers]{natbib}   % Bibliografía (estilo numérico)
+\usepackage[style=apa, backend=biber]{biblatex}
+\addbibresource{bibliografia.bib}
 \usepackage{eso-pic}           % Para imagen de fondo en portada
 \usepackage{fancyhdr}          % Cabeceras y pies de página personalizados
 
 % --- Configuración de Párrafo ---
-\onehalfspacing                % Interlineado 1.5
-\setlength{\parindent}{1em}    % Sangría de primera línea
-\setlength{\parskip}{0.5em}    % Espaciado entre párrafos
+\setstretch{1.2}               % Interlineado 120%
+\setlength{\parindent}{1.27cm} % Sangría APA 7 (0.5 pulgadas)
+\setlength{\parskip}{0.6cm}    % Espaciado entre párrafos (6mm)
+
+% --- Configuración de Títulos (Máx 16pt) ---
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\bfseries\fontsize{14}{16}\selectfont} 
+  {\chaptertitlename\ \thechapter}{10pt}{\fontsize{16}{19}\selectfont} 
+\titleformat{\section}
+  {\normalfont\sffamily\bfseries\fontsize{14}{16}\selectfont}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\sffamily\bfseries\fontsize{12}{14}\selectfont}
+  {\thesubsection}{1em}{}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt} 
 
 % --- Inicio del Documento ---
 \begin{document}
@@ -26,8 +43,9 @@
 \setcounter{page}{1}
 \pagestyle{fancy}
 \fancyhf{}
+\fancyhead[R]{Sistema de generación de partículas en Vulkan}
 \fancyfoot[R]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\headrulewidth}{0.4pt}
 \fancypagestyle{plain}{%
     \fancyhf{}
     \fancyfoot[R]{\thepage}
@@ -37,28 +55,37 @@
 
 % --- RESUMEN Y AGRADECIMIENTOS ---
 \input{Secciones/Resumen.tex}
+\clearpage
 \input{Secciones/Abstract.tex}
+\clearpage
 \input{Secciones/Agradecimientos.tex}
+\clearpage
 
 % --- ÍNDICES ---
 \tableofcontents % Índice general
+\clearpage
 \listoffigures   % Índice de figuras
 \listoftables    % Índice de tablas
+\clearpage
 
 % --- CUERPO DEL TRABAJO ---
 \input{Secciones/Introduccion.tex}
+\input{Secciones/JustificacionyObjetivos.tex} 
 \input{Secciones/EstadoDelArte.tex}
-\input{Secciones/Desarrollo.tex}
-\input{Secciones/ResultadosyDiscusion.tex}
+\input{Secciones/Metodologia.tex}
+\input{Secciones/Desarrollo.tex} 
 \input{Secciones/ConclusionyTrabajoFuturo.tex}
 
 
 \nocite{8685588}
-\nocite{10.1145/2542266.2542276}
-\nocite{11102583}
-% --- BIBLIOGRAFÍA ---
+\nocite{9655285}
+% --- BIBLIOGRAFÍA --- Debe usarse APA 7
 \backmatter
-\bibliographystyle{plainnat} 
-\bibliography{bibliografia}  
+\printbibliography[title={Referencias}]
+
+% --- ANEXOS ---
+\appendix
+\chapter{Anexos}
+Contenido de los anexos (planos, código fuente adicional, etc.).
 
 \end{document} 
