@@ -38,37 +38,25 @@
 
 #include "GELight.h"
 
+#ifdef _WIN32
 #include <windows.h>
-
+#endif
 #include "resource.h"
 
 #include <glm/glm.hpp>
-
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <chrono>
 
-
-
 #include "GEHumo.h"
-
 #include "GEFuego.h"
-
 #include "GEAgua.h"
-
 #include "GETexture.h"
-
 #include "GEModel.h"
-
 #include "commonDebug.h"
 
-
-
 #include "imgui.h"
-
-#include "backends/imgui_impl_glfw.h"
-
-#include "backends/imgui_impl_vulkan.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_vulkan.h"
 
 
 

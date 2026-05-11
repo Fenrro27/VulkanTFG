@@ -66,26 +66,16 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
 
     std::vector<tinyobj::material_t> materials;
 
-    std::string err;
-
-
+    std::string warn, err;
 
     // Obtenemos el directorio base para buscar el archivo .mtl y las texturas
-
     std::string directory = std::filesystem::path(path).parent_path().string() + "/";
 
-
-
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, path.c_str(), directory.c_str(), true)) {
-
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), directory.c_str(), true)) {
         /**
-
          * @brief Función std::runtime_error
-
          */
-
         throw std::runtime_error("Error cargando OBJ: " + err);
-
     }
 
 

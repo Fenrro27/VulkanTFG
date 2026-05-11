@@ -970,7 +970,7 @@ void GEGraphicsContext::resumeDeviceProperties(VkPhysicalDevice pDevice, int ind
 
     char filename[13];
 
-    sprintf_s(filename, "device_%i.txt", index);
+    snprintf(filename, sizeof(filename), "device_%i.txt", index);
 
     /**
 
