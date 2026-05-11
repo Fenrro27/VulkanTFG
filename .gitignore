@@ -69,4 +69,6 @@ vcpkg.applocal.log
 # Ignorar la libreria externa ImGui
 Project6/ImGui/
 
-
+# --- vcpkg ---
+vcpkg/
+vcpkg_installed/
