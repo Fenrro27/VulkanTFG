@@ -2,15 +2,30 @@
 
 % --- Paquetes Esenciales ---
 \usepackage[utf8]{inputenc}    % Codificación de caracteres
-\usepackage[spanish,es-tabla]{babel} % Idioma español y "Tabla" en vez de "Cuadro"
+\usepackage[spanish,es-tabla,es-noshorthands]{babel} % Idioma español y "Tabla" en vez de "Cuadro"
 \usepackage[T1]{fontenc}       % Codificación de fuente para soporte de caracteres especiales
 \usepackage{helvet}            % Carga la fuente Helvetica (equivalente a Arial)
 \renewcommand{\familydefault}{\sfdefault} % Establece la fuente sans-serif como predeterminada
 \usepackage[margin=2.5cm]{geometry} % Márgenes
 \usepackage{graphicx}          % Para insertar imágenes
+\usepackage{pgfplots}          % Para generar gráficas directamente
+\usepackage{pgfplotstable}     % Para manejar tablas de datos
+\pgfplotsset{compat=1.18}
+\pgfplotsset{
+    discard if not/.style 2 args={
+        x filter/.append code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+            \else
+                \def\pgfmathresult{}
+            \fi
+        }
+    }
+}
 \usepackage{amsmath,amssymb}   % Matemáticas avanzadas
 \usepackage{setspace}          % Interlineado
-\usepackage{hyperref}          % Enlaces y marcadores PDF
+\usepackage[hidelinks]{hyperref}          % Enlaces y marcadores PDF
 \usepackage[style=apa, backend=biber]{biblatex}
 \addbibresource{bibliografia.bib}
 \usepackage{eso-pic}           % Para imagen de fondo en portada

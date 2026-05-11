@@ -3070,8 +3070,24 @@
     <bcf:datasource type="file" datatype="bibtex" glob="false">bibliografia.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="1" intorder="1" nocite="1">8685588</bcf:citekey>
-    <bcf:citekey order="2" intorder="2" nocite="1">9655285</bcf:citekey>
+    <bcf:citekey order="3" intorder="1">Sellers_Kessenich_2017a</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">8685588</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">9655285</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">9655285</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">8685588</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">fenrro2026glvsvk_comp</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">fenrro2026glvsvk_comp</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">fenrro2026glvsvk_comp</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">fenrro2026glvsvk_comp</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">fenrro2026glvsvk_comp</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">dyndo2017glvsvk</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">dyndo2017glvsvk</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">9655285</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">8685588</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">9655285</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">8685588</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">8685588</bcf:citekey>
+    <bcf:citekey order="20" intorder="2">9655285</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="apa">
