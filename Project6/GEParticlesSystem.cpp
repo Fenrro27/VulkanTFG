@@ -34,11 +34,8 @@
 
 
 
-GEParticlesSystem::GEParticlesSystem() {
-
-	std::cout << "GEPS" << std::endl;
-
-
+GEParticlesSystem::GEParticlesSystem() 
+{
 	emitterParams.emitterPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // Origen
 	emitterParams.force = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f); // Sin fuerzas externas
 	emitterParams.startColor = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f); // Naranja por defecto
@@ -49,37 +46,24 @@ GEParticlesSystem::GEParticlesSystem() {
 	emitterParams.startSize = 1.0f;
 	emitterParams.endSize = 0.1f;
 	emitterParams.particleType = 0;
-
 }
 
 
 
 //
-
 // FUNCIï¿½N: GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc)
-
 //
-
 // PROPï¿½SITO: Crea la figura
-
 //
 
 /**
-
  * @brief FunciÃ³n GEParticlesSystem::initialize
-
  */
-
 void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc, GETexture* sceneTexture)
-
 {
-
 	size_t vertexSize = sizeof(GEParticle) * particles.size();
-
 	pboA = std::make_unique<GEParticleBuffer>(gc, vertexSize, particles.data());
-
 	pboB = std::make_unique<GEParticleBuffer>(gc, vertexSize, nullptr);
-
 
 
 	// SOLO crear el IBO si hay ï¿½ndices, compute shader
