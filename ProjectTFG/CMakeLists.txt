@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(Project6 LANGUAGES CXX)
+project(ProjectTFG LANGUAGES CXX)
 
 # 1. Buscar herramientas necesarias
 find_program(GLSL_VALIDATOR glslangValidator)

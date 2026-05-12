@@ -33,7 +33,7 @@ x86/
 *.pdb
 *.ilk
 *.spv
-Project6/compiled_shaders/
+ProjectTFG/compiled_shaders/
 
 # --- VS Code ---
 .vscode/
@@ -41,3 +41,6 @@ Project6/compiled_shaders/
 # --- Otros ---
 .DS_Store
 Thumbs.db
+*.ini
+*.aps
+*.res

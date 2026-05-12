@@ -10,13 +10,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Configuración del Ejecutable
 ################################################################################
 # Añadimos los subproyectos (donde están tus archivos .cpp)
-add_subdirectory(Project6)
+add_subdirectory(ProjectTFG)
 
 # --- FUNCIÓN PARA EJECUTAR DESDE TERMINAL ---
 # Esto permite hacer: cmake --build --preset win-debug --target run
 add_custom_target(run
-    COMMAND $<TARGET_FILE:Project6>
-    DEPENDS Project6
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:Project6>
+    COMMAND $<TARGET_FILE:ProjectTFG>
+    DEPENDS ProjectTFG
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:ProjectTFG>
     COMMENT "Lanzando el motor Vulkan..."
 )
