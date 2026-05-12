@@ -1,7 +1,14 @@
 \chapter{Estado del arte}
 \label{chap:estado_del_arte}
 
-El desarrollo de sistemas gráficos modernos exige una comprensión profunda de las herramientas y estándares que han definido la industria durante las últimas décadas. En este contexto, el punto de partida fundamental para este trabajo es el análisis comparativo entre OpenGL, el estándar histórico de facto para la computación gráfica, y Vulkan, su sucesor espiritual de bajo nivel \parencite{Sellers_Kessenich_2017a}. Esta comparativa inicial no es solo una revisión técnica, sino una justificación necesaria: para comprender el valor de desarrollar un motor de partículas avanzado, primero debemos identificar los cuellos de botella estructurales de las APIs tradicionales y cómo la nueva generación de interfaces gráficas permite superarlos, aprovechando al máximo el hardware multinúcleo contemporáneo.
+El desarrollo de sistemas gráficos modernos exige una comprensión profunda de las herramientas y estándares que han definido la industria durante las últimas décadas. En este contexto, el punto de partida fundamental para este trabajo es el análisis comparativo entre OpenGL (véase Figura \ref{fig:logo_opengl}), el estándar histórico de facto para la computación gráfica, y Vulkan, su sucesor espiritual de bajo nivel \parencite{Sellers_Kessenich_2017a}. Esta comparativa inicial no es solo una revisión técnica, sino una justificación necesaria: para comprender el valor de desarrollar un motor de partículas avanzado, primero debemos identificar los cuellos de botella estructurales de las APIs tradicionales y cómo la nueva generación de interfaces gráficas permite superarlos, aprovechando al máximo el hardware multinúcleo contemporáneo.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Media/EstadoDelArte_2}
+    \caption{Logo de OpenGL.}
+    \label{fig:logo_opengl}
+\end{figure}
 
 
 \section{Comparativa de Vulkan con OpenGL}

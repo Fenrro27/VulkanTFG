@@ -2,6 +2,13 @@
 % Nota: En APA 7 puro no se usa el encabezado "Introducción", sino el título del trabajo.
 % Se mantiene así por coherencia con la estructura de un TFG.
 
-El renderizado de gráficos por computadora ha experimentado una transformación radical con la aparición de APIs de bajo nivel como Vulkan, que permiten un control sin precedentes sobre el hardware gráfico. En este contexto, el presente Trabajo de Fin de Grado se centra en el diseño y desarrollo de un motor de renderizado de alto rendimiento especializado en la simulación de sistemas de partículas complejos en tiempo real.
+El renderizado de gráficos por computadora ha experimentado una transformación radical con la aparición de APIs de bajo nivel como Vulkan (véase Figura \ref{fig:introduccion_vulkan}), que permiten un control sin precedentes sobre el hardware gráfico. En este contexto, el presente Trabajo de Fin de Grado se centra en el diseño y desarrollo de un motor de renderizado de alto rendimiento especializado en la simulación de sistemas de partículas complejos en tiempo real.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Media/Introduccion_1}
+    \caption{Logo de Vulkan.}
+    \label{fig:introduccion_vulkan}
+\end{figure}
 
 A lo largo de este documento, se explora cómo la computación en GPU, mediante el uso de \textit{Compute Shaders}, permite trasladar la carga computacional de fenómenos dinámicos como el fuego, el humo y el agua íntegramente a la tarjeta gráfica. El objetivo principal es demostrar que, mediante una gestión explícita de los recursos y una sincronización avanzada, es posible alcanzar niveles de fidelidad visual y eficiencia técnica que superan las limitaciones de las arquitecturas tradicionales basadas en CPU.
