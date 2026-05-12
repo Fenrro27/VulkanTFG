@@ -44,3 +44,5 @@ Thumbs.db
 *.ini
 *.aps
 *.res
+
+build_test/
