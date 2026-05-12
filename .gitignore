@@ -1,74 +1,43 @@
-# --- Visual Studio ---
-.vs/
-*.sln.dotsettings.user
-*.user
-*.userosscache
-*.sln.docstates
-*.suo
-
-# --- Directorios de Compilación y Salida ---
-# Bloquea todas las carpetas de salida de MSBuild
-[Dd]ebug/
-[Rr]elease/
-x64/
-x86/
+# --- Carpetas de Compilación (CMake) ---
+out/
 build/
-bin/
-obj/
-
-# --- Archivos generados por el Compilador/Linker ---
-*.exe
-*.pdb
-*.ilk
-*.aps
-*.res
-*.idb
-*.iobj
-*.ipdb
-*.tlog
-*.lastbuildstate
-*.recipe
-*.log
-
-# --- VS Code ---
-.vscode/
-# Si quieres guardar tus tareas de compilación de VS Code, 
-# comenta la línea de arriba y usa estas:
-# .vscode/*.log
-# .vscode/launch.json
-
-# --- CMake ---
 CMakeFiles/
 CMakeCache.txt
 CMakeConfigureLog.yaml
 cmake_install.cmake
+CMakeUserPresets.json
 install/
-generated/
-ZERO_CHECK.*
-ALL_BUILD.*
 
-# --- Shaders compilados ---
-# Los archivos .spv son binarios generados por glslangValidator
+# --- vcpkg (Dependencias locales) ---
+vcpkg_installed/
+vcpkg/
+vcpkg.applocal.log
+
+# --- Visual Studio ---
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.opendb
+*.db
+Debug/
+Release/
+x64/
+x86/
+
+# --- Binarios y Shaders generados ---
+*.exe
+*.pdb
+*.ilk
 *.spv
+Project6/compiled_shaders/
 
-# --- Dependencias y Herramientas ---
-# Es buena práctica no subir las librerías externas si puedes 
-# descargarlas (vcpkg) o si son muy pesadas. 
-# Si quieres mantenerlas en el repo, borra estas líneas:
-# /Tools/
-# /Projects/ProjectTFG/Tools/
+# --- VS Code ---
+.vscode/
 
 # --- Otros ---
 .DS_Store
 Thumbs.db
-vcpkg.applocal.log
-
-
-
-
-# Ignorar la libreria externa ImGui
-Project6/ImGui/
-
-# --- vcpkg ---
-vcpkg/
-vcpkg_installed/

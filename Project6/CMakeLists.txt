@@ -1,58 +1,41 @@
-set(PROJECT_NAME Project6)
+cmake_minimum_required(VERSION 3.15)
+project(Project6 LANGUAGES CXX)
 
-# 1. Buscar el compilador de shaders (glslangValidator)
-find_program(GLSL_VALIDATOR NAMES glslangValidator)
+# 1. Buscar herramientas necesarias
+find_program(GLSL_VALIDATOR glslangValidator)
 if(NOT GLSL_VALIDATOR)
-    message(FATAL_ERROR "No se encontró glslangValidator. Instálalo con: sudo apt install vulkan-tools")
+    message(WARNING "No se encontró glslangValidator. Los shaders no se compilarán.")
 endif()
 
-# 2. Lista de Shaders (Archivos fuente)
-set(SHADER_SOURCES
-    "shaders/scene_shader.vert"
-    "shaders/scene_shader.frag"
-    "shaders/skybox_shader.vert"
-    "shaders/skybox_shader.frag"
-    "shaders/particles_shader.vert"
-    "shaders/particles_shader.frag"
-    "shaders/fire.comp"
-    "shaders/smoke.comp"
-    "shaders/water.comp"
-)
+# 2. Lista de Shaders
+file(GLOB SHADER_SOURCES "shaders/*.vert" "shaders/*.frag" "shaders/*.comp")
 
-# 3. Lógica de compilación automática de Shaders
+# 3. Lógica de compilación de Shaders (Ruta simple para evitar errores)
 set(SPV_OUTPUTS "")
-foreach(SHADER ${SHADER_SOURCES})
-    get_filename_component(FILE_NAME ${SHADER} NAME_WE) # nombre sin extensión
-    get_filename_component(FILE_EXT ${SHADER} EXT)     # .vert, .frag, .comp
-    
-    # Determinamos el nombre de salida (ej: scene_vert.spv)
-    string(SUBSTRING ${FILE_EXT} 1 4 SUFFIX) # vert, frag o comp
-    set(OUTPUT_NAME "${CMAKE_CURRENT_BINARY_DIR}/shaders/${FILE_NAME}_${SUFFIX}.spv")
-    
-    # Comando de compilación
-    add_custom_command(
-        OUTPUT ${OUTPUT_NAME}
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders"
-        COMMAND ${GLSL_VALIDATOR} -V ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER} -o ${OUTPUT_NAME}
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER}
-        COMMENT "Compilando shader: ${SHADER}"
-    )
-    list(APPEND SPV_OUTPUTS ${OUTPUT_NAME})
-endforeach()
+if(GLSL_VALIDATOR)
+    foreach(SHADER ${SHADER_SOURCES})
+        get_filename_component(FILE_NAME ${SHADER} NAME_WE)
+        get_filename_component(FILE_EXT ${SHADER} EXT)
+        string(SUBSTRING ${FILE_EXT} 1 -1 SUFFIX)
+        
+        # Generamos el .spv en una carpeta temporal de la build
+        set(OUTPUT_NAME "${CMAKE_CURRENT_BINARY_DIR}/compiled_shaders/${FILE_NAME}_${SUFFIX}.spv")
+        
+        add_custom_command(
+            OUTPUT ${OUTPUT_NAME}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/compiled_shaders"
+            COMMAND ${GLSL_VALIDATOR} -V ${SHADER} -o ${OUTPUT_NAME}
+            DEPENDS ${SHADER}
+            COMMENT "Compilando shader: ${SHADER}"
+        )
+        list(APPEND SPV_OUTPUTS ${OUTPUT_NAME})
+    endforeach()
+endif()
 
 # 4. Lista de archivos de código
-set(SRC_FILES
-    "main.cpp" "GEApplication.cpp" "GECamera.cpp" "GEScene.cpp" "GESkybox.cpp"
-    "GEDepthBuffer.cpp" "GEDescriptorSet.cpp" "GEIndexBuffer.cpp" "GETexture.cpp"
-    "GEUniformBuffer.cpp" "GEVertexBuffer.cpp" "GEAgua.cpp" "GEComputeShader.cpp"
-    "GEFuego.cpp" "GEHumo.cpp" "GEParticleBuffer.cpp" "GEParticlesSystem.cpp"
-    "GECommandContext.cpp" "GEDrawingContext.cpp" "GEGraphicsContext.cpp"
-    "GEPipelineConfig.cpp" "GERenderingContext.cpp" "GECone.cpp" "GECube.cpp"
-    "GECylinder.cpp" "GEDisk.cpp" "GEFigure.cpp" "GEGround.cpp" "GEIcosahedron.cpp"
-    "GEModel.cpp" "GEObject.cpp" "GEPiece.cpp" "GEPyramid.cpp" "GESphere.cpp" "GETorus.cpp"
-)
+file(GLOB SRC_FILES "*.cpp" "*.h")
 
-# 5. Crear el Ejecutable
+# 5. Crear el Ejecutable (Ahora el objetivo "Project6" ya existe)
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SPV_OUTPUTS})
 
 # 6. Dependencias con vcpkg
@@ -60,25 +43,38 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
-find_package(Stb REQUIRED)
 find_package(tinyobjloader CONFIG REQUIRED)
+find_path(STB_INCLUDE_DIR "stb_image.h")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     Vulkan::Vulkan 
     glfw 
     glm::glm 
     imgui::imgui
-  #  stb::stb
     tinyobjloader::tinyobjloader
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${Stb_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${STB_INCLUDE_DIR}
+)
 
-# 7. Copiar Texturas y Modelos a la carpeta build para que el .exe los encuentre
+# 7. POST-BUILD: Copiar TODO a la carpeta del ejecutable
+# Ahora sí podemos usar $<TARGET_FILE_DIR> porque el target ya existe
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/textures"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/models"
+    
+    # Copiar shaders compilados
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/textures ${CMAKE_CURRENT_BINARY_DIR}/textures
+        "${CMAKE_CURRENT_BINARY_DIR}/compiled_shaders" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
+        
+    # Copiar recursos originales
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/models ${CMAKE_CURRENT_BINARY_DIR}/models
-    COMMENT "Copiando recursos (modelos y texturas) al directorio de salida..."
+        "${CMAKE_CURRENT_SOURCE_DIR}/textures" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/textures"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/models" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/models"
+        
+    COMMENT "Desplegando shaders y recursos al directorio del ejecutable..."
 )

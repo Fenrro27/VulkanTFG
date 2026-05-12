@@ -706,21 +706,6 @@ VkShaderModule GERenderingContext::createShaderModule(GEGraphicsContext* gc, con
  */
 std::vector<char> GERenderingContext::getFileFromResource(int resource)
 {
-#ifdef _WIN32
-	HRSRC shaderHandle = FindResource(nullptr, MAKEINTRESOURCE(resource), RT_HTML);
-	HGLOBAL shaderGlobal = LoadResource(nullptr, shaderHandle);
-	LPCTSTR shaderPtr = static_cast<LPCTSTR>(LockResource(shaderGlobal));
-	DWORD shaderSize = SizeofResource(nullptr, shaderHandle);
-
-	/**
-	 * @brief Función shader
-	 */
-	std::vector<char> shader(shaderSize);
-	memcpy(shader.data(), shaderPtr, shaderSize);
-	UnlockResource(shaderGlobal);
-	FreeResource(shaderGlobal);
-	return shader;
-#else
 	std::string fileName;
 	switch (resource) {
 		case IDR_VERT_SCENE: fileName = "shaders/scene_shader_vert.spv"; break;
@@ -746,5 +731,4 @@ std::vector<char> GERenderingContext::getFileFromResource(int resource)
 	file.read(buffer.data(), fileSize);
 	file.close();
 	return buffer;
-#endif
 }
