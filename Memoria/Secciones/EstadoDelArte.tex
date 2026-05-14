@@ -82,5 +82,85 @@ Más allá del rendimiento bruto en fotogramas por segundo, la eficiencia energ�
 Estudios experimentales demuestran que Vulkan es capaz de ofrecer una mejor relación de FPS por Vatio (FPS/W) en comparación con OpenGL \parencite{9655285}. Al distribuir la carga de trabajo de forma más homogénea entre los núcleos de la CPU, se evita que un solo núcleo opere a frecuencias máximas (y voltajes más altos) de forma prolongada, lo que reduce el consumo térmico y prolonga la vida útil de la batería en dispositivos portátiles. En entornos de servidor, este ahorro se traduce en una mayor densidad de instancias de renderizado por cada vatio consumido \parencite{8685588}. En conclusión, Vulkan no solo permite alcanzar techos de rendimiento más altos, sino que lo hace de una forma más sostenible y eficiente, alineándose con las necesidades de las arquitecturas de hardware actuales.
 
 
+
+
 \section{Código del que partimos}
-Contextualización de la base de código inicial, librerías externas utilizadas (como GLFW, GLM) y el punto de inicio del desarrollo del motor.
+
+
+El desarrollo del motor de partículas avanzado se sustenta sobre una base de código preexistente que implementa un motor gráfico funcional de bajo nivel utilizando la API Vulkan. Esta base proporciona las abstracciones necesarias para gestionar el ciclo de vida de una aplicación gráfica moderna, permitiendo que este trabajo se centre en la optimización y creación de sistemas de partículas complejos sin necesidad de implementar desde cero la infraestructura de renderizado.
+
+\subsection{Librerías externas y dependencias}
+
+El proyecto integra librerías estándar en la industria para el manejo de matemáticas gráficas y carga de recursos:
+
+\begin{itemize}
+\item \textbf{Vulkan SDK}: Utilizado como núcleo central para la comunicación con la GPU, permitiendo un control explícito sobre la memoria y los búferes de comandos.
+\item \textbf{GLM (OpenGL Mathematics)}: Empleada de forma extensiva para todas las operaciones de álgebra lineal, transformaciones de matrices (MVP) y cálculos trigonométricos necesarios para la generación de geometrías procedimentales.
+\item \textbf{stb\_image}: Librería de cabecera única integrada para la carga de texturas y mapas de cubos (\textit{cubemaps}) desde archivos de imagen hacia búferes de memoria de Vulkan.
+\item \textbf{glfw}: Maneja la interacción con el entorno, como la creación de ventanas y la gestión de eventos.
+\end{itemize}
+
+\subsection{Estructura del motor base}
+
+La arquitectura del sistema se organiza en un conjunto de clases de C++ que abstraen la complejidad de la API Vulkan, facilitando la gestión del flujo de datos entre la CPU y la GPU. A continuación, se detalla la funcionalidad de los componentes clave, divididos por su responsabilidad en el pipeline gráfico.
+
+\subsubsection{Infraestructura y Control de Renderizado}
+
+\begin{itemize}
+\item \textbf{\texttt{GEGraphicsContext}}: Es el núcleo del motor. Inicializa la instancia de Vulkan, selecciona el dispositivo físico (GPU), crea el dispositivo lógico y gestiona las colas de comandos.
+\item \textbf{\texttt{GERenderingContext}}: Coordina el flujo global de renderizado, asegurando que los recursos estén disponibles antes de proceder con el dibujado de la escena.
+\item \textbf{\texttt{GEDrawingContext}}: Controla la \textit{Swapchain}, los \textit{Render Passes} y los \textit{Framebuffers}. Es el encargado de determinar cómo y dónde se escribe el resultado final del renderizado.
+\item \textbf{\texttt{GECommandContext}}: Gestiona los \textit{Command Pools} y \textit{Command Buffers}. Permite grabar las instrucciones de dibujo (como el \textit{bind} de tuberías o el \textit{draw}) para su envío eficiente a la GPU.
+\item \textbf{\texttt{GEPipelineConfig}}: Define el estado de la tubería gráfica fija, incluyendo la configuración de \textit{rasters}, mezcla de colores (\textit{blending}) y el ensamblado de primitivas.
+\item \textbf{\texttt{GEDepthBuffer}}: Administra el búfer de profundidad, esencial para que el motor determine correctamente qué objetos están delante de otros y evitar solapamientos incorrectos.
+\end{itemize}
+
+\subsubsection{Gestión de Datos y Memoria}
+
+\begin{itemize}
+\item \textbf{\texttt{GEVertexBuffer}, \texttt{GEIndexBuffer} y \texttt{GEUniformBuffer}}: Encapsulan la creación y gestión de memoria en la GPU. Los dos primeros almacenan la geometría (vértices e índices), mientras que el último almacena datos que cambian por fotograma, como luces o matrices.
+\item \textbf{\texttt{GEVertex}}: Estructura de datos que define los atributos de un punto en el espacio (posición, normal, coordenadas UV).
+\item \textbf{\texttt{GETexture}}: Clase encargada de cargar y crear los \textit{Image Samplers} en Vulkan, permitiendo que las imágenes se mapeen sobre las superficies geométricas.
+\item \textbf{\texttt{GEDescriptorSet}}: Organiza el acceso de los \textit{shaders} a los recursos (texturas y búferes uniformes), vinculando los datos de la CPU con los registros de la GPU.
+\end{itemize}
+
+\subsubsection{Cámara, Transformaciones e Iluminación}
+
+\begin{itemize}
+\item \textbf{\texttt{GECamera}}: Implementa la lógica de visualización. Calcula las matrices de vista y proyección, y gestiona el movimiento del observador en el mundo 3D mediante la actualización de vectores de dirección.
+\item \textbf{\texttt{GETransform}}: Contiene la matriz de modelo (posición, rotación y escala) de una entidad, permitiendo situar objetos en el espacio global.
+\item \textbf{\texttt{GELight} y \texttt{GEMaterial}}: El primero define las propiedades de la fuente de luz (dirección, colores ambiente, difuso y especular), mientras que el segundo define cómo reacciona la superficie del objeto a dicha luz (\textit{shininess}, coeficientes de reflexión).
+\item \textbf{\texttt{GEWindowPosition}}: Una utilidad para gestionar las coordenadas de la ventana y eventos de redimensionado, asegurando que la cámara mantenga la relación de aspecto correcta.
+\end{itemize}
+
+\subsubsection{Entidades y Entorno}
+
+\begin{itemize}
+\item \textbf{\texttt{GEObject}, \texttt{GEFigure} y \texttt{GEPiece}}: Forman la jerarquía de representación. \texttt{GEObject} es la entidad base, \texttt{GEFigure} gestiona la geometría procedimental y \texttt{GEPiece} representa una parte específica de un modelo complejo con su propio material y textura.
+\item \textbf{\texttt{GESkybox}}: Gestiona el renderizado del fondo infinito. Se apoya en \textbf{\texttt{GESkyboxVertex}} para su geometría cúbica, \textbf{\texttt{GESkyboxTransform}} para su posicionamiento relativo a la cámara (ignorando la traslación) y un sistema de sombreado propio para proyectar texturas de cubo (\textit{cubemaps}).
+\end{itemize}
+
+
+\subsubsection{Implementación de Shaders}
+
+Un \textit{shader} es un programa informático diseñado para ejecutarse directamente en la unidad de procesamiento gráfico (GPU). Estos programas son piezas fundamentales en el \textit{pipeline} de renderizado moderno, ya que permiten delegar el cálculo de la geometría y el color de cada píxel al hardware especializado, permitiendo efectos visuales complejos con un alto rendimiento. En este motor, los \textit{shaders} se han desarrollado en lenguaje GLSL (\textit{OpenGL Shading Language}) y se integran precompilados en formato binario SPIR-V, el estándar de bajo nivel requerido por Vulkan.
+
+El sistema visual del motor se sustenta sobre dos parejas principales de \textit{shaders}, cada una con una responsabilidad específica:
+
+\begin{itemize}
+\item \textbf{Renderizado de la escena (\texttt{shader.vert} / \texttt{shader.frag})}: Es el par de programas encargado de procesar y dibujar toda la geometría de la simulación.
+\begin{itemize}
+    \item El \textit{vertex shader} calcula la posición de los vértices aplicando las transformaciones de vista y proyección (matrices MVP) para situar los objetos en el espacio 3D.
+    \item El \textit{fragment shader} determina el color final de cada píxel mediante un modelo de iluminación local de tipo \textbf{ADS (Ambient, Diffuse, Specular)}, aplicando además el mapeado de texturas correspondiente.
+\end{itemize}
+
+\item \textbf{Renderizado del entorno (\texttt{skybox\_shader.vert} / \texttt{skybox\_shader.frag})}: Este par está optimizado exclusivamente para dibujar el fondo envolvente (\textit{skybox}).
+\begin{itemize}
+    \item Utiliza un \textit{vertex shader} que ignora la traslación de la cámara, garantizando que el entorno siempre parezca estar a una distancia infinita del observador.
+    \item El \textit{fragment shader} emplea un \textit{samplerCube} para proyectar una textura cúbica de alta resolución (\textit{cubemap}) sin costuras visuales, proporcionando un fondo atmosférico constante.
+\end{itemize}
+\end{itemize}
+
+Este punto de partida permite una transición fluida hacia la implementación de sistemas de partículas, aprovechando la capacidad multihilo nativa de la infraestructura de comandos ya presente en el código original.
+
+
