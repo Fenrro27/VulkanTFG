@@ -143,7 +143,7 @@ La arquitectura del sistema se organiza en un conjunto de clases de C++ que abst
 
 \subsubsection{Implementación de Shaders}
 
-Un \textit{shader} es un programa informático diseñado para ejecutarse directamente en la unidad de procesamiento gráfico (GPU). Estos programas son piezas fundamentales en el \textit{pipeline} de renderizado moderno, ya que permiten delegar el cálculo de la geometría y el color de cada píxel al hardware especializado, permitiendo efectos visuales complejos con un alto rendimiento. En este motor, los \textit{shaders} se han desarrollado en lenguaje GLSL (\textit{OpenGL Shading Language}) y se integran precompilados en formato binario SPIR-V, el estándar de bajo nivel requerido por Vulkan.
+Según la especificación oficial de Vulkan \parencite{vulkan_spec_shaders}, los \textit{shaders} son unidades de software ejecutables diseñadas para procesar datos de forma masiva y paralela dentro de las distintas etapas de la tubería gráfica (graphics pipeline). Estos programas, escritos habitualmente en lenguajes de alto nivel como GLSL y compilados al formato binario SPIR-V, permiten al desarrollador definir de manera programable el comportamiento de la GPU. Su función principal abarca desde la transformación de geometría en el espacio tridimensional hasta el cálculo detallado de la iluminación y el color de cada fragmento, sustituyendo los antiguos sistemas de función fija por algoritmos personalizados de alta eficiencia.
 
 El sistema visual del motor se sustenta sobre dos parejas principales de \textit{shaders}, cada una con una responsabilidad específica:
 

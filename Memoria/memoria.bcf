@@ -3086,8 +3086,9 @@
     <bcf:citekey order="16" intorder="1">8685588</bcf:citekey>
     <bcf:citekey order="17" intorder="1">9655285</bcf:citekey>
     <bcf:citekey order="18" intorder="1">8685588</bcf:citekey>
-    <bcf:citekey order="19" intorder="1" nocite="1">willems_vulkan</bcf:citekey>
-    <bcf:citekey order="20" intorder="2" nocite="1">vulkan_spec</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">vulkan_spec_shaders</bcf:citekey>
+    <bcf:citekey order="20" intorder="1" nocite="1">willems_vulkan</bcf:citekey>
+    <bcf:citekey order="21" intorder="2" nocite="1">vulkan_spec</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="apa">
