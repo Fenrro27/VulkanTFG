@@ -1,0 +1,35 @@
+\chapter{Mejoras respecto al código inicial}
+
+Mientras se ha desarrollado el trabajo, se han ido aplicando diversas mejoras y optimizaciones sobre el código base en paralelo a la creación de los sistemas de partículas. Estas modificaciones tienen como objetivo fortalecer la aplicación, facilitar el desarrollo y mejorar la experiencia de usuario. A continuación, se detallan las principales incorporaciones:
+
+\section{Capa de Validación de Vulkan}
+La API de Vulkan está diseñada para ofrecer el máximo rendimiento posible, lo que implica que delega en el desarrollador la responsabilidad de gestionar correctamente la memoria y los estados, limitando al mínimo la comprobación de errores en tiempo de ejecución por parte del controlador gráfico. Para solucionar esto durante la fase de desarrollo, se ha integrado la \textit{Vulkan Validation Layer} (Capa de Validación de Vulkan). Este subsistema se inyecta entre la aplicación y el controlador para interceptar las llamadas a la API, verificando el uso correcto de los parámetros, la sincronización de hilos y la gestión de memoria, emitiendo advertencias detalladas que facilitan la depuración de errores críticos antes de la compilación en modo de producción \parencite{vulkan_validation}.
+
+
+\section{TinyObjLoader}
+Para dotar a la escena de mayor complejidad geométrica y contexto espacial más allá de las propias partículas, se ha integrado la librería \texttt{tinyobjloader} \parencite{tinyobjloader}. Esta herramienta es un analizador sintáctico (\textit{parser}) ligero y eficiente escrito en C++ que permite cargar modelos tridimensionales almacenados en el formato estándar \textit{Wavefront OBJ}. Su inclusión facilita la lectura de los vértices, normales, coordenadas de textura y materiales de mallas poligonales, agilizando enormemente el proceso de importación de recursos externos hacia los búferes de la GPU.
+
+\section{Modos de cámara}
+Para facilitar la exploración y el análisis visual de las simulaciones, se ha rediseñado el sistema de control de vista implementando dos modos de cámara  nuevos (FPS y enfoque) a parte del ya existente (Libre), los cuales son alternables de forma dinámica mediante un acceso directo por teclado. La matemática subyacente para las transformaciones de vista se basa en matrices de proyección y rotación estándar en gráficos por computadora \parencite{lengyel2011mathematics}.
+
+En concreto, los modos son:
+\begin{itemize}
+    \item Un \textbf{modo Libre} (Original), que permite el desplazamiento absoluto sin restricciones espaciales.
+    \item Un \textbf{modo en Primera Persona (FPS)}, similar al estándar utilizado en aplicaciones y videojuegos modernos.
+    \item Un \textbf{modo de Observación (Orbital)}, diseñado específicamente para la inspección de los sistemas de partículas. Este modo ancla el punto de interés (\textit{target}) de la cámara al centro de un emisor seleccionado, permitiendo al usuario orbitar a su alrededor, ajustar el nivel de zoom y alternar el foco de forma fluida entre los diferentes sistemas presentes en la escena.
+\end{itemize}
+
+
+\section{ImGui}
+Con el fin de monitorizar el rendimiento y el estado de la aplicación en tiempo real, se ha integrado la interfaz gráfica \textit{Dear ImGui} \parencite{dearimgui}. Esta librería destaca por utilizar el paradigma de Interfaz de Usuario de Modo Inmediato (\textit{Immediate Mode GUI}), lo cual resulta ideal para integrarse de forma nativa y con bajo coste computacional en aplicaciones gráficas 3D. A través de un panel de superposición (\textit{overlay}), se expone información de telemetría y contexto esencial para el usuario de forma directa. Concretamente, la interfaz muestra la tasa de fotogramas por segundo (FPS) de la ventana para evaluar el rendimiento, el número total de partículas simuladas, el modo de cámara activo en ese instante y las instrucciones dinámicas sobre los controles de la cámara correspondientes al modo seleccionado. Esta implementación facilita el diagnóstico técnico y la navegación por la escena de manera clara e intuitiva.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/MejorasRespectoAlCodigoBase_1.png}
+    \caption{Interfaz de la aplicación.}
+    \label{fig:ImGui}
+\end{figure}
+
+
+\section{Vcpkg}
+A nivel de arquitectura y gestión del proyecto, se ha adoptado \textit{vcpkg} \parencite{vcpkg_ms} como gestor de dependencias y paquetes de C/C++. En el ecosistema de C++, la integración de múltiples librerías de terceros (como GLFW, GLM, Vulkan Headers, la mencionada ImGui o TinyObjLoader) suele generar problemas de compatibilidad y complicar la configuración multiplataforma. El uso de vcpkg automatiza la descarga, compilación y enlazado (\textit{linking}) de estas librerías directamente en el entorno de desarrollo (como CMake o Visual Studio), garantizando un entorno de trabajo unificado, replicable y mucho más limpio.

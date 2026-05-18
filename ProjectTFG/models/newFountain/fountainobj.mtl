@@ -1,0 +1,60 @@
+newmtl Fountain:lambert5SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain 1_diffuse.jpg
+bump fountain 1_normal.jpg -bm 1
+Ni 1.00
+Ks 0.29 0.29 0.29
+newmtl Fountain:lambert8SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain 2_diffuse.jpg
+bump fountain 2_normal.jpg -bm 1
+Ni 1.00
+Ks 0.13 0.13 0.13
+newmtl Fountain:lambert9SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain 3_diffuse.jpg
+bump fountain 3_normal.jpg -bm 1
+Ni 1.00
+Ks 0.14 0.14 0.14
+newmtl Fountain:lambert12SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain 4_diffuse.jpg
+bump fountain 4_normal.jpg -bm 1
+Ni 1.00
+Ks 0.10 0.10 0.10
+newmtl Fountain:lambert13SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain 5_diffuse.jpg
+bump fountain 5_normal.jpg -bm 1
+Ni 1.00
+Ks 0.10 0.10 0.10
+newmtl Fountain:phong1SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.15 0.15 0.15
+Tf 1.00 1.00 1.00
+map_Kd Water.jpg
+Ni 1.00
+Ks 0.42 0.42 0.42
+newmtl lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd fountain_ground.jpg
+Ni 1.00

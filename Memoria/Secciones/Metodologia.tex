@@ -1,7 +1,7 @@
 \chapter{Metodología}
 \label{sec:metodologia}
 
-A continuación, se exponen los fundamentos teóricos y los paradigmas computacionales que sustentan el diseño de un motor de partículas avanzado. Se establecen los conceptos base necesarios para comprender, en capítulos posteriores, la transición de una arquitectura gráfica básica hacia un sistema de procesamiento paralelo masivo.
+A continuación, se exponen los fundamentos teóricos y los paradigmas computacionales que sustentan el diseño de un motor de partículas avanzado. Esto permite comprender y justificar la transición desde una arquitectura gráfica tradicional hacia un sistema complejo de procesamiento paralelo masivo.
 
 \section{Definición de Partícula}
 En el contexto de la simulación gráfica, una partícula es la unidad atómica y fundamental utilizada para representar fenómenos difusos o fluidos, tales como fuego, humo, magia o polvo. Teóricamente, una partícula carece de geometría compleja y se define mediante un conjunto mínimo de atributos matemáticos que dictan su comportamiento y apariencia a lo largo del tiempo:
@@ -13,11 +13,11 @@ En el contexto de la simulación gráfica, una partícula es la unidad atómica 
 \end{itemize}
 
 \section{Sistemas de Partículas en CPU vs GPU}
-El principal desafío en la simulación de sistemas de partículas es la enorme cantidad de cálculos requeridos por fotograma.
+El principal desafío en la simulación de sistemas de partículas es la enorme cantidad de cálculos requeridos por fotograma. 
 
-En el \textbf{enfoque tradicional basado en CPU}, el procesador central recalcula secuencialmente (o mediante un número limitado de hilos) el estado de cada partícula. Posteriormente, esta masiva cantidad de datos actualizados debe transmitirse a la memoria gráfica (VRAM) a través del bus de datos del sistema para ser dibujada. Este constante trasiego de información genera un cuello de botella arquitectónico que limita drásticamente la cantidad de partículas simultáneas que el sistema puede manejar sin perder fluidez.
+En el \textbf{enfoque tradicional basado en CPU}, el procesador central recalcula secuencialmente (o mediante un número limitado de hilos) el estado de cada partícula. Posteriormente, esta masiva cantidad de datos actualizados debe transmitirse a la memoria gráfica (VRAM) a través del bus PCI-Express (PCIe) para ser dibujada. Este constante trasiego de información genera un cuello de botella arquitectónico que satura el ancho de banda de comunicación inter-hardware, limitando drásticamente la cantidad de partículas simultáneas que el sistema puede manejar sin perder fluidez~\parencite{latta2004massively}.
 
-Por el contrario, el \textbf{enfoque basado en GPU (GPGPU - \textit{General-Purpose computing on Graphics Processing Units})} plantea alojar permanentemente los datos en la memoria de vídeo. La tarjeta gráfica, al poseer una arquitectura masivamente paralela con miles de núcleos matemáticos, es capaz de calcular las físicas de cientos de miles de partículas de forma simultánea. Al eliminar la transferencia constante de datos entre la placa base y la tarjeta gráfica, se logra una escalabilidad computacional órdenes de magnitud superior.
+Por el contrario, el \textbf{enfoque basado en GPU (GPGPU - \textit{General-Purpose computing on Graphics Processing Units})} plantea alojar permanentemente los datos en la memoria de vídeo (VRAM). Al delegar la lógica a \textit{Compute Shaders}, la tarjeta gráfica aprovecha una arquitectura masivamente paralela con miles de núcleos independientes para calcular las físicas de cientos de miles de partículas en paralelo~\parencite{akenine2018real}. Al eliminar la transferencia constante de datos a través del bus de datos y garantizar la residencia de datos local, se mitiga el cuello de botella de transferencia y se logra una escalabilidad computacional órdenes de magnitud superior.
 
 \section{Fundamentos de Computación en GPU}
 Para entender la evolución de los sistemas de partículas modernos, es necesario definir las tecnologías que permiten tratar a la tarjeta gráfica como un procesador de propósito general.
@@ -37,12 +37,13 @@ Este flujo de trabajo se caracteriza por su autonomía. Un sistema puede despach
     \item \textbf{Sincronización:} Se asegura que todos los cálculos hayan terminado antes de que el motor gráfico intente leer los resultados para mostrarlos en pantalla.
 \end{enumerate}
 
-\subsection{Técnicas de Renderizado Visual y Computación}
+\subsection{Técnica de Renderizado}
 Para materializar visualmente la simulación, el sistema debe orquestar una sinergia entre el procesamiento de datos y el renderizado gráfico, dividiendo el trabajo en dos fases acopladas pero independientes.
 
-En la primera fase, los algoritmos de computación actualizan toda la nube de partículas. Una vez concluida y sincronizada esta etapa matemática, entra en juego la segunda fase: el motor gráfico accede directamente a ese mismo bloque de memoria ya actualizado para extraer las posiciones espaciales y el color. De este modo, el sistema gráfico se limita exclusivamente a dibujar la geometría en la pantalla (usualmente mediante técnicas de \textit{billboarding}, orientando formas planas hacia la cámara), aislando por completo la lógica física del proceso de dibujado.
+En la primera fase, los algoritmos de computación actualizan toda la nube de partículas. Una vez concluida y sincronizada esta etapa matemática, entra en juego la segunda fase: el motor gráfico accede directamente a ese mismo bloque de memoria ya actualizado para extraer las posiciones espaciales y el color. De este modo, el sistema gráfico se limita exclusivamente a dibujar la geometría en la pantalla, aislando por completo la lógica física del proceso de dibujado.
 
 \subsection{Simulaciones Procedurales} 
 Generar movimiento orgánico y fluido (como turbulencias o remolinos) utilizando fórmulas estrictas de dinámica de fluidos requiere un coste computacional prohibitivo para aplicaciones en tiempo real. 
 
 Como alternativa, la metodología moderna emplea técnicas procedimentales, destacando el uso de algoritmos de \textbf{ruido coherente} (como el Ruido de Perlin o Simplex). Estas funciones matemáticas generan valores pseudoaleatorios que cambian de forma suave y continua en el espacio y en el tiempo. Al aplicar estos gradientes como si fuesen campos de fuerza sobre la velocidad de las partículas, se logra inducir movimientos caóticos pero naturales. Esto permite simular ráfagas caprichosas o vórtices envolventes con un coste computacional ínfimo en comparación con la simulación física estricta.
+<Revisar>

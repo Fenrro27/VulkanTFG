@@ -10,8 +10,6 @@
 
 #include "tiny_obj_loader.h"
 
-
-
 #include "GEScene.h"
 
 #include "GECube.h"
@@ -58,8 +56,6 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
 
-
-
 //
 
 // FUNCIï¿½N: GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc)
@@ -70,7 +66,7 @@
 
 //
 
-GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
+GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *cc)
 
 {
 
@@ -80,75 +76,49 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	aspect_ratio(aspect);
 
-
-
 	auto skybox_config = createSkyboxPipelineConfig(dc->getExtent());
 
 	rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config.get());
-
-
 
 	auto scene_config = createScenePipelineConfig(dc->getExtent());
 
 	rc->addGraphicsPipeline(gc, scene_config.get());
 
-
-
 	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
 
 	rc->addGraphicsPipeline(gc, particle_Config.get());
 
+	this->camera = std::make_unique<GECamera>();
 
-
-	this->camera = std::make_unique <GECamera>();
-
-	this->camera->setPosition(glm::vec3(0.0f, 10.0f, 300.0f));
+	this->camera->setPosition(glm::vec3(0.0f, 10.0f, 100.0f));
 
 	this->camera->setMoveStep(0.0f);
-
-
 
 	rc->setActivePipeline(SKYBOX_PIPELINE);
 
 	this->skybox = std::make_unique<GESkybox>(gc, rc.get());
 
-
-
 	rc->setActivePipeline(SCENE_PIPELINE);
-
-
 
 	auto texWood = std::make_shared<GETexture>(gc, "textures/wood.jpg");
 
 	textures.push_back(texWood);
 
-
-
 	auto texMoon = std::make_shared<GETexture>(gc, "textures/moon.jpg");
 
 	textures.push_back(texMoon);
-
-
 
 	auto texSmoke = std::make_shared<GETexture>(gc, "textures/smoke.png");
 
 	textures.push_back(texSmoke);
 
-
-
 	auto texFire = std::make_shared<GETexture>(gc, "textures/fire.png");
 
 	textures.push_back(texFire);
 
-
-
 	auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com (1).png");
 
 	textures.push_back(texWater);
-
-
-
-
 
 	GELight light = {};
 
@@ -160,8 +130,6 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	light.Ls = glm::vec3(1.0f, 1.0f, 1.0f);
 
-
-
 	GEMaterial groundMat = {};
 
 	groundMat.Ka = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -172,11 +140,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	groundMat.Shininess = 16.0f;
 
-
-
-
-
-	std::unique_ptr<GEFigure> ground = std::make_unique<GEGround>(50.0f, 50.0f);
+	std::unique_ptr<GEFigure> ground = std::make_unique<GEGround>(150.0f, 150.0f);
 
 	ground->setTexture(texWood.get()); // Obtiene el puntero crudo del unique_ptr
 
@@ -186,37 +150,22 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	ground->setLight(light);
 
-
-
-
-
 	figures.push_back(std::move(ground));
-
-
 
 	// Carga de modelos .obj usando tinyobjloader
 
-	auto fuente = std::make_unique<GEModel>(gc,"models/fontain/14862_3_basin_fountain_v2.obj",0.1f);
+	auto fuente = std::make_unique<GEModel>(gc, "models/newFountain/fountain.obj", 0.5f);
 
-	fuente->setTexture(texMoon);
-
-	fuente->initialize(gc, rc.get());     
-
-	fuente->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-
+	fuente->initialize(gc, rc.get());
 	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
-
-	fuente->setLight(light);             
-
-	objects.push_back(std::move(fuente)); 
-
-
+	fuente->setLight(light);
+	objects.push_back(std::move(fuente));
 
 	auto hoguera = std::make_unique<GEModel>(gc, "models/campfire/campfire.obj", 0.01f);
 
 	hoguera->initialize(gc, rc.get());
 
-	//hoguera->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	// hoguera->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	hoguera->translate(glm::vec3(0.0f, -0.1f, 0.0f));
 
@@ -224,13 +173,11 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	objects.push_back(std::move(hoguera));
 
-
-
 	auto tren = std::make_unique<GEModel>(gc, "models/train/sketchfabpreview.obj", 0.1f);
 
 	tren->initialize(gc, rc.get());
 
-	//tren->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	// tren->rotate(-90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	tren->translate(glm::vec3(-25.0f, 0.0f, -6.5f));
 
@@ -238,15 +185,9 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	objects.push_back(std::move(tren));
 
-
-
-
-
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
-
-
-	//particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
+	// particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
 
 	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_HUMO, dc->getImageCount()));
 
@@ -254,17 +195,11 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount()));
 
-
-
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
 
 	particleSystem.push_back(std::make_unique<GEFuego>(100));
 
-	particleSystem.push_back(std::make_unique<GEAgua>(600));
-
-
-
-	
+	particleSystem.push_back(std::make_unique<GEAgua>(1000));
 
 	GEMaterial particle1Mat = {};
 
@@ -275,8 +210,6 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	particle1Mat.Ks = glm::vec3(0.05f, 0.05f, 0.05f);
 
 	particle1Mat.Shininess = 2.0f;
-
-
 
 	particleSystem[0]->initialize(gc, rc.get(), texSmoke.get());
 
@@ -290,11 +223,9 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	camera->addObservationPoint(particleSystem[0]->getLocation(), "Humo");
 
-
-
 	particleSystem[1]->initialize(gc, rc.get(), texFire.get());
 
-	particleSystem[1]->translate(glm::vec3(-1.0f, 2.0f, 1.0f));
+	particleSystem[1]->translate(glm::vec3(-1.0f, 0.5f, 1.0f));
 
 	particleSystem[1]->setMaterial(particle1Mat);
 
@@ -304,11 +235,9 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
 	camera->addObservationPoint(particleSystem[1]->getLocation(), "Fuego");
 
-
-
 	particleSystem[2]->initialize(gc, rc.get(), texWater.get());
 
-	particleSystem[2]->translate(glm::vec3(25.0f, 14.0f, 0.0f));
+	particleSystem[2]->translate(glm::vec3(25.0f, 12.8f, 0.0f));
 
 	particleSystem[2]->setMaterial(particle1Mat);
 
@@ -317,14 +246,7 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 	computeShaders[2]->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
-
-
-
-
-
 }
-
-
 
 //
 
@@ -342,69 +264,54 @@ GEScene::GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* 
 
  */
 
-void GEScene::destroy(GEGraphicsContext* gc)
+void GEScene::destroy(GEGraphicsContext *gc)
 
 {
 
-	for (auto& cs : computeShaders) {
+	for (auto &cs : computeShaders)
+	{
 
 		cs->destroy(gc);
-
 	}
-
-	
 
 	rc->destroy(gc);
 
 	skybox->destroy(gc);
 
-	for (auto& figure: figures)
+	for (auto &figure : figures)
 
 	{
 
 		figure->destroy(gc);
-
 	}
 
-	
-
-	for (auto& ob : objects)
+	for (auto &ob : objects)
 
 	{
 
 		ob->destroy(gc);
-
 	}
 
-
-
-	for (auto& ps: particleSystem) {
+	for (auto &ps : particleSystem)
+	{
 
 		ps->destroy(gc);
-
 	}
 
 	particleSystem.clear();
 
+	for (auto &tex : textures)
+	{
 
-
-	for (auto& tex : textures) {
-
-		if (tex != nullptr) {
+		if (tex != nullptr)
+		{
 
 			tex->destroy(gc);
-
 		}
-
 	}
 
 	textures.clear();
-
-
-
 }
-
-
 
 //
 
@@ -422,7 +329,7 @@ void GEScene::destroy(GEGraphicsContext* gc)
 
  */
 
-void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
+void GEScene::recreate(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *cc)
 
 {
 
@@ -432,25 +339,16 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 
 	this->rc = std::make_unique<GERenderingContext>(gc, dc, skybox_config.get());
 
-
-
 	auto scene_config = createScenePipelineConfig(dc->getExtent());
 
 	this->rc->addGraphicsPipeline(gc, scene_config.get());
-
-
 
 	auto particle_Config = createParticlePipelineConfig(dc->getExtent());
 
 	this->rc->addGraphicsPipeline(gc, particle_Config.get());
 
-
-
-//	fillCommandBuffers(cc);
-
+	//	fillCommandBuffers(cc);
 }
-
-
 
 //
 
@@ -458,7 +356,7 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 
 //
 
-// PROPï¿½SITO: Actualiza la informaciï¿½n para generar la imagen 
+// PROPï¿½SITO: Actualiza la informaciï¿½n para generar la imagen
 
 //
 
@@ -468,7 +366,7 @@ void GEScene::recreate(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandCon
 
  */
 
-void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
+void GEScene::update(GEGraphicsContext *gc, uint32_t index, float deltaTime)
 
 {
 
@@ -476,43 +374,29 @@ void GEScene::update(GEGraphicsContext* gc, uint32_t index, float deltaTime)
 
 	glm::mat4 view = camera->getViewMatrix();
 
-
-
 	skybox->update(gc, index, view, projection);
 
-
-
-	for (auto& figure:figures)
+	for (auto &figure : figures)
 
 	{
 
 		figure->update(gc, index, view, projection);
-
 	}
 
-	for (auto& ob : objects)
+	for (auto &ob : objects)
 
 	{
 
 		ob->update(gc, index, view, projection);
-
 	}
 
-
-
-	for (auto& ps: particleSystem)
+	for (auto &ps : particleSystem)
 
 	{
 
 		ps->update(gc, index, view, projection);
-
 	}
-
-
-
 }
-
-
 
 //
 
@@ -536,7 +420,8 @@ void GEScene::key_action(int key, bool pressed)
 
 	// Cambiar de modo siempre funcionarÃ¡ con M
 
-	if (key == GLFW_KEY_M && pressed) {
+	if (key == GLFW_KEY_M && pressed)
+	{
 
 		camera->stopAllMovement();
 
@@ -547,88 +432,128 @@ void GEScene::key_action(int key, bool pressed)
 		GE_DEBUG_INFO("Modo camara alternado");
 
 		return; // Salimos de la funciÃ³n si cambiamos de modo
-
 	}
-
-
 
 	// Comportamiento dependiendo del modo en el que estemos
 
 	auto mode = camera->getCurrentMode();
 
-
-
-	if (mode == GECamera::CameraMode::FREE) {
+	if (mode == GECamera::CameraMode::FREE)
+	{
 
 		// Movimiento Normal (NO TOCADO)
 
-		switch (key) {
+		switch (key)
+		{
 
-		case GLFW_KEY_UP: camera->setTurnDown(pressed); break;
+		case GLFW_KEY_UP:
+			camera->setTurnDown(pressed);
+			break;
 
-		case GLFW_KEY_DOWN: camera->setTurnUp(pressed); break;
+		case GLFW_KEY_DOWN:
+			camera->setTurnUp(pressed);
+			break;
 
-		case GLFW_KEY_LEFT: camera->setTurnCCW(pressed); break;
+		case GLFW_KEY_LEFT:
+			camera->setTurnCCW(pressed);
+			break;
 
-		case GLFW_KEY_RIGHT: camera->setTurnCW(pressed); break;
+		case GLFW_KEY_RIGHT:
+			camera->setTurnCW(pressed);
+			break;
 
-		case GLFW_KEY_S: if (pressed) camera->setMoveStep(0.0f); break;
+		case GLFW_KEY_S:
+			if (pressed)
+				camera->setMoveStep(0.0f);
+			break;
 
 		case GLFW_KEY_KP_ADD:
 
-		case GLFW_KEY_1: if (pressed) camera->setMoveStep(camera->getMoveStep() + 0.10f); break;
+		case GLFW_KEY_1:
+			if (pressed)
+				camera->setMoveStep(camera->getMoveStep() + 0.10f);
+			break;
 
 		case GLFW_KEY_KP_SUBTRACT:
 
-		case GLFW_KEY_2: if (pressed) camera->setMoveStep(camera->getMoveStep() - 0.10f); break;
+		case GLFW_KEY_2:
+			if (pressed)
+				camera->setMoveStep(camera->getMoveStep() - 0.10f);
+			break;
 
-		case GLFW_KEY_Q: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_Q:
+			camera->setMoveUp(pressed);
+			break;
 
-		case GLFW_KEY_A: camera->setMoveDown(pressed); break;
+		case GLFW_KEY_A:
+			camera->setMoveDown(pressed);
+			break;
 
-		case GLFW_KEY_O: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_O:
+			camera->setMoveLeft(pressed);
+			break;
 
-		case GLFW_KEY_P: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_P:
+			camera->setMoveRight(pressed);
+			break;
 
-		case GLFW_KEY_K: camera->setTurnLeft(pressed); break;
+		case GLFW_KEY_K:
+			camera->setTurnLeft(pressed);
+			break;
 
-		case GLFW_KEY_L: camera->setTurnRight(pressed); break;
-
+		case GLFW_KEY_L:
+			camera->setTurnRight(pressed);
+			break;
 		}
-
 	}
 
-	else if (mode == GECamera::CameraMode::FPS) {
+	else if (mode == GECamera::CameraMode::FPS)
+	{
 
-		if (pressed) camera->setMoveStep(3.0f);
+		if (pressed)
+			camera->setMoveStep(3.0f);
 
 		// Movimiento FPS: WASD para moverse, Espacio y Shift para subir/bajar
 
-		switch (key) {
+		switch (key)
+		{
 
-		case GLFW_KEY_W: camera->setMoveFront(pressed); break;
+		case GLFW_KEY_W:
+			camera->setMoveFront(pressed);
+			break;
 
-		case GLFW_KEY_S: camera->setMoveBack(pressed); break;
+		case GLFW_KEY_S:
+			camera->setMoveBack(pressed);
+			break;
 
-		case GLFW_KEY_A: camera->setMoveLeft(pressed); break;
+		case GLFW_KEY_A:
+			camera->setMoveLeft(pressed);
+			break;
 
-		case GLFW_KEY_D: camera->setMoveRight(pressed); break;
+		case GLFW_KEY_D:
+			camera->setMoveRight(pressed);
+			break;
 
-		case GLFW_KEY_SPACE: camera->setMoveUp(pressed); break;
+		case GLFW_KEY_SPACE:
+			camera->setMoveUp(pressed);
+			break;
 
-		case GLFW_KEY_LEFT_SHIFT: camera->setMoveDown(pressed); break;
-
+		case GLFW_KEY_LEFT_SHIFT:
+			camera->setMoveDown(pressed);
+			break;
 		}
-
 	}
 
-	else if (mode == GECamera::CameraMode::OBSERVING) {
+	else if (mode == GECamera::CameraMode::OBSERVING)
+	{
 
 		// Modo ObservaciÃ³n: Cambiar objetivo y acercar/alejar la cÃ¡mara
 
-		if (pressed) {
+		if (pressed)
+		{
 
-			switch (key) {
+			switch (key)
+			{
 
 			case GLFW_KEY_RIGHT:
 
@@ -658,19 +583,14 @@ void GEScene::key_action(int key, bool pressed)
 
 				// Evitamos que la cÃ¡mara atraviese el centro del objeto por accidente
 
-				if (camera->getObservationDistance() < 1.0f) camera->setObservationDistance(1.0f);
+				if (camera->getObservationDistance() < 1.0f)
+					camera->setObservationDistance(1.0f);
 
 				break;
-
 			}
-
 		}
-
 	}
-
 }
-
-
 
 /**
 
@@ -684,39 +604,29 @@ void GEScene::mouse_action(double xpos, double ypos)
 
 	// Si no estamos haciendo clic, no hacemos nada de cÃ¡lculo
 
-	if (!isDragging) return;
+	if (!isDragging)
+		return;
 
-
-
-	if (firstMouse) {
+	if (firstMouse)
+	{
 
 		lastX = (float)xpos;
 
 		lastY = (float)ypos;
 
 		firstMouse = false;
-
 	}
-
-
 
 	float xoffset = (float)xpos - lastX;
 
 	float yoffset = lastY - (float)ypos; // Invertido
 
-
-
 	lastX = (float)xpos;
 
 	lastY = (float)ypos;
 
-
-
 	camera->processMouse(xoffset, yoffset);
-
 }
-
-
 
 //
 
@@ -748,82 +658,63 @@ void GEScene::aspect_ratio(double aspect)
 
 	// float wWidth = (wHeight * aspect);
 
-
-
 	projection = glm::perspective((float)fov, (float)aspect, 0.2f, 400.0f);
 
 	projection[1][1] *= -1.0f;
-
 }
 
+//
 
-	//
+// FUNCIÃN: GEScene::createSkyboxPipelineConfig()
 
-	// FUNCIÃN: GEScene::createSkyboxPipelineConfig()
+//
 
-	//
+// PROPÃSITO: Obtiene la configuraciÃ³n del pipeline de renderizado para el skybox
 
-	// PROPÃSITO: Obtiene la configuraciÃ³n del pipeline de renderizado para el skybox
+//
 
-	//
+std::unique_ptr<GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2D extent)
 
-std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2D extent)
+{
 
-	{
+	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
 
-		std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
+	config->vertex_shader = IDR_VERT_SKYBOX;
 
-		config->vertex_shader = IDR_VERT_SKYBOX;
+	config->fragment_shader = IDR_FRAG_SKYBOX;
 
-		config->fragment_shader = IDR_FRAG_SKYBOX;
+	config->attrStride = sizeof(GESkyboxVertex);
 
+	config->attrOffsets.resize(1);
 
+	config->attrOffsets[0] = offsetof(GESkyboxVertex, pos);
 
-		config->attrStride = sizeof(GESkyboxVertex);
+	config->attrFormats.resize(1);
 
-		config->attrOffsets.resize(1);
+	config->attrFormats[0] = VK_FORMAT_R32G32B32_SFLOAT;
 
-		config->attrOffsets[0] = offsetof(GESkyboxVertex, pos);
+	config->descriptorTypes.resize(2);
 
-		config->attrFormats.resize(1);
+	config->descriptorTypes[0] = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
-		config->attrFormats[0] = VK_FORMAT_R32G32B32_SFLOAT;
+	config->descriptorTypes[1] = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
+	config->descriptorStages.resize(2);
 
+	config->descriptorStages[0] = VK_SHADER_STAGE_VERTEX_BIT;
 
-		config->descriptorTypes.resize(2);
+	config->descriptorStages[1] = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		config->descriptorTypes[0] = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	config->depthWrite = VK_FALSE;
 
-		config->descriptorTypes[1] = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	config->depthTestEnable = VK_FALSE;
 
+	config->cullMode = VK_CULL_MODE_NONE;
 
+	config->extent = extent;
 
-		config->descriptorStages.resize(2);
-
-		config->descriptorStages[0] = VK_SHADER_STAGE_VERTEX_BIT;
-
-		config->descriptorStages[1] = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-
-
-		config->depthWrite = VK_FALSE;
-
-		config->depthTestEnable = VK_FALSE;
-
-		config->cullMode = VK_CULL_MODE_NONE;
-
-		config->extent = extent;
-
-
-
-		return config;
-
-	}
-
-
-
-
+	return config;
+}
 
 //
 
@@ -835,7 +726,7 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 
 //
 
-	std::unique_ptr <GEPipelineConfig> GEScene::createScenePipelineConfig(VkExtent2D extent)
+std::unique_ptr<GEPipelineConfig> GEScene::createScenePipelineConfig(VkExtent2D extent)
 
 {
 
@@ -844,8 +735,6 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 	config->vertex_shader = IDR_VERT_SCENE;
 
 	config->fragment_shader = IDR_FRAG_SCENE;
-
-
 
 	config->attrStride = sizeof(GEVertex);
 
@@ -864,10 +753,6 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 	config->attrFormats[1] = VK_FORMAT_R32G32B32_SFLOAT;
 
 	config->attrFormats[2] = VK_FORMAT_R32G32_SFLOAT;
-
-
-
-
 
 	config->descriptorTypes.resize(4);
 
@@ -889,10 +774,6 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 
 	config->descriptorStages[3] = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-
-
-
-
 	config->depthWrite = VK_TRUE;
 
 	config->depthTestEnable = VK_TRUE;
@@ -901,19 +782,10 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 
 	config->extent = extent;
 
-
-
 	config->topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-
-
 	return config;
-
 }
-
-
-
-
 
 //
 
@@ -925,25 +797,19 @@ std::unique_ptr <GEPipelineConfig> GEScene::createSkyboxPipelineConfig(VkExtent2
 
 //
 
-std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExtent2D extent)
+std::unique_ptr<GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExtent2D extent)
 
 {
 
 	std::unique_ptr<GEPipelineConfig> config = std::make_unique<GEPipelineConfig>();
 
+	config->vertex_shader = IDR_VERT_PARTICLES;
 
-
-	config->vertex_shader = IDR_VERT_PARTICLES;   
-
-	config->fragment_shader = IDR_FRAG_PARTICLES; 
-
-
+	config->fragment_shader = IDR_FRAG_PARTICLES;
 
 	// Definiciï¿½n del Salto (Stride)
 
-	config->attrStride = sizeof(GEParticle); 
-
-
+	config->attrStride = sizeof(GEParticle);
 
 	config->attrOffsets.resize(5);
 
@@ -957,8 +823,6 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
 	config->attrOffsets[4] = offsetof(GEParticle, activeTTL);
 
-
-
 	config->attrFormats.resize(5);
 
 	config->attrFormats[0] = VK_FORMAT_R32G32B32_SFLOAT;
@@ -971,10 +835,6 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
 	config->attrFormats[4] = VK_FORMAT_R32_SINT;
 
-
-
-
-
 	config->descriptorTypes = {
 
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // Transform (MVP)
@@ -983,7 +843,7 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
 		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // Light
 
-		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER   // Textura
+		VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER // Textura
 
 	};
 
@@ -999,11 +859,7 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
 	};
 
-
-
 	config->topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST; // Dibujar puntos, no triï¿½ngulos
-
-	
 
 	config->depthWrite = VK_FALSE;
 
@@ -1013,15 +869,8 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
 	config->extent = extent;
 
-
-
 	return config;
-
 }
-
-
-
-
 
 /**
 
@@ -1029,7 +878,7 @@ std::unique_ptr <GEPipelineConfig> GEScene::createParticlePipelineConfig(VkExten
 
  */
 
-void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
+void GEScene::mouse_button_action(GLFWwindow *window, int button, int action)
 
 {
 
@@ -1037,53 +886,39 @@ void GEScene::mouse_button_action(GLFWwindow* window, int button, int action)
 
 	{
 
-		if (action == GLFW_PRESS) {
+		if (action == GLFW_PRESS)
+		{
 
 			isDragging = true;
 
 			firstMouse = true;
 
-
-
 			// Oculta el cursor y lo atrapa en la ventana (Movimiento infinito)
 
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-
-
 		}
 
-		else if (action == GLFW_RELEASE) {
+		else if (action == GLFW_RELEASE)
+		{
 
 			isDragging = false;
-
-
 
 			// Vuelve a mostrar el cursor y lo libera
 
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
 		}
-
 	}
-
 }
-
-
-
-
 
 void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
-	VkQueryPool queryPool, int physicsSteps)
+									VkQueryPool queryPool, int physicsSteps)
 
 {
 
 	vkCmdResetQueryPool(cb, queryPool, 0, 2);
 
 	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, queryPool, 0);
-
-
 
 	for (int step = 0; step < physicsSteps; step++)
 
@@ -1099,15 +934,10 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 				continue;
 
-
-
 			uint32_t groupCount = (particleSystem[s]->getParticlesCount() + 255) / 256;
 
 			computeShaders[s]->recordCommands(cb, 0, i, groupCount);
-
 		}
-
-
 
 		// Si hay mÃ¡s pasos, barrera COMPUTEâCOMPUTE para encadenar correctamente
 
@@ -1119,9 +949,7 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 			stepBarriers.reserve(particleSystem.size() * 2);
 
-
-
-			for (auto& ps : particleSystem)
+			for (auto &ps : particleSystem)
 
 			{
 
@@ -1131,7 +959,7 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 				b.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 
-				b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;   // â COMPUTE lee en el sig. paso
+				b.dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // â COMPUTE lee en el sig. paso
 
 				b.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
@@ -1141,35 +969,26 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 				b.size = VK_WHOLE_SIZE;
 
-
-
 				b.buffer = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer
 
-					: ps->getParticlesBufferA()->buffer;
+										: ps->getParticlesBufferA()->buffer;
 
 				stepBarriers.push_back(b);
-
 			}
-
-
 
 			vkCmdPipelineBarrier(cb,
 
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+								 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+								 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 
-				0, 0, nullptr,
+								 0, 0, nullptr,
 
-				(uint32_t)stepBarriers.size(), stepBarriers.data(),
+								 (uint32_t)stepBarriers.size(), stepBarriers.data(),
 
-				0, nullptr);
-
+								 0, nullptr);
 		}
-
 	}
-
-
 
 	// Barrera final COMPUTEâVERTEX para que el vertex shader lea el resultado
 
@@ -1177,9 +996,7 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 	finalBarriers.reserve(particleSystem.size());
 
-
-
-	for (auto& ps : particleSystem)
+	for (auto &ps : particleSystem)
 
 	{
 
@@ -1199,37 +1016,27 @@ void GEScene::recordComputeCommands(VkCommandBuffer cb, uint32_t i,
 
 		b.size = VK_WHOLE_SIZE;
 
-
-
 		b.buffer = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer
 
-			: ps->getParticlesBufferA()->buffer;
+								: ps->getParticlesBufferA()->buffer;
 
 		finalBarriers.push_back(b);
-
 	}
-
-
 
 	vkCmdPipelineBarrier(cb,
 
-		VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 
-		VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
+						 VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
 
-		0, 0, nullptr,
+						 0, 0, nullptr,
 
-		(uint32_t)finalBarriers.size(), finalBarriers.data(),
+						 (uint32_t)finalBarriers.size(), finalBarriers.data(),
 
-		0, nullptr);
-
-
+						 0, nullptr);
 
 	vkCmdWriteTimestamp(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, queryPool, 1);
-
 }
-
-
 
 /**
 
@@ -1249,29 +1056,23 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 
 	skybox->addCommands(cb, rc->getActivePipelineLayout(), i);
 
-
-
 	// Objetos de la escena
 
 	rc->setActivePipeline(SCENE_PIPELINE);
 
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
 
-
-
-	for (auto& figure : figures) {
+	for (auto &figure : figures)
+	{
 
 		figure->addCommands(cb, rc->getActivePipelineLayout(), i);
-
 	}
 
-	for (auto& ob : objects) {
+	for (auto &ob : objects)
+	{
 
 		ob->addCommands(cb, rc->getActivePipelineLayout(), i);
-
 	}
-
-
 
 	// PartÃ­culas
 
@@ -1279,9 +1080,7 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
 
-
-
-	for (auto& ps : particleSystem)
+	for (auto &ps : particleSystem)
 
 	{
 
@@ -1291,25 +1090,15 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 
 		vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipelineLayout(), 0, 1, &ds, 0, nullptr);
 
-
-
 		VkDeviceSize offset = 0;
 
 		VkBuffer bufferADibujar = (i % 2 == 0) ? ps->getParticlesBufferB()->buffer : ps->getParticlesBufferA()->buffer;
 
-
-
 		vkCmdBindVertexBuffers(cb, 0, 1, &bufferADibujar, &offset);
 
 		vkCmdDraw(cb, particleCount, 1, 0, 0);
-
 	}
-
 }
-
-
-
-
 
 /**
 
@@ -1323,21 +1112,14 @@ uint32_t GEScene::getTotalParticleCount() const
 
 	uint32_t total = 0;
 
-	for (const auto& ps : particleSystem) {
+	for (const auto &ps : particleSystem)
+	{
 
 		total += ps->getParticlesCount();
-
 	}
 
 	return total;
-
 }
-
-
-
-
-
-
 
 /**
 
@@ -1345,14 +1127,14 @@ uint32_t GEScene::getTotalParticleCount() const
 
  */
 
-void GEScene::updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime) {
+void GEScene::updatePhysics(GEGraphicsContext *gc, uint32_t index, float fixedDeltaTime)
+{
 
 	// Actualizamos los buffers de los sistemas de partÃ­culas con el tiempo fijo
 
-		for (auto& ps : particleSystem) {
+	for (auto &ps : particleSystem)
+	{
 
 		ps->updatePhysics(gc, index, fixedDeltaTime);
-
 	}
-
 }

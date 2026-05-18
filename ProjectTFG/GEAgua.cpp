@@ -62,15 +62,14 @@ GEAgua::GEAgua(uint32_t particleCount) : GEParticlesSystem()
         GEParticle p;
         p.pos = glm::vec3(0.0f, 0.0f, 0.0f);
 
-        // Determinar a quÃ© chorro pertenece (0, 90, 180, 270 grados)
-        float angle90 = glm::radians(90.0f * (i % 4));
+        float angle45 = glm::radians(45.0f * (i % 8));
         float angle60 = glm::radians(60.0f);
 
-        // Calcular vector de direcciÃ³n: Inclinado 45Âº respecto al eje vertical (Y)
-        // y rotado en el plano horizontal (XZ) cada 90Âº
-        float vx = sin(angle60) * cos(angle90);
+        // Calcular vector de direcciÃ³n: Inclinado 60Âº respecto al eje vertical (Y)
+        // y rotado en el plano horizontal (XZ) cada 45Âº
+        float vx = sin(angle60) * cos(angle45);
         float vy = cos(angle60);
-        float vz = sin(angle60) * sin(angle90);
+        float vz = sin(angle60) * sin(angle45);
 
         p.norm = glm::vec3(vx, vy, vz) * 10.0f; // Multiplicar por la fuerza deseada
         p.color = emitterParams.startColor;

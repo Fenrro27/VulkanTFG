@@ -27,7 +27,7 @@ GEFuego::GEFuego(uint32_t particleCount) : GEParticlesSystem()
 	/**
 	 * @brief DistribuciÃ³n para el tiempo de vida (TTL) de las partÃ­culas.
 	 */
-	std::uniform_real_distribution<float> distTTL(0.5f, 2.5f);
+	std::uniform_real_distribution<float> distTTL(1.0f, 3.0f);
 	/**
 	 * @brief DistribuciÃ³n para el porcentaje inicial del TTL.
 	 */
@@ -40,7 +40,7 @@ GEFuego::GEFuego(uint32_t particleCount) : GEParticlesSystem()
 	emitterParams.startColor = glm::vec4(1.0f, 0.8f, 0.1f, 1.0f); // Amarillo
 	emitterParams.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);   // Rojo y transparente
 	emitterParams.randomness = 2.0f; // Mucho caos lateral
-	emitterParams.startSize = 3.0f;
+	emitterParams.startSize = 6.0f;
 	emitterParams.endSize = 0.5f; // Las llamas se encogen
 	emitterParams.time = 0.0f;
 	emitterParams.deltaTime = 0.016f;
