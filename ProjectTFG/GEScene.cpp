@@ -117,7 +117,8 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 	textures.push_back(texFire);
 
 	auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com (1).png");
-
+//	auto texWater = std::make_shared<GETexture>(gc, "textures/bluewater.png");
+//auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com.png");
 	textures.push_back(texWater);
 
 	GELight light = {};

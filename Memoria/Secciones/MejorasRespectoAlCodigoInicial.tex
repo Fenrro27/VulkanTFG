@@ -3,11 +3,23 @@
 Mientras se ha desarrollado el trabajo, se han ido aplicando diversas mejoras y optimizaciones sobre el código base en paralelo a la creación de los sistemas de partículas. Estas modificaciones tienen como objetivo fortalecer la aplicación, facilitar el desarrollo y mejorar la experiencia de usuario. A continuación, se detallan las principales incorporaciones:
 
 \section{Capa de Validación de Vulkan}
-La API de Vulkan está diseñada para ofrecer el máximo rendimiento posible, lo que implica que delega en el desarrollador la responsabilidad de gestionar correctamente la memoria y los estados, limitando al mínimo la comprobación de errores en tiempo de ejecución por parte del controlador gráfico. Para solucionar esto durante la fase de desarrollo, se ha integrado la \textit{Vulkan Validation Layer} (Capa de Validación de Vulkan). Este subsistema se inyecta entre la aplicación y el controlador para interceptar las llamadas a la API, verificando el uso correcto de los parámetros, la sincronización de hilos y la gestión de memoria, emitiendo advertencias detalladas que facilitan la depuración de errores críticos antes de la compilación en modo de producción \parencite{vulkan_validation}.
+La API de Vulkan está diseñada para ofrecer el máximo rendimiento posible, lo que implica que delega en el desarrollador la responsabilidad de gestionar correctamente la memoria y los estados, limitando al mínimo la comprobación de errores en tiempo de ejecución por parte del controlador gráfico. Para solucionar esto durante la fase de desarrollo, se ha integrado la \textit{Vulkan Validation Layer} (Capa de Validación de Vulkan). Este subsistema se inyecta entre la aplicación y el controlador para interceptar las llamadas a la API, tal como se ilustra en el fragmento de código de la \textbf{Figura \ref{fig:codigoValidacion}}, donde se define y habilita explícitamente la capa unificada de Khronos al inicializar la estructura de creación de la instancia. Mediante este mecanismo, el entorno verifica el uso correcto de los parámetros, la sincronización de hilos y la gestión de memoria, emitiendo advertencias detalladas por consola que facilitan la depuración de errores críticos antes del despliegue en producción \parencite{vulkan_validation}.
 
+\begin{figure}[ht]
+    \centering
+\begin{carbonbox}
+const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
+
+createInfo.enabledLayerCount = 1;
+createInfo.ppEnabledLayerNames = validationLayers;
+\end{carbonbox}
+    \caption{Activación de la capa de validación de Khronos en la creación de la instancia.}
+    \label{fig:codigoValidacion}
+\end{figure}
 
 \section{TinyObjLoader}
 Para dotar a la escena de mayor complejidad geométrica y contexto espacial más allá de las propias partículas, se ha integrado la librería \texttt{tinyobjloader} \parencite{tinyobjloader}. Esta herramienta es un analizador sintáctico (\textit{parser}) ligero y eficiente escrito en C++ que permite cargar modelos tridimensionales almacenados en el formato estándar \textit{Wavefront OBJ}. Su inclusión facilita la lectura de los vértices, normales, coordenadas de textura y materiales de mallas poligonales, agilizando enormemente el proceso de importación de recursos externos hacia los búferes de la GPU.
+<Explicar clases modificadas y creadas y como funciona mas o menos>
 
 \section{Modos de cámara}
 Para facilitar la exploración y el análisis visual de las simulaciones, se ha rediseñado el sistema de control de vista implementando dos modos de cámara  nuevos (FPS y enfoque) a parte del ya existente (Libre), los cuales son alternables de forma dinámica mediante un acceso directo por teclado. La matemática subyacente para las transformaciones de vista se basa en matrices de proyección y rotación estándar en gráficos por computadora \parencite{lengyel2011mathematics}.
@@ -30,6 +42,7 @@ Con el fin de monitorizar el rendimiento y el estado de la aplicación en tiempo
     \label{fig:ImGui}
 \end{figure}
 
+<Explicar clases modificadas y creadas y como funciona mas o menos>
 
 \section{Vcpkg}
 A nivel de arquitectura y gestión del proyecto, se ha adoptado \textit{vcpkg} \parencite{vcpkg_ms} como gestor de dependencias y paquetes de C/C++. En el ecosistema de C++, la integración de múltiples librerías de terceros (como GLFW, GLM, Vulkan Headers, la mencionada ImGui o TinyObjLoader) suele generar problemas de compatibilidad y complicar la configuración multiplataforma. El uso de vcpkg automatiza la descarga, compilación y enlazado (\textit{linking}) de estas librerías directamente en el entorno de desarrollo (como CMake o Visual Studio), garantizando un entorno de trabajo unificado, replicable y mucho más limpio.

@@ -1,0 +1,67 @@
+\chapter{Conclusion}
+\label{cap:conclusiones}
+
+En este capítulo final se presenta un balance crítico del desarrollo del proyecto, evaluando el cumplimiento de los objetivos establecidos y analizando de forma detallada los resultados visuales obtenidos en cada uno de los sistemas de partículas implementados. Asimismo, se esbozan las líneas de investigación y desarrollo que quedan abiertas para futuras expansiones del motor gráfico.
+
+\section{Consecución de objetivos}
+
+El propósito principal de este Trabajo de Fin de Grado consistía en diseñar e implementar un motor de partículas masivo y de alto rendimiento utilizando la API de bajo nivel Vulkan, trasladando por completo la lógica del ciclo de vida de los elementos a la GPU a través de \textit{Compute Shaders}. Tras la culminación del desarrollo, se puede afirmar que los objetivos fundamentales se han cumplido con éxito. 
+
+A través de la arquitectura modular construida, se ha logrado demostrar que es posible generar efectos atmosféricos y dinámicos visualmente complejos sin incurrir en los cuellos de botella de comunicación entre la CPU y la VRAM que penalizan a las APIs tradicionales. El motor gráfico final es capaz de simular de manera fluida y simultánea los fenómenos de agua, fuego y humo.
+
+\section{Evaluación visual y resultados del sistema}
+
+A diferencia de una prueba de rendimiento comparativo puro, el foco de esta evaluación radica en demostrar el éxito del sistema en su vertiente estética y procedimental: cómo fórmulas cinemáticas y matemáticas simples, ejecutadas en paralelo, son capaces de falsear con gran fidelidad la naturaleza de fluidos y gases mediante el menor coste computacional posible.
+
+A continuación, se comentan y analizan los resultados visuales finales obtenidos en cada uno de los tres entornos desarrollados:
+
+\subsection{Sistema de partículas de Agua}
+
+El sistema de agua tenía como reto representar el comportamiento parabólico de un flujo líquido continuo. Como se puede apreciar en el resultado final de la aplicación, la combinación de una velocidad de eyección inicial inclinada y un vector de gravedad constante simula de manera convincente la caída del líquido sobre el modelo ornamental de la fuente. 
+
+Desde el punto de vista técnico y estético, la utilización de un \textit{sprite} de salpicadura completo de alta resolución resultó ser una solución sumamente eficiente. Al evitar simulaciones físicas de fluidos complejas o cálculos de colisiones poligonales minuciosos contra la geometría, una única partícula genera de inmediato la ilusión de un conjunto rico en microgotas y chorros entrelazados. Al superponer estos elementos mediante la mezcla de canales, el ojo humano percibe un flujo denso y cohesionado, demostrando que es posible alcanzar un fotorrealismo aparente de gran escala de forma puramente visual.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Conclusiones_3.png}
+    \caption{Resultado visual final de la simulación del sistema de agua sobre la fuente.}
+    \label{fig:resultadoAgua}
+\end{figure}
+
+\subsection{Sistema de partículas de Fuego}
+
+La simulación de fuego planteaba el reto inverso al agua: falsear la flotabilidad térmica ascendente. El resultado visual demuestra que el sistema cumple de forma notable con este propósito estético en el escenario de la hoguera.
+
+La clave del éxito visual de este efecto radica en la degradación paramétrica de color y opacidad configurada en el \textit{shader} a lo largo del ciclo de vida de la partícula, combinada críticamente con la técnica de renderizado aditivo (\textit{additive blending}). Al superponerse las partículas difusas de tonalidades amarillas y rosadas, sus valores cromáticos se suman en la \textit{pipeline} gráfica, lo que genera un núcleo central brillante e incandescente de forma natural. Las partículas periféricas se desvanecen suavemente emulando la dispersión del calor, logrando dotar de una atmósfera cálida y orgánica al conjunto de los troncos tridimensionales con un consumo mínimo de recursos de hardware.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Conclusiones_2.png}
+    \caption{Resultado visual final del sistema de fuego en el entorno de la hoguera.}
+    \label{fig:resultadoFuego}
+\end{figure}
+
+\subsection{Sistema de partículas de Humo}
+
+El desarrollo del sistema de humo se diseñó para evaluar la evolución geométrica y la expansión volumétrica de un gas a lo largo del tiempo, tomando como emisor direccional la chimenea de una locomotora de vapor. El resultado final valida de forma contundente la metodología procedural adoptada.
+
+Visualmente, el humo se percibe como una masa esponjosa, densa y en constante expansión. Esto se ha conseguido aplicando incrementos matemáticos progresivos en la escala de cada \textit{billboard} a medida que envejece, sumado a una rotación aleatoria sutil que rompe cualquier patrón repetitivo. Al utilizar una textura extremadamente difusa y uniforme en conjunto con el \textit{alpha blending} tradicional, las partículas se fusionen perfectamente entre sí sin que el espectador pueda percibir los bordes cuadrados de los cuadriláteros base. El sutil gradiente grisáceo ocluye de manera progresiva el fondo infinito (\textit{skybox}), logrando una sensación de volumen gaseoso realista que se disipa orgánicamente en el aire.
+
+
+\begin{figure}[ht]
+    \centering
+   \includegraphics[width=1\textwidth]{Media/Conclusiones_1.png}
+    \caption{Resultado visual final de la masa volumétrica de humo emergiendo de la locomotora.}
+    \label{fig:resultadoHumo}
+\end{figure}
+
+\section{Trabajo futuro}
+
+Aunque el motor gráfico desarrollado cumple con creces los objetivos de generación visual y optimización planteados para este proyecto, la flexibilidad de la arquitectura construida bajo la API Vulkan abre las puertas a interesantes líneas de mejora y expansión a medio y largo plazo:
+
+\begin{itemize}
+    \item \textbf{Campos de fuerza dinámicos (Campos de vectores):} Integrar en el \textit{compute shader} ecuaciones matemáticas basadas en ruido procedural tridimensional (como el Ruido de Perlin o Simplex) para generar corrientes de viento dinámicas o turbulencias caóticas que afecten la trayectoria del humo y las llamas en tiempo real, rompiendo la linealidad del movimiento.
+    \item \textbf{Colisiones básicas en GPU:} Implementar un sistema analítico simplificado de colisiones (por ejemplo, mediante planos o \textit{bounding spheres} matemáticas) calculado directamente en la tarjeta gráfica, permitiendo que las gotas de agua reboten o se desvíen al tocar la base de la fuente o el suelo simulado.
+    \item \textbf{Sombras portadas y auto-oclusión:} Desarrollar mapas de sombras específicos para los sistemas volumétricos (\textit{shadow maps} para partículas), permitiendo que el humo densificado proyecte sombras sobre sí mismo y sobre la geometría del escenario, elevando drásticamente el nivel de profundidad visual.
+    \item \textbf{Editor visual de partículas:} Diseñar una extensión en la interfaz de ImGui que actúe como un editor de curvas y nodos, permitiendo que un artista técnico modifique los gradientes de color, las escalas y los tiempos de vida de manera completamente visual e interactiva sin necesidad de alterar los parámetros numéricos directamente en el código fuente de C++.
+\end{itemize}

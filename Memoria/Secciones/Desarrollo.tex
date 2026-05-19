@@ -8,8 +8,21 @@ Descripción de las herramientas, materiales y procedimientos utilizados.
 
 
 \section{Agua}
-\subsection{Modelo 3D} Modelo 3D que acompaña al efecto
-\subsection{Textura De La Partícula} 
+El primer sistema implementado se centra en la simulación de agua. Este efecto tiene como objetivo principal demostrar el comportamiento cinemático básico de las partículas bajo la influencia de fuerzas constantes, concretamente una velocidad de emisión inicial contrarrestada por el vector de la gravedad. La combinación matemática de estos parámetros en el \textit{compute shader} genera trayectorias parabólicas que imitan el flujo de un líquido. A nivel gráfico, este sistema pone a prueba la capacidad del motor para emitir un flujo continuo y denso de partículas que, al superponerse, logran engañar al ojo humano para percibir una masa de agua cohesionada.
+
+\subsection{Modelo 3D}
+La elección de una fuente como modelo tridimensional (ver Figura \ref{fig:modFuente}) se fundamenta en su capacidad para ofrecer un contexto visual idóneo para la emisión sistemática de partículas. Aunque el sistema no calcula fluidos complejos ni colisiones reales contra la geometría del modelo, la estructura de la fuente proporciona un escenario clásico para justificar el comportamiento cinemático de las partículas. Permite verificar visualmente la correcta aplicación de fórmulas básicas de movimiento: un emisor que aplica una velocidad inicial ascendente, la cual es contrarrestada paulatinamente por un vector de gravedad. Esto genera trayectorias parabólicas que imitan de forma convincente y eficiente el flujo del agua, falseando el realismo sin el alto coste computacional de una simulación física real.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Desarrollo_6.png}
+    \caption{Modelo de la fuente.}
+    \label{fig:modFuente}
+\end{figure}
+
+\subsection{Textura De La Partícula}
+La textura seleccionada para el sistema de agua (Figura \ref{fig:texAgua}) es un sprite de alta resolución que representa un complejo y detallado "spray" o salpicadura de agua entera. Esta elección es fundamental para la eficiencia del sistema puramente visual. Al no calcular colisiones ni fluidos complejos, el sistema no puede generar estas formas orgánicas mediante miles de micro-partículas que interactúan. En su lugar, el uso de este sprite complejo permite, con una sola partícula (o un número muy reducido), falsear de forma inmediata una salpicadura visualmente rica y realista. La complejidad intrínseca de la textura, con sus múltiples gotas y chorros entrelazados, compensa la simplicidad de la física cinemática aplicada, permitiendo que una simple trayectoria parabólica y una variación de escala aleatoria sean suficientes para crear una salpicadura convincente de gran escala con un coste computacional mínimo.
+
 \begin{figure}[ht]
     \centering
     \tikz \node[draw, rounded corners=5pt, inner sep=0pt] {\includegraphics[width=0.4\textwidth]{Media/Desarrollo_1.png}};
@@ -21,8 +34,21 @@ Descripción de las herramientas, materiales y procedimientos utilizados.
 \subsection{Shader} Descripcion de como esta montado
 
 \section{Fuego}
+El segundo sistema aborda la representación del fuego, un efecto fundamental en entornos tridimensionales que presenta retos técnicos diferentes a los de un líquido. En lugar de simular peso, este sistema ilustra un comportamiento inverso: la flotabilidad térmica mediante un movimiento ascendente.
+
 \subsection{Modelo 3D}
+Se ha seleccionado el modelo de una hoguera clásica (ver Figura \ref{fig:modHoguera}) debido a que proporciona un marco estético natural y reconocible para justificar el origen de la emisión. Al carecer de una simulación termodinámica real, la geometría de los troncos actúa simplemente como el punto de anclaje visual del emisor. Esto dota de sentido escénico al movimiento de las partículas, creando la ilusión óptica de flotabilidad térmica mediante cinemática simple (una velocidad constante ascendente) y el control estricto del ciclo de vida de la partícula, modificando su color y opacidad para que se desvanezca naturalmente antes de alejarse demasiado de su punto de origen.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Desarrollo_5.png}
+    \caption{Modelo de la hoguera.}
+    \label{fig:modHoguera}
+\end{figure}
+
 \subsection{Textura De La Partícula}
+La textura para el sistema de fuego se ha seleccionado por su cualidad de luz volumétrica difusa y coloreada (Figura \ref{fig:texFuego}), con tonos amarillos y rosados irregulares, en lugar de una forma de llama tradicional y nítida. Esta decisión técnica se alinea directamente con el objetivo de falsear el fotorrealismo visual sin cálculos de iluminación complejos. Esta textura actúa como una "fuente de luz" coloreada y difusa en sí misma. Al superponer estas partículas de luz difusa mediante mezcla aditiva, se logra falsear de forma realista la incandescencia y el brillo radiante del fuego en la hoguera. La forma desordenada y los colores suaves imitan la percepción de la luz cálida que emana del fuego, creando un volumen de brillo que envuelve el modelo de los troncos sin tener que renderizar llamas individuales nítidas, lo cual requeriría un mayor número de partículas o simulaciones complejas para evitar la percepción de "patrones" repetitivos. Es una solución altamente eficiente para generar calor visual y atmósfera.
+
 \begin{figure}[ht]
     \centering
     \tikz \node[draw, rounded corners=5pt, inner sep=0pt] {\includegraphics[width=0.4\textwidth]{Media/Desarrollo_2.png}};
@@ -34,8 +60,21 @@ Descripción de las herramientas, materiales y procedimientos utilizados.
 \subsection{Shader}
 
 \section{Humo}
+Finalmente, el tercer sistema desarrollado está dedicado a la generación de humo. Mientras que el fuego se centra en el color y la adición de luz, el humo está diseñado para evaluar la evolución geométrica y la expansión volumétrica de las partículas a lo largo del tiempo. En este sistema, las partículas experimentan un ciclo de vida más prolongado donde su escala aumenta progresivamente y se les aplica una ligera rotación matemática. Esto falsea eficazmente el comportamiento de un gas que se dispersa y expande en el aire. Visualmente, se apoya en el \textit{alpha blending} tradicional para lograr una oclusión suave, generando masas densas que bloquean parcialmente la visión del fondo.
+
 \subsection{Modelo 3D}
+La integración de una locomotora de vapor (ver Figura \ref{fig:modTren}) sirve como justificación visual perfecta para implementar un emisor direccional de partículas. Dado que el objetivo del sistema es lograr un fotorrealismo aparente mediante el menor coste computacional posible, la chimenea del tren justifica la emisión continua en una dirección concreta. Este modelo resulta excelente para demostrar la expansión espacial visual: permite observar cómo el sistema aplica de forma sencilla incrementos paramétricos en la escala y disminución de la opacidad a lo largo del tiempo de vida de la partícula, logrando falsear visualmente el comportamiento de un gas que se expande al salir de un conducto estrecho.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Desarrollo_4.png}
+    \caption{Modelo del tren.}
+    \label{fig:modTren}
+\end{figure}
+
 \subsection{Textura De La Partícula}
+La textura elegida para el humo (Figura \ref{fig:texHumo}) se caracteriza por ser extremadamente difusa y uniforme, con una variación de opacidad y color grisácea muy suave. A diferencia de texturas previas que podían ser "algodonosas e irregulares", esta uniformidad es intencional y crucial para lograr eficiencia visual. Al ser tan suave y uniforme, la superposición de múltiples partículas (billboards) mediante mezcla alfa estándar en Vulkan crea un volumen gaseoso extremadamente suave e ininterrumpido. Esto evita la percepción de bordes o "patrones de ruido" que obligarían a aumentar el número de partículas para que se vean bien. Su uniformidad permite que las partículas se fusionen a la perfección, permitiendo que grandes volúmenes de humo denso y esponjoso se generen con un número mínimo de partículas. El sutil degradado de color falsea la percepción de profundidad y cómo la luz penetra de forma sutil en la nube, creando un volumen creíble que se disipa orgánicamente.
+
 \begin{figure}[ht]
     \centering
     \tikz \node[draw, rounded corners=5pt, inner sep=0pt] {\includegraphics[width=0.4\textwidth]{Media/Desarrollo_3.png}};
