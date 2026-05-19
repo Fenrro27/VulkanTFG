@@ -10,7 +10,11 @@
     "tinyobjloader",
     {
       "name": "imgui",
-      "features": ["vulkan-binding", "glfw-binding"]
+      "features": [
+        "vulkan-binding",
+        "glfw-binding"
+      ]
     }
-  ]
+  ],
+  "builtin-baseline": "877487c7435929e1a2552c37ba1f3231a74c7941"
 }
