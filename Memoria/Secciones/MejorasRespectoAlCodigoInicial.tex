@@ -2,6 +2,16 @@
 
 Mientras se ha desarrollado el trabajo, se han ido aplicando diversas mejoras y optimizaciones sobre el código base en paralelo a la creación de los sistemas de partículas. Estas modificaciones tienen como objetivo fortalecer la aplicación, facilitar el desarrollo y mejorar la experiencia de usuario. A continuación, se detallan las principales incorporaciones:
 
+\section{Punteros inteligentes}
+
+A lo largo de todo el proyecto, se ha llevado a cabo una refactorización estructural profunda consistente en la migración de punteros crudos (\textit{raw pointers}) tradicionales de C hacia el uso de punteros inteligentes (\textit{smart pointers}) propios del estándar moderno de C++ (C++11 en adelante). Esta filosofía de diseño se ha aplicado de manera uniforme en todas las clases del motor gráfico para garantizar la seguridad en el manejo de memoria y prevenir fugas de recursos (\textit{memory leaks}), un aspecto crítico en aplicaciones gráficas donde los recursos de la GPU (VRAM) son limitados.
+
+El sistema se apoya principalmente en dos directrices:
+\begin{itemize}
+    \item Uso de \texttt{std::unique\_ptr}: Se ha implementado para expresar una relación de propiedad exclusiva. Por ejemplo, las piezas geométricas (\texttt{GEPiece}) que componen una entidad tridimensional pertenecen única y exclusivamente a dicha entidad. Cuando el objeto padre se destruye, el puntero inteligente garantiza la llamada automática a los métodos de limpieza y la liberación de la memoria, siguiendo el paradigma RAII (\textit{Resource Acquisition Is Initialization}).
+    \item Uso de \texttt{std::shared\_ptr}: Se ha reservado para recursos que deben ser referenciados de manera simultánea por múltiples instancias, como es el caso de las texturas (\texttt{GETexture}). Este enfoque permite que decenas de modelos compartan la misma textura en la memoria de vídeo de forma segura; el recurso solo se destruye y libera cuando el conteo interno de referencias llega a cero.
+\end{itemize}
+
 \section{Capa de Validación de Vulkan}
 La API de Vulkan está diseñada para ofrecer el máximo rendimiento posible, lo que implica que delega en el desarrollador la responsabilidad de gestionar correctamente la memoria y los estados, limitando al mínimo la comprobación de errores en tiempo de ejecución por parte del controlador gráfico. Para solucionar esto durante la fase de desarrollo, se ha integrado la \textit{Vulkan Validation Layer} (Capa de Validación de Vulkan). Este subsistema se inyecta entre la aplicación y el controlador para interceptar las llamadas a la API, tal como se ilustra en el fragmento de código de la \textbf{Figura \ref{fig:codigoValidacion}}, donde se define y habilita explícitamente la capa unificada de Khronos al inicializar la estructura de creación de la instancia. Mediante este mecanismo, el entorno verifica el uso correcto de los parámetros, la sincronización de hilos y la gestión de memoria, emitiendo advertencias detalladas por consola que facilitan la depuración de errores críticos antes del despliegue en producción \parencite{vulkan_validation}.
 
@@ -19,7 +29,21 @@ createInfo.ppEnabledLayerNames = validationLayers;
 
 \section{TinyObjLoader}
 Para dotar a la escena de mayor complejidad geométrica y contexto espacial más allá de las propias partículas, se ha integrado la librería \texttt{tinyobjloader} \parencite{tinyobjloader}. Esta herramienta es un analizador sintáctico (\textit{parser}) ligero y eficiente escrito en C++ que permite cargar modelos tridimensionales almacenados en el formato estándar \textit{Wavefront OBJ}. Su inclusión facilita la lectura de los vértices, normales, coordenadas de textura y materiales de mallas poligonales, agilizando enormemente el proceso de importación de recursos externos hacia los búferes de la GPU.
-<Explicar clases modificadas y creadas y como funciona mas o menos>
+
+\subsection{Adaptación estructural: \texttt{GEObject} y \texttt{GEModel}}
+Para integrar de forma natural la carga de mallas complejas, ha sido necesario modificar la clase base \texttt{GEObject} y extender la funcionalidad del motor mediante la creación de la nueva clase \texttt{GEModel}.
+
+En primer lugar, la clase abstracta \texttt{GEObject} fue rediseñada para actuar como un contenedor genérico seguro. Ahora alberga vectores de punteros inteligentes para sus texturas (\texttt{std::shared\_ptr<GETexture>}) y sus piezas (\texttt{std::unique\_ptr<GEPiece>}). Esto permite que una única entidad tridimensional esté conformada por múltiples sub-mallas, cada una con su propio material o textura, centralizando su actualización, transformaciones espaciales (matrices de modelo) y comandos de dibujado en un único punto.
+
+Sobre esta base se construyó la clase \texttt{GEModel}, la cual hereda de \texttt{GEObject} y asume la responsabilidad exclusiva de comunicarse con la API de \texttt{tinyobjloader}. El proceso interno de esta clase se divide en varias fases clave ejecutadas durante su inicialización:
+\begin{enumerate}
+    \item \textbf{Carga y análisis del archivo:} Mediante \texttt{tinyobj::LoadObj}, se lee el archivo \texttt{.obj} y su correspondiente archivo de materiales \texttt{.mtl}. La clase resuelve dinámicamente las rutas relativas para localizar las texturas asociadas en el sistema de archivos local.
+    \item \textbf{Gestión de texturas y tolerancia a fallos:} El sistema itera sobre los materiales detectados y carga las imágenes en la VRAM de Vulkan. Se ha implementado un mecanismo de seguridad (\textit{fallback}) mediante bloques \texttt{try-catch} que, en caso de que una textura específica esté corrupta o no se encuentre, asigna automáticamente una textura por defecto, evitando la interrupción (o \textit{crash}) de la aplicación.
+    \item \textbf{Indexación y eliminación de duplicados:} Los modelos OBJ suelen declarar vértices repetidos para las distintas caras de los polígonos. Para optimizar el rendimiento y reducir el consumo de memoria en la GPU, \texttt{GEModel} agrupa los datos en un búfer de vértices y un búfer de índices. Para lograr esto, se ha implementado una tabla hash (\texttt{std::unordered\_map}) con una especialización algorítmica a medida para la estructura \texttt{GEVertex}, la cual evalúa posiciones, normales y coordenadas UV para identificar y descartar vértices duplicados en tiempo de ejecución.
+    \item \textbf{Ensamblaje final:} Por cada sub-malla (\textit{shape}) detectada en el archivo, se instancia un \texttt{GEPiece}, se le inyectan los búferes optimizados de vértices e índices, y se le enlaza la textura correspondiente según el ID de su material. Finalmente, como requisito indispensable del nuevo sistema de punteros, la propiedad exclusiva de estas piezas se transfiere al contenedor principal del \texttt{GEModel} mediante semántica de movimiento (\texttt{std::move}), lo que garantiza una integración eficiente al evitar copias profundas en memoria.
+\end{enumerate}
+
+
 
 \section{Modos de cámara}
 Para facilitar la exploración y el análisis visual de las simulaciones, se ha rediseñado el sistema de control de vista implementando dos modos de cámara  nuevos (FPS y enfoque) a parte del ya existente (Libre), los cuales son alternables de forma dinámica mediante un acceso directo por teclado. La matemática subyacente para las transformaciones de vista se basa en matrices de proyección y rotación estándar en gráficos por computadora \parencite{lengyel2011mathematics}.

@@ -33,6 +33,20 @@ La textura seleccionada para el sistema de agua (Figura \ref{fig:texAgua}) es un
 \subsection{Descripción en C++} Parametros que le pasamos al shader para hacer determinadas cosas
 \subsection{Shader} Descripcion de como esta montado
 
+\subsection{Resultado}
+
+El sistema de agua tenía como reto representar el comportamiento parabólico de un flujo líquido continuo. Como se puede apreciar en el resultado final de la aplicación, la combinación de una velocidad de eyección inicial inclinada y un vector de gravedad constante simula de manera convincente la caída del líquido sobre el modelo ornamental de la fuente. 
+
+Desde el punto de vista técnico y estético, la utilización de un \textit{sprite} de salpicadura completo de alta resolución resultó ser una solución sumamente eficiente. Al evitar simulaciones físicas de fluidos complejas o cálculos de colisiones poligonales minuciosos contra la geometría, una única partícula genera de inmediato la ilusión de un conjunto rico en microgotas y chorros entrelazados. Al superponer estos elementos mediante la mezcla de canales, el ojo humano percibe un flujo denso y cohesionado, demostrando que es posible alcanzar un fotorrealismo aparente de gran escala de forma puramente visual.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Conclusiones_3.png}
+    \caption{Resultado visual final de la simulación del sistema de agua sobre la fuente.}
+    \label{fig:resultadoAgua}
+\end{figure}
+
+
 \section{Fuego}
 El segundo sistema aborda la representación del fuego, un efecto fundamental en entornos tridimensionales que presenta retos técnicos diferentes a los de un líquido. En lugar de simular peso, este sistema ilustra un comportamiento inverso: la flotabilidad térmica mediante un movimiento ascendente.
 
@@ -59,6 +73,19 @@ La textura para el sistema de fuego se ha seleccionado por su cualidad de luz vo
 \subsection{Descripción en C++}
 \subsection{Shader}
 
+\subsection{Resultado}
+
+La simulación de fuego planteaba el reto inverso al agua: falsear la flotabilidad térmica ascendente. El resultado visual demuestra que el sistema cumple de forma notable con este propósito estético en el escenario de la hoguera.
+
+La clave del éxito visual de este efecto radica en la degradación paramétrica de color y opacidad configurada en el \textit{shader} a lo largo del ciclo de vida de la partícula, combinada críticamente con la técnica de renderizado aditivo (\textit{additive blending}). Al superponerse las partículas difusas de tonalidades amarillas y rosadas, sus valores cromáticos se suman en la \textit{pipeline} gráfica, lo que genera un núcleo central brillante e incandescente de forma natural. Las partículas periféricas se desvanecen suavemente emulando la dispersión del calor, logrando dotar de una atmósfera cálida y orgánica al conjunto de los troncos tridimensionales con un consumo mínimo de recursos de hardware.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Media/Conclusiones_2.png}
+    \caption{Resultado visual final del sistema de fuego en el entorno de la hoguera.}
+    \label{fig:resultadoFuego}
+\end{figure}
+
 \section{Humo}
 Finalmente, el tercer sistema desarrollado está dedicado a la generación de humo. Mientras que el fuego se centra en el color y la adición de luz, el humo está diseñado para evaluar la evolución geométrica y la expansión volumétrica de las partículas a lo largo del tiempo. En este sistema, las partículas experimentan un ciclo de vida más prolongado donde su escala aumenta progresivamente y se les aplica una ligera rotación matemática. Esto falsea eficazmente el comportamiento de un gas que se dispersa y expande en el aire. Visualmente, se apoya en el \textit{alpha blending} tradicional para lograr una oclusión suave, generando masas densas que bloquean parcialmente la visión del fondo.
 
@@ -84,3 +111,17 @@ La textura elegida para el humo (Figura \ref{fig:texHumo}) se caracteriza por se
 
 \subsection{Descripción en C++}
 \subsection{Shader}
+
+\subsection{Resultado}
+
+El desarrollo del sistema de humo se diseñó para evaluar la evolución geométrica y la expansión volumétrica de un gas a lo largo del tiempo, tomando como emisor direccional la chimenea de una locomotora de vapor. El resultado final valida de forma contundente la metodología procedural adoptada.
+
+Visualmente, el humo se percibe como una masa esponjosa, densa y en constante expansión. Esto se ha conseguido aplicando incrementos matemáticos progresivos en la escala de cada \textit{billboard} a medida que envejece, sumado a una rotación aleatoria sutil que rompe cualquier patrón repetitivo. Al utilizar una textura extremadamente difusa y uniforme en conjunto con el \textit{alpha blending} tradicional, las partículas se fusionen perfectamente entre sí sin que el espectador pueda percibir los bordes cuadrados de los cuadriláteros base. El sutil gradiente grisáceo ocluye de manera progresiva el fondo infinito (\textit{skybox}), logrando una sensación de volumen gaseoso realista que se disipa orgánicamente en el aire.
+
+
+\begin{figure}[ht]
+    \centering
+   \includegraphics[width=1\textwidth]{Media/Conclusiones_1.png}
+    \caption{Resultado visual final de la masa volumétrica de humo emergiendo de la locomotora.}
+    \label{fig:resultadoHumo}
+\end{figure}

@@ -7,21 +7,12 @@
  */
 
 #include "GEModel.h"
-
 #include "tiny_obj_loader.h"
-
 #include <stdexcept>
-
 #include <unordered_map>
-
 #include <filesystem>
-
-
-
 #define GLM_ENABLE_EXPERIMENTAL
-
 #include <glm/gtx/hash.hpp>
-
 #include "commonDebug.h"
 
 
