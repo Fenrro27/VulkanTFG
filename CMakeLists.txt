@@ -7,6 +7,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ################################################################################
+# Rutas de Salida (Output Directories)
+################################################################################
+# Forzamos a que todos los ejecutables vayan a una carpeta "bin" predecible
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+
+################################################################################
 # Configuración del Ejecutable
 ################################################################################
 # Añadimos los subproyectos (donde están tus archivos .cpp)

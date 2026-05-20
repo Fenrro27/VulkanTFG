@@ -14,11 +14,12 @@ Este proyecto consiste en un motor gráfico de alto rendimiento desarrollado en 
 ## Requisitos Previos
 1. **Vulkan SDK**: Instalado y en el PATH del sistema.
 2. **vcpkg**: Gestor de paquetes configurado con la variable de entorno `VCPKG_ROOT`.
+> **⚠️ Importante:** La versión de vcpkg debe ser posterior al **18 de octubre de 2023** para que reconozca el campo `license` en las dependencias modernas (como ImGui).
 3. **CMake**: Versión 3.20 o superior.
 4. **Compilador**:
    - **Windows**: Visual Studio 2022.
    - **Linux/macOS**: GCC, Clang o AppleClang.
-
+> **Entorno probado:** El proyecto ha sido desarrollado y validado utilizando **Visual Studio Community 2022 (v17.14.32)** y **vcpkg (versión 2026-04-08)**.
 ---
 
 ## Instrucciones de Compilación y Ejecución
@@ -65,6 +66,12 @@ cmake --build --preset macos-debug --target run
 - `textures/`: Texturas del proyecto.
 - `models/`: Modelos 3D (OBJ/TinyObjLoader).
 - `out/`: Directorio de salida generado automáticamente (ignorado por Git).
+
+## Solución de Problemas Frecuentes
+`Error`: unexpected field 'license', did you mean 'supports'?
+Este error ocurre cuando se utiliza una versión anticuada de la herramienta vcpkg que no soporta características modernas introducidas a finales de 2023.
+
+- `Solución`: Ve a tu instalación local de vcpkg (C:\vcpkg o similar), actualiza el repositorio con git pull y recompila la herramienta ejecutando .\bootstrap-vcpkg.bat. Si estás compilando desde Visual Studio en lugar de la terminal, asegúrate de actualizar el IDE a su última versión.
 
 ## Notas de Desarrollo
 Para añadir nuevos archivos al proyecto, simplemente inclúyelos en la carpeta `ProjectTFG/` y CMake los detectará automáticamente en la siguiente compilación.
