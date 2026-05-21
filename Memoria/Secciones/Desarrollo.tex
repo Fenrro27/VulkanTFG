@@ -1,10 +1,175 @@
 \chapter{Desarrollo}
-Descripción de las herramientas, materiales y procedimientos utilizados.
+Una vez definidos los fundamentos teóricos y el diseño metodológico de la aplicación, este capítulo aborda la materialización práctica del motor gráfico y la integración de los diferentes subsistemas de simulación.
 
+El núcleo de este desarrollo radica en la transición arquitectónica hacia un ecosistema de bajo nivel gobernado por la API Vulkan. Esta aproximación técnica permite delegar de forma íntegra la carga computacional del ciclo de vida de las partículas a la GPU, eliminando de forma efectiva las transferencias redundantes entre la CPU y la memoria de vídeo (VRAM).
+
+<Revisar> En las siguientes secciones se detallan las herramientas y los procedimientos técnicos empleados para configurar las \textit{pipelines} globales, la carga y compilación de sombreadores en lenguaje GLSL, y la fragmentación del flujo monolítico de comandos en favor de un sistema asíncrono y desacoplado. Asimismo, se desglosa el diseño analítico, matemático y empírico de los tres fenómenos simulados (agua, fuego y humo), justificando las decisiones de implementación tomadas para alcanzar una simulación masiva y de alto rendimiento.
 
 \section{Creación de la pipeline de Computación}
+
+Para dotar al motor gráfico de la capacidad de simular dinámicas complejas en tiempo real, tales como sistemas de partículas masivos, se ha diseñado e implementado una arquitectura de cómputo paralela (\textit{Compute Pipeline}) basada en la API Vulkan. A diferencia del renderizado convencional, esta canalización no produce fragmentos de imagen directamente en pantalla; en su lugar, ejecuta algoritmos numéricos generales de forma masiva sobre la GPU utilizando \textit{Compute Shaders}.
+
+La abstracción principal de este módulo recae sobre la nueva clase estructural \texttt{GEComputeShader}, la cual se encarga del ciclo de vida de la \textit{pipeline} (creación, vinculación de recursos y destrucción). Por otra parte, la clase \texttt{GEParticleSystem} encapsula la lógica matemática y física de las partículas, instanciando los \textit{buffers} necesarios para la GPU y gestionando las llamadas de despacho (\textit{dispatch}).
+
 \subsection{Integración con la pipeline de renderizado global}
+
+El flujo operativo se ha integrado de forma armónica dentro del bucle de la aplicación mediante la interacción coordinada entre \texttt{GERenderingContext}, \texttt{GECommandContext} y \texttt{GEScene}. Al implementar este paradigma, el principal desafío técnico radica en la sincronización de recursos compartidos: el sistema de partículas calcula las posiciones mediante computación y, acto seguido, la \textit{pipeline} gráfica consume dichos datos para el dibujado tridimensional.
+
+\begin{enumerate}
+    \item \textbf{GEScene y GERenderingContext:} \texttt{GEScene} actúa como el coordinador central. Durante la fase de inicialización, configura el \texttt{GERenderingContext} añadiendo una configuración específica para partículas (\texttt{createParticlePipelineConfig}). Esta define los atributos de entrada en el \textit{Vertex Shader} que mapean directamente los campos calculados por computación (posición, normal, color, tamaño y tiempo de vida restante).
+    \item \textbf{GECommandContext:} En la arquitectura original, este contexto gestionaba exclusivamente \textit{command buffers} para renderizado. En la versión modificada, se ha ampliado para registrar de forma secuencial comandos de cómputo (\texttt{vkCmdBindPipeline} con el punto de vinculación \texttt{VK\_PIPELINE\_BIND\_POINT\_COMPUTE}, \texttt{vkCmdBindDescriptorSets} y \texttt{vkCmdDispatch}) justamente antes de los comandos gráficos convencionales. De este modo, la GPU actualiza la física de las partículas inmediatamente antes de proceder a su representación visual en el mismo \textit{frame}.
+\end{enumerate}
+
 \subsection{Carga de los shaders de computación}
+
+La inicialización física de la \textit{pipeline} requiere interactuar de forma estrecha con los contextos de bajo nivel proporcionados por \texttt{GEGraphicsContext}, administrando recursos mediante \texttt{GEDescriptorSet} y reservando memoria de vídeo dedicada con \texttt{GEParticleBuffer} (implementado técnicamente mediante \texttt{GEUniformBuffer} y \textit{Storage Buffers}).
+
+El proceso de carga y vinculación de recursos sigue el siguiente protocolo estricto en la GPU:
+\begin{itemize}
+    \item \textbf{Compilación y Configuración de Pipelines:} Se leen los \textit{shaders} de cómputo previamente compilados en formato SPIR-V (\texttt{shaders/particles.comp.spv}). A través de \texttt{VkComputePipelineCreateInfo}, se enlaza el \textit{Shader Module} con el punto de entrada \texttt{"main"}.
+    \item \textbf{Layouts de Descriptores y Buffers:} Se establece un \texttt{VkDescriptorSetLayout} que define cómo se exponen los recursos al \textit{shader}. La estructura diseñada emplea dos tipos de recursos vinculados en el \texttt{GEDescriptorSet}:
+    \begin{itemize}
+        \item \textbf{Storage Buffers (SSBO):} Dos \textit{buffers} de almacenamiento masivo (\texttt{particlesIn} y \texttt{particlesOut}) mapeados dinámicamente mediante la clase de partículas. Uno opera en modo lectura para el estado anterior y el otro en modo escritura para salvar las actualizaciones físicas.
+        \item \textbf{Uniform Buffers (UBO):} Un \textit{buffer} de constantes (\texttt{params}) que transmite parámetros globales a la GPU como el tiempo diferencial (\texttt{deltaTime}), la posición del emisor, fuerzas ambientales externas (gravedad/viento) y coeficientes de aleatoriedad.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Flujo de integracion}
+
+A continuación, se detalla el orden jerárquico y de ejecución de los componentes del sistema dentro de la arquitectura global:
+
+\begin{center}
+\texttt{GEApplication} $\rightarrow$ \texttt{GEScene} $\rightarrow$ \texttt{GEComputeShader} $\rightarrow$ \texttt{GEParticleSystem}
+\end{center}
+
+Este flujo asegura que la lógica de aplicación (\texttt{GEApplication}) delegue en la escena (\texttt{GEScene}) la gestión tanto de las \textit{pipelines} de renderizado como de las de cómputo, garantizando el aislamiento modular de los recursos.
+
+        
+\subsection{Modificaciones respecto al código original}
+
+Para incorporar el soporte de computación, el código original sufrió transformaciones estructurales críticas y extensiones directas de la API de Vulkan:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|p{3.5cm}|p{6cm}|p{6cm}|}
+\hline
+\textbf{Clase} & \textbf{Estado Original} & \textbf{Estado Modificado (TFG)} \\ \hline
+\texttt{GEComputeShader} & No existía en el motor. & Creada para inicializar \texttt{VkPipeline} de cómputo, \textit{descriptor pools} y layouts específicos para \textit{compute}. \\ \hline
+\texttt{GEParticleSystem} \newline \texttt{GEParticle} & No existía en el motor. & Implementadas para definir la estructura de datos física de la partícula y despachar hilos (\textit{workgroups}). \\ \hline
+\texttt{GECommandContext} & Solo grababa comandos para \texttt{VK\_PIPELINE\_BIND\_POINT\_GRAPHICS}. & Extendida para soportar la grabación de comandos \textit{Compute} mediante el método \texttt{recordCommands}. \\ \hline
+\texttt{GEScene} \newline \texttt{GEApplication} & Controlaban únicamente figuras geométricas estáticas u objetos indexados (\texttt{GEPiece}). & Integran el ciclo \texttt{update} de físicas en la GPU y configuran el \textit{Render Pass} para consumir los SSBOs. \\ \hline
+\end{tabular}
+\caption{Comparativa de modificaciones estructurales en el motor gráfico.}
+\label{tab:modificaciones}
+\end{table}
+
+\subsection{Arquitectura del Pipeline de Computación}
+
+En la Figura~\ref{fig:compute_pipeline} se ilustra de manera gráfica el flujo de datos e interconexión de componentes del pipeline de computación diseñado a partir del código de la aplicación.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[
+    node distance=1.8cm,
+    block/.style={draw, fill=blue!10, rectangle, minimum width=3.5cm, minimum height=0.9cm, rounded corners, align=center, font=\small\sffamily},
+    resource/.style={draw, fill=gray!10, rectangle, minimum width=2.8cm, minimum height=0.7cm, align=center, font=\small\sffamily},
+    shader/.style={draw, fill=green!10, minimum width=3.2cm, minimum height=0.9cm, rectangle, align=center, font=\small\sffamily\bfseries},
+    arrow/.style={thick, ->, >=stealth}
+]
+
+    % Componentes Principales
+    \node [block] (app) {\textbf{GEApplication}};
+    \node [block] (scene) [below of=app] {\textbf{GEScene}};
+    \node [block] (compShader) [below of=scene, xshift=-3cm] {\texttt{GEComputeShader}};
+    \node [block] (rendContext) [below of=scene, xshift=3cm] {\texttt{GERenderingContext}};
+    
+    % Sistema de Partículas
+    \node [block] (partSys) [below of=compShader, yshift=-0.5cm] {\texttt{GEParticleSystem}};
+    
+    % Recursos vinculados
+    \node [resource] (ubo) [below of=partSys, xshift=-2.2cm] {\textbf{GEUniformBuffer} \\ (Constantes / Params)};
+    \node [resource] (ssbo) [below of=partSys, xshift=2.2cm] {\textbf{GEParticleBuffer} \\ (Storage Buffers SSBO)};
+    
+    % Shaders
+    \node [shader] (compKernel) [below of=ssbo, yshift=-0.5cm] {Compute Shader \\ (particles.comp)};
+    \node [shader] (vertShader) [right of=compKernel, xshift=3.5cm] {Vertex Shader \\ (particles.vert)};
+
+    % Líneas de flujo y control
+    \draw [arrow] (app) -- (scene);
+    \draw [arrow] (scene) -- (compShader);
+    \draw [arrow] (scene) -- (rendContext);
+    \draw [arrow] (compShader) -- (partSys);
+    
+    % Vinculación de recursos
+    \draw [arrow] (partSys) -- (ubo);
+    \draw [arrow] (partSys) -- (ssbo);
+    
+    % Flujo del Kernel de Cómputo
+    \draw [arrow] (ubo) |- (compKernel);
+    \draw [arrow] (ssbo) -- (compKernel);
+    
+    % Consumo de datos (Sincronización Compute -> Graphics)
+    \draw [arrow, dashed, red, thick] (ssbo) -- node[midway, right, align=left, font=\scriptsize\color{black}] {Lectura Directa \\ de Posiciones} (vertShader);
+    \draw [arrow] (rendContext) |- (vertShader);
+
+\end{tikzpicture}
+\caption{Diagrama de bloques y flujo de datos del Pipeline de Computación e integración gráfica en Vulkan.}
+\label{fig:compute_pipeline}
+\end{figure}
+
+A continuación, se van a explicar los shader principales de la pipeline de computación.
+\subsubsection{Vertex Shader de Partículas}
+
+El \textit{vertex shader} se encarga de procesar individualmente cada partícula de la simulación enviada desde los búferes de la GPU. Su función principal consiste en aplicar las transformaciones espaciales pertinentes mediante la matriz vista-proyección, determinar dinámicamente sus atributos visuales básicos y realizar el descarte prematuro en pantalla de aquellos elementos que se encuentren inactivos.
+
+A continuación, se detalla el funcionamiento de la lógica matemática y estructural implementada en este shader:
+
+\begin{itemize}
+    \item \textbf{Estructuras de entrada y salida (Layouts):} El shader recibe en cada invocación un conjunto de atributos procedentes directamente del búfer estructurado de partículas mapeado en la memoria de vídeo, tales como la posición tridimensional (\texttt{inPos}), el vector de dirección o normal (\texttt{inNorm}), el color actual con canal alfa (\texttt{inColor}), el tamaño escalar en píxeles (\texttt{inSize}) y un entero bandera indicativo de su ciclo de vida útil (\texttt{inActiveTTL}). Asimismo, mediante el conjunto de descriptores (\textit{descriptor set}), se mapea la estructura \texttt{TransformInfo} que alberga la matriz unificada \texttt{MVP} (Modelo-Vista-Proyección). Hacia las siguientes etapas del \textit{pipeline} se transfieren el color interpolado (\texttt{outColor}) y un ángulo de rotación procedural (\texttt{outAngle}).
+    
+    \item \textbf{Generación de rotación pseudoaleatoria:} Para evitar la monotonía visual y simular el comportamiento caótico de fluidos o gases como el agua, el humo y el fuego, las partículas deben presentar orientaciones rotacionales distintas. Debido a que el estándar de Vulkan no incluye generadores de números aleatorios nativos en los \textit{shaders}, se implementa una función de dispersión (\textit{hash}) basada en ondas sinusoidales de alta frecuencia:
+    \begin{equation}
+        \theta = \text{frac}\Big(\sin\big(\text{gl\_VertexIndex}\big) \times 43758.5453\Big) \times 2\pi
+    \end{equation}
+    Utilizando el índice único del vértice en ejecución (\texttt{gl\_VertexIndex}) como semilla, se extrae la parte fraccionaria (\texttt{fract}) de una oscilación amplificada exponencialmente, escalando el resultado en un rango de entre $0$ y $2\pi$ radianes (\texttt{6.28318}). El valor final se envía a través del parámetro \texttt{outAngle}.
+    
+    \item \textbf{Descarte analítico de partículas muertas:} Si la bandera \texttt{inActiveTTL} es igual a cero —lo que denota que la partícula ha agotado su tiempo de vida y el \textit{compute shader} la ha marcado como inerte—, el shader invalida su posición forzando la variable nativa de Vulkan \texttt{gl\_Position} hacia unas coordenadas fuera del espacio de recorte homogéneo (\texttt{vec4(-2.0, -2.0, -2.0, 1.0)}). Esto ahorra ciclos de rasterización e impide de forma eficiente que elementos muertos consuman recursos de procesado en la escena.
+    
+    \item \textbf{Ajuste y atenuación por perspectiva (\textit{Perspective Scaling}):} En caso de que la partícula esté activa, se transforma su posición tridimensional ordinaria multiplicándola por la matriz \texttt{Transform.MVP}. Inmediatamente después, se calcula el tamaño final en pantalla del punto primitivo asignando el resultado a la variable integrada \texttt{gl\_PointSize}:
+    \begin{equation}
+        \text{gl\_PointSize} = \text{inSize} \times \left( \frac{1000.0}{\text{gl\_Position.w}} \right)
+    \end{equation}
+    Esta operación matemática divide el tamaño base (\texttt{inSize}) entre el componente homogéneo \texttt{w} de la posición proyectada (el cual representa la profundidad respecto a la lente de la cámara). Este factor de escala garantiza que las partículas se perciban visualmente más grandes al aproximarse al espectador y disminuyan proporcionalmente de tamaño al alejarse hacia el fondo de la escena, logrando un comportamiento de perspectiva tridimensional realista.
+\end{itemize}
+
+
+\subsubsection{Fragment Shader de Partículas}
+El \textit{fragment shader} es el shader final de la etapa de rasterización y se ejecuta de manera independiente para cada píxel cubierto por las primitivas de punto (\texttt{GL\_POINTS}) generadas en el \textit{vertex shader}. Su función primordial consiste en calcular las coordenadas de textura internas del punto, aplicar transformaciones matemáticas dinámicas para emular una rotación tridimensional en los ejes $Y$ y $Z$, realizar el filtrado de descarte de fragmentos fuera de rango y consolidar el color final mediante la combinación cromática de los datos de los vértices y el mapa de texturas.
+
+A continuación, se detalla el funcionamiento de la lógica matemática y estructural implementada en este shader:
+
+\begin{itemize}
+    \item \textbf{Estructuras de entrada y salida (Layouts):} El shader recibe mediante el conjunto de descriptores (\textit{descriptor set}) un muestreador bidimensional vinculado a la imagen de la partícula (\texttt{particleTexture}). A nivel de interpolación por fragmento, recibe desde el \textit{vertex shader} el color cuadrilineal (\texttt{inColor}) y el ángulo de rotación pseudoaleatorio procedural (\texttt{inAngle}). Como salida, emite el vector de color final con canal alfa incorporado (\texttt{outColor}) hacia el búfer de fotogramas (\textit{framebuffer}).
+    
+    \item \textbf{Centrado de coordenadas y simulación de rotación en el eje Y:} Debido a que las primitivas de tipo punto generan internamente un espacio de coordenadas UV nativo parametrizado de $0$ a $1$ a través de la variable del sistema \texttt{gl\_PointCoord}, el shader traslada el origen de coordenadas al centro geométrico del punto restando una constante (\texttt{gl\_PointCoord - 0.5}). Sobre este espacio centrado, se implementa una técnica avanzada de falseo bidimensional para emular una distorsión por perspectiva o rotación sobre el eje vertical $Y$:
+    \begin{equation}
+        \text{uv.x} = \frac{\text{uv.x}}{\cos(\theta_Y)}
+    \end{equation}
+    Donde $\theta_Y$ toma el valor del ángulo procedural recibido (\texttt{inAngle}). Al dividir la componente horizontal entre el coseno del ángulo, el ancho de la textura se comprime analíticamente de forma proporcional al giro, simulando de manera muy eficiente que el plano de la partícula está rotando en el espacio tridimensional hacia el fondo de la pantalla con un coste computacional nulo.
+
+    \item \textbf{Matriz de rotación en el eje Z (Giro coplanar):} Para romper la simetría e impedir que todas las texturas de la simulación presenten la misma inclinación en el plano de la pantalla, se calcula una matriz de rotación estándar en dos dimensiones utilizando las funciones trigonométricas del ángulo de entrada:
+    \begin{equation}
+        \begin{pmatrix} u' \\ v' \end{pmatrix} = \begin{pmatrix} \cos(\theta) & -\sin(\theta) \\ \sin(\theta) & \cos(\theta) \end{pmatrix} \begin{pmatrix} u \\ v \end{pmatrix}
+    \end{equation}
+    Tras aplicar el producto matricial sobre el vector de coordenadas previamente distorsionado, se revierte el centrado inicial sumando \texttt{0.5} para devolver los componentes al espacio de muestreo estándar $[0,1]$.
+
+    \item \textbf{Control de descarte por desbordamiento y opacidad mínima:} Dado que las transformaciones matemáticas aplicadas pueden desplazar o estirar las coordenadas UV fuera de los límites físicos de la imagen, el sombreador efectúa un descarte prematuro (\texttt{discard}) si cualquier componente se encuentra fuera del intervalo válido. Esto evita artefactos visuales derivados del modo de envoltura de la textura. 
+
+    \item \textbf{Composición cromática final y optimización alfa:} Finalmente, se realiza el muestreo de la textura en las coordenadas calculadas y se combinan linealmente sus componentes mediante modulación directa con el color del vértice (\texttt{texColor.rgb * inColor.rgb}). Para garantizar la eficiencia en el proceso de mezcla (\textit{blending}) y evitar escrituras innecesarias en el búfer de profundidad, se ejecuta una directiva \texttt{discard} si la opacidad resultante (\texttt{outColor.a}) se sitúa por debajo del umbral crítico de $0.001$, purgando los píxeles virtualmente transparentes de la periferia de la partícula.
+\end{itemize}
+
+\subsubsection{Compute Shader}
+Estos se explicaran en cada uno de los sistemas. (ver \textbf{Subsección \ref{subsection:ElComputeShader}})
 
 
 \section{Agua}
@@ -30,8 +195,10 @@ La textura seleccionada para el sistema de agua (Figura \ref{fig:texAgua}) es un
     \label{fig:texAgua}
 \end{figure}
 
-\subsection{Descripción en C++} Parametros que le pasamos al shader para hacer determinadas cosas
 \subsection{Shader} Descripcion de como esta montado
+
+\subsection{Descripción en C++} Parametros que le pasamos al shader para hacer determinadas cosas
+
 
 \subsection{Resultado}
 
@@ -70,8 +237,9 @@ La textura para el sistema de fuego se ha seleccionado por su cualidad de luz vo
     \label{fig:texFuego}
 \end{figure}
 
-\subsection{Descripción en C++}
 \subsection{Shader}
+
+\subsection{Descripción en C++}
 
 \subsection{Resultado}
 
@@ -109,8 +277,9 @@ La textura elegida para el humo (Figura \ref{fig:texHumo}) se caracteriza por se
     \label{fig:texHumo}
 \end{figure}
 
-\subsection{Descripción en C++}
 \subsection{Shader}
+
+\subsection{Descripción en C++}
 
 \subsection{Resultado}
 

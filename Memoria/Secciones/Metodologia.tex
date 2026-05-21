@@ -23,6 +23,8 @@ Por el contrario, el \textbf{enfoque basado en GPU (GPGPU - \textit{General-Purp
 Para entender la evolución de los sistemas de partículas modernos, es necesario definir las tecnologías que permiten tratar a la tarjeta gráfica como un procesador de propósito general.
 
 \subsection{El Compute Shader}
+\label{subsection:ElComputeShader}
+
 El \textit{Compute Shader} es una etapa de procesamiento altamente programable que permite ejecutar algoritmos de propósito general dentro de la GPU. A diferencia de los \textit{shaders} tradicionales (como el de vértices o fragmentos), el \textit{Compute Shader} no está vinculado a una etapa específica del renderizado gráfico ni a una geometría concreta. 
 
 Su función principal es realizar operaciones matemáticas masivas sobre datos arbitrarios. Su arquitectura está diseñada para el paralelismo: en lugar de ejecutar una tarea compleja tras otra, lanza miles de pequeñas tareas simples (hilos) simultáneamente. Esto lo convierte en la herramienta ideal para la simulación de físicas, donde cada hilo se encarga de actualizar una única partícula de forma independiente a las demás.

@@ -1,0 +1,1157 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{apa/apasortcite//global/global/global}
+    \entry{akenine2018real}{book}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=f6061b73d9bdb8fceb556ed41cd144a6}{%
+           family={Akenine-Möller},
+           familyi={A\bibinithyphendelim M\bibinitperiod},
+           given={Tomas},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f2cd5883c9757f88d9a81f92ee663907}{%
+           family={Haines},
+           familyi={H\bibinitperiod},
+           given={Eric},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eed616961e0274036a96489be8cd147e}{%
+           family={Hoffman},
+           familyi={H\bibinitperiod},
+           given={Naty},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {A K Peters/CRC Press}%
+      }
+      \strng{namehash}{6af483c98f5e495047f6b57fcbd95609}
+      \strng{fullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{fullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{bibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authorbibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authornamehash}{6af483c98f5e495047f6b57fcbd95609}
+      \strng{authorfullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authorfullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{4th}
+      \field{isbn}{978-1138627000}
+      \field{title}{Real-Time Rendering}
+      \field{year}{2018}
+    \endentry
+    \entry{dearimgui}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=278fbb27c5f41e27c29dbffddc757f15}{%
+           family={Cornut},
+           familyi={C\bibinitperiod},
+           given={Omar},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{fullhash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{fullhashraw}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{bibnamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorbibnamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authornamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorfullhash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorfullhashraw}{278fbb27c5f41e27c29dbffddc757f15}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Dear ImGui: Bloat-free Graphical User interface for C++ with minimal dependencies}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/ocornut/imgui
+      \endverb
+      \verb{url}
+      \verb https://github.com/ocornut/imgui
+      \endverb
+    \endentry
+    \entry{dyndo2017glvsvk}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=a5bda8f421d1f46ae45f1d18971e754c}{%
+           family={Dyńdo},
+           familyi={D\bibinitperiod},
+           given={Damian},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{fullhash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{fullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{bibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorbibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authornamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorfullhash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorfullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositorio original}
+      \field{title}{GL\_vs\_VK: Comparison of OpenGL and Vulkan API in terms of performance}
+      \field{year}{2017}
+      \verb{urlraw}
+      \verb https://github.com/RippeR37/GL_vs_VK
+      \endverb
+      \verb{url}
+      \verb https://github.com/RippeR37/GL_vs_VK
+      \endverb
+    \endentry
+    \entry{fenrro2026glvsvk_comp}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Bifurcación (fork) adaptada y expandida para este trabajo}
+      \field{title}{GL\_vs\_VK (Branch Comparative): Entorno de benchmarking para TFG}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
+      \endverb
+    \endentry
+    \entry{9655285}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=58ca0c97fadeb13bf485d1adda698068}{%
+           family={Ferraz},
+           familyi={F\bibinitperiod},
+           given={Oscar},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b86fc97e17713ed116f565c6b005f8a3}{%
+           family={Menezes},
+           familyi={M\bibinitperiod},
+           given={Paulo},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=364cc3a7145f5a8c57a6a8aafc44cf01}{%
+           family={Silva},
+           familyi={S\bibinitperiod},
+           given={Vitor},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b3fcc6fcd77d76ea500e13478312cd2c}{%
+           family={Falcao},
+           familyi={F\bibinitperiod},
+           given={Gabriel},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{62884f5f11644fcaf1e468c64a03950b}
+      \strng{fullhash}{756862c3e921803103174983c0ddc9d4}
+      \strng{fullhashraw}{756862c3e921803103174983c0ddc9d4}
+      \strng{bibnamehash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authorbibnamehash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authornamehash}{62884f5f11644fcaf1e468c64a03950b}
+      \strng{authorfullhash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authorfullhashraw}{756862c3e921803103174983c0ddc9d4}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{2021 International Conference on Graphics and Interaction (ICGI)}
+      \field{title}{Benchmarking Vulkan vs OpenGL Rendering on Low-Power Edge GPUs}
+      \field{year}{2021}
+      \field{pages}{1\bibrangedash 8}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/ICGI54032.2021.9655285
+      \endverb
+      \keyw{Headphones;Semiconductor device modeling;Embedded systems;Three-dimensional displays;Production;Benchmark testing;Rendering (computer graphics);Low-power GPU;Energy-efficiency;OpenGL;Vulkan;Virtual/Augmented reality;VR/AR headset}
+    \endentry
+    \entry{tinyobjloader}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=98206e3d2ba4b13eef0ee39b68f47f44}{%
+           family={Fujita},
+           familyi={F\bibinitperiod},
+           given={Syoyo},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{fullhash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{fullhashraw}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{bibnamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorbibnamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authornamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorfullhash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorfullhashraw}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{tinyobjloader: A lightweight OBJ parser}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/tinyobjloader/tinyobjloader
+      \endverb
+      \verb{url}
+      \verb https://github.com/tinyobjloader/tinyobjloader
+      \endverb
+    \endentry
+    \entry{vulkan_spec}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=638160ae56a17712d83fafc12a740c80}{%
+           family={Group},
+           familyi={G\bibinitperiod},
+           given={Khronos},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{fullhash}{638160ae56a17712d83fafc12a740c80}
+      \strng{fullhashraw}{638160ae56a17712d83fafc12a740c80}
+      \strng{bibnamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorbibnamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authornamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorfullhash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorfullhashraw}{638160ae56a17712d83fafc12a740c80}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Especificación oficial de la API Vulkan}
+      \field{title}{Vulkan Specification}
+      \field{year}{2024}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://docs.vulkan.org/spec/latest/index.html
+      \endverb
+      \verb{url}
+      \verb https://docs.vulkan.org/spec/latest/index.html
+      \endverb
+    \endentry
+    \entry{latta2004massively}{inbook}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=aee18c5b155495478b5040d089283531}{%
+           family={Latta},
+           familyi={L\bibinitperiod},
+           given={Lutz},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=fce9f6c66932ae85746b01a48e3392e8}{%
+           family={Engel},
+           familyi={E\bibinitperiod},
+           given={Wolfgang},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Charles River Media}%
+      }
+      \strng{namehash}{aee18c5b155495478b5040d089283531}
+      \strng{fullhash}{aee18c5b155495478b5040d089283531}
+      \strng{fullhashraw}{aee18c5b155495478b5040d089283531}
+      \strng{bibnamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authorbibnamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authornamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authorfullhash}{aee18c5b155495478b5040d089283531}
+      \strng{authorfullhashraw}{aee18c5b155495478b5040d089283531}
+      \strng{editorbibnamehash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editornamehash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editorfullhash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editorfullhashraw}{fce9f6c66932ae85746b01a48e3392e8}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{ShaderX3: Advanced Rendering with DirectX and OpenGL}
+      \field{isbn}{978-1584503576}
+      \field{title}{Massively Parallel Particle Systems on the {GPU}}
+      \field{year}{2004}
+      \field{pages}{119\bibrangedash 133}
+      \range{pages}{15}
+    \endentry
+    \entry{lengyel2011mathematics}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=79e4bd53885ca536f77af64ad5895836}{%
+           family={Lengyel},
+           familyi={L\bibinitperiod},
+           given={Eric},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Course Technology PTR}%
+      }
+      \strng{namehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{fullhash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{fullhashraw}{79e4bd53885ca536f77af64ad5895836}
+      \strng{bibnamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorbibnamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authornamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorfullhash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorfullhashraw}{79e4bd53885ca536f77af64ad5895836}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3rd}
+      \field{isbn}{978-1435458864}
+      \field{title}{Mathematics for 3D Game Programming and Computer Graphics}
+      \field{year}{2011}
+    \endentry
+    \entry{8685588}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=9720f0baf26e29492f3996d25fa3084f}{%
+           family={Lujan},
+           familyi={L\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=577df36a22a2685acfdec5e050d29589}{%
+           family={Baum},
+           familyi={B\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bb199c504c4e0e4103f4514340e0ff19}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Dayuan},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d2af1f116be8a106d9f92be87f34b3ab}{%
+           family={Zong},
+           familyi={Z\bibinitperiod},
+           given={Ziliang},
+           giveni={Z\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{1f94b044d1008d86152d1546a874377f}
+      \strng{fullhash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{fullhashraw}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{bibnamehash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authorbibnamehash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authornamehash}{1f94b044d1008d86152d1546a874377f}
+      \strng{authorfullhash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authorfullhashraw}{aa13909e24f0cab6156bcd268041cb07}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{2019 International Conference on Computing, Networking and Communications (ICNC)}
+      \field{title}{Evaluating the Performance and Energy Efficiency of OpenGL and Vulkan on a Graphics Rendering Server}
+      \field{year}{2019}
+      \field{pages}{777\bibrangedash 781}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1109/ICCNC.2019.8685588
+      \endverb
+      \keyw{Graphics;Three-dimensional displays;Power demand;Process control;Rendering (computer graphics);Energy efficiency;Libraries;Servers;Standards;Optimization;performance;energy efficiency;OpenGL;Vulkan}
+    \endentry
+    \entry{vcpkg_ms}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=b9a8b868588ad4bc6b36c29936e26423}{%
+           family={{Microsoft Corporation}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{fullhash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{fullhashraw}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{bibnamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorbibnamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authornamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorfullhash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorfullhashraw}{b9a8b868588ad4bc6b36c29936e26423}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{vcpkg: C++ Library Manager for Windows, Linux, and MacOS}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/microsoft/vcpkg
+      \endverb
+      \verb{url}
+      \verb https://github.com/microsoft/vcpkg
+      \endverb
+    \endentry
+    \entry{Sellers_Kessenich_2017a}{book}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
+           family={Sellers},
+           familyi={S\bibinitperiod},
+           given={Graham},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=400011330a3a76a45b4a3d2b68d920be}{%
+           family={Kessenich},
+           familyi={K\bibinitperiod},
+           given={John\bibnamedelima M.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {OpenGL}%
+      }
+      \strng{namehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{fullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{fullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{bibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorbibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authornamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorfullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorfullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Vulkan Programming Guide: The Official Guide to Learning Vulkan}
+      \field{year}{2017}
+    \endentry
+    \entry{vulkan_spec_shaders}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5dbfd58daa08d01e28fb0ec7a08f3ef5}{%
+           family={{The Khronos Group}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Khronos Group}%
+      }
+      \strng{namehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{fullhash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{fullhashraw}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{bibnamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorbibnamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authornamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorfullhash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorfullhashraw}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{title}{Vulkan Documentation: Shaders}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.vulkan.org/spec/latest/chapters/shaders.html
+      \endverb
+      \verb{url}
+      \verb https://docs.vulkan.org/spec/latest/chapters/shaders.html
+      \endverb
+    \endentry
+    \entry{vulkan_validation}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d58b3ef217c73e2a256c9fcaed6f5c18}{%
+           family={{The Khronos Group Inc.}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{fullhash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{fullhashraw}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{bibnamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorbibnamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authornamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorfullhash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorfullhashraw}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Accedido en 2026}
+      \field{title}{Vulkan 1.3 Specification - Validation Layers}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://registry.khronos.org/vulkan/
+      \endverb
+      \verb{url}
+      \verb https://registry.khronos.org/vulkan/
+      \endverb
+    \endentry
+    \entry{willems_vulkan}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=bfb3d736b7e5e44d323660c9e659d5d3}{%
+           family={Willems},
+           familyi={W\bibinitperiod},
+           given={Sascha},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{fullhash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{fullhashraw}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{bibnamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorbibnamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authornamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorfullhash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorfullhashraw}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Vulkan C++ examples and demos}
+      \field{year}{2023}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+      \verb{url}
+      \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+    \endentry
+  \enddatalist
+  \datalist[entry]{apa/global//global/global/global}
+    \entry{akenine2018real}{book}{}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=f6061b73d9bdb8fceb556ed41cd144a6}{%
+           family={Akenine-Möller},
+           familyi={A\bibinithyphendelim M\bibinitperiod},
+           given={Tomas},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f2cd5883c9757f88d9a81f92ee663907}{%
+           family={Haines},
+           familyi={H\bibinitperiod},
+           given={Eric},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=eed616961e0274036a96489be8cd147e}{%
+           family={Hoffman},
+           familyi={H\bibinitperiod},
+           given={Naty},
+           giveni={N\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {A K Peters/CRC Press}%
+      }
+      \strng{namehash}{6af483c98f5e495047f6b57fcbd95609}
+      \strng{fullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{fullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{bibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authorbibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authornamehash}{6af483c98f5e495047f6b57fcbd95609}
+      \strng{authorfullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \strng{authorfullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{4th}
+      \field{isbn}{978-1138627000}
+      \field{title}{Real-Time Rendering}
+      \field{year}{2018}
+    \endentry
+    \entry{dearimgui}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=278fbb27c5f41e27c29dbffddc757f15}{%
+           family={Cornut},
+           familyi={C\bibinitperiod},
+           given={Omar},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{fullhash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{fullhashraw}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{bibnamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorbibnamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authornamehash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorfullhash}{278fbb27c5f41e27c29dbffddc757f15}
+      \strng{authorfullhashraw}{278fbb27c5f41e27c29dbffddc757f15}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Dear ImGui: Bloat-free Graphical User interface for C++ with minimal dependencies}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/ocornut/imgui
+      \endverb
+      \verb{url}
+      \verb https://github.com/ocornut/imgui
+      \endverb
+    \endentry
+    \entry{dyndo2017glvsvk}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=a5bda8f421d1f46ae45f1d18971e754c}{%
+           family={Dyńdo},
+           familyi={D\bibinitperiod},
+           given={Damian},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{fullhash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{fullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{bibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorbibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authornamehash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorfullhash}{a5bda8f421d1f46ae45f1d18971e754c}
+      \strng{authorfullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositorio original}
+      \field{title}{GL\_vs\_VK: Comparison of OpenGL and Vulkan API in terms of performance}
+      \field{year}{2017}
+      \verb{urlraw}
+      \verb https://github.com/RippeR37/GL_vs_VK
+      \endverb
+      \verb{url}
+      \verb https://github.com/RippeR37/GL_vs_VK
+      \endverb
+    \endentry
+    \entry{fenrro2026glvsvk_comp}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Bifurcación (fork) adaptada y expandida para este trabajo}
+      \field{title}{GL\_vs\_VK (Branch Comparative): Entorno de benchmarking para TFG}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
+      \endverb
+    \endentry
+    \entry{9655285}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=58ca0c97fadeb13bf485d1adda698068}{%
+           family={Ferraz},
+           familyi={F\bibinitperiod},
+           given={Oscar},
+           giveni={O\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b86fc97e17713ed116f565c6b005f8a3}{%
+           family={Menezes},
+           familyi={M\bibinitperiod},
+           given={Paulo},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=364cc3a7145f5a8c57a6a8aafc44cf01}{%
+           family={Silva},
+           familyi={S\bibinitperiod},
+           given={Vitor},
+           giveni={V\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=b3fcc6fcd77d76ea500e13478312cd2c}{%
+           family={Falcao},
+           familyi={F\bibinitperiod},
+           given={Gabriel},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{62884f5f11644fcaf1e468c64a03950b}
+      \strng{fullhash}{756862c3e921803103174983c0ddc9d4}
+      \strng{fullhashraw}{756862c3e921803103174983c0ddc9d4}
+      \strng{bibnamehash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authorbibnamehash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authornamehash}{62884f5f11644fcaf1e468c64a03950b}
+      \strng{authorfullhash}{756862c3e921803103174983c0ddc9d4}
+      \strng{authorfullhashraw}{756862c3e921803103174983c0ddc9d4}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{2021 International Conference on Graphics and Interaction (ICGI)}
+      \field{title}{Benchmarking Vulkan vs OpenGL Rendering on Low-Power Edge GPUs}
+      \field{year}{2021}
+      \field{pages}{1\bibrangedash 8}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/ICGI54032.2021.9655285
+      \endverb
+      \keyw{Headphones;Semiconductor device modeling;Embedded systems;Three-dimensional displays;Production;Benchmark testing;Rendering (computer graphics);Low-power GPU;Energy-efficiency;OpenGL;Vulkan;Virtual/Augmented reality;VR/AR headset}
+    \endentry
+    \entry{tinyobjloader}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=98206e3d2ba4b13eef0ee39b68f47f44}{%
+           family={Fujita},
+           familyi={F\bibinitperiod},
+           given={Syoyo},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{fullhash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{fullhashraw}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{bibnamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorbibnamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authornamehash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorfullhash}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \strng{authorfullhashraw}{98206e3d2ba4b13eef0ee39b68f47f44}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{tinyobjloader: A lightweight OBJ parser}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/tinyobjloader/tinyobjloader
+      \endverb
+      \verb{url}
+      \verb https://github.com/tinyobjloader/tinyobjloader
+      \endverb
+    \endentry
+    \entry{vulkan_spec}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=638160ae56a17712d83fafc12a740c80}{%
+           family={Group},
+           familyi={G\bibinitperiod},
+           given={Khronos},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{fullhash}{638160ae56a17712d83fafc12a740c80}
+      \strng{fullhashraw}{638160ae56a17712d83fafc12a740c80}
+      \strng{bibnamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorbibnamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authornamehash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorfullhash}{638160ae56a17712d83fafc12a740c80}
+      \strng{authorfullhashraw}{638160ae56a17712d83fafc12a740c80}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Especificación oficial de la API Vulkan}
+      \field{title}{Vulkan Specification}
+      \field{year}{2024}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://docs.vulkan.org/spec/latest/index.html
+      \endverb
+      \verb{url}
+      \verb https://docs.vulkan.org/spec/latest/index.html
+      \endverb
+    \endentry
+    \entry{latta2004massively}{inbook}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=aee18c5b155495478b5040d089283531}{%
+           family={Latta},
+           familyi={L\bibinitperiod},
+           given={Lutz},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+      }
+      \name{editor}{1}{}{%
+        {{hash=fce9f6c66932ae85746b01a48e3392e8}{%
+           family={Engel},
+           familyi={E\bibinitperiod},
+           given={Wolfgang},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Charles River Media}%
+      }
+      \strng{namehash}{aee18c5b155495478b5040d089283531}
+      \strng{fullhash}{aee18c5b155495478b5040d089283531}
+      \strng{fullhashraw}{aee18c5b155495478b5040d089283531}
+      \strng{bibnamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authorbibnamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authornamehash}{aee18c5b155495478b5040d089283531}
+      \strng{authorfullhash}{aee18c5b155495478b5040d089283531}
+      \strng{authorfullhashraw}{aee18c5b155495478b5040d089283531}
+      \strng{editorbibnamehash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editornamehash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editorfullhash}{fce9f6c66932ae85746b01a48e3392e8}
+      \strng{editorfullhashraw}{fce9f6c66932ae85746b01a48e3392e8}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{ShaderX3: Advanced Rendering with DirectX and OpenGL}
+      \field{isbn}{978-1584503576}
+      \field{title}{Massively Parallel Particle Systems on the {GPU}}
+      \field{year}{2004}
+      \field{pages}{119\bibrangedash 133}
+      \range{pages}{15}
+    \endentry
+    \entry{lengyel2011mathematics}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=79e4bd53885ca536f77af64ad5895836}{%
+           family={Lengyel},
+           familyi={L\bibinitperiod},
+           given={Eric},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Course Technology PTR}%
+      }
+      \strng{namehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{fullhash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{fullhashraw}{79e4bd53885ca536f77af64ad5895836}
+      \strng{bibnamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorbibnamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authornamehash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorfullhash}{79e4bd53885ca536f77af64ad5895836}
+      \strng{authorfullhashraw}{79e4bd53885ca536f77af64ad5895836}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{3rd}
+      \field{isbn}{978-1435458864}
+      \field{title}{Mathematics for 3D Game Programming and Computer Graphics}
+      \field{year}{2011}
+    \endentry
+    \entry{8685588}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=9720f0baf26e29492f3996d25fa3084f}{%
+           family={Lujan},
+           familyi={L\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=577df36a22a2685acfdec5e050d29589}{%
+           family={Baum},
+           familyi={B\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=bb199c504c4e0e4103f4514340e0ff19}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Dayuan},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d2af1f116be8a106d9f92be87f34b3ab}{%
+           family={Zong},
+           familyi={Z\bibinitperiod},
+           given={Ziliang},
+           giveni={Z\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{1f94b044d1008d86152d1546a874377f}
+      \strng{fullhash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{fullhashraw}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{bibnamehash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authorbibnamehash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authornamehash}{1f94b044d1008d86152d1546a874377f}
+      \strng{authorfullhash}{aa13909e24f0cab6156bcd268041cb07}
+      \strng{authorfullhashraw}{aa13909e24f0cab6156bcd268041cb07}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{2019 International Conference on Computing, Networking and Communications (ICNC)}
+      \field{title}{Evaluating the Performance and Energy Efficiency of OpenGL and Vulkan on a Graphics Rendering Server}
+      \field{year}{2019}
+      \field{pages}{777\bibrangedash 781}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.1109/ICCNC.2019.8685588
+      \endverb
+      \keyw{Graphics;Three-dimensional displays;Power demand;Process control;Rendering (computer graphics);Energy efficiency;Libraries;Servers;Standards;Optimization;performance;energy efficiency;OpenGL;Vulkan}
+    \endentry
+    \entry{vcpkg_ms}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=b9a8b868588ad4bc6b36c29936e26423}{%
+           family={{Microsoft Corporation}},
+           familyi={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{fullhash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{fullhashraw}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{bibnamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorbibnamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authornamehash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorfullhash}{b9a8b868588ad4bc6b36c29936e26423}
+      \strng{authorfullhashraw}{b9a8b868588ad4bc6b36c29936e26423}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{vcpkg: C++ Library Manager for Windows, Linux, and MacOS}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/microsoft/vcpkg
+      \endverb
+      \verb{url}
+      \verb https://github.com/microsoft/vcpkg
+      \endverb
+    \endentry
+    \entry{Sellers_Kessenich_2017a}{book}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
+           family={Sellers},
+           familyi={S\bibinitperiod},
+           given={Graham},
+           giveni={G\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=400011330a3a76a45b4a3d2b68d920be}{%
+           family={Kessenich},
+           familyi={K\bibinitperiod},
+           given={John\bibnamedelima M.},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {OpenGL}%
+      }
+      \strng{namehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{fullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{fullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{bibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorbibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authornamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorfullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \strng{authorfullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Vulkan Programming Guide: The Official Guide to Learning Vulkan}
+      \field{year}{2017}
+    \endentry
+    \entry{vulkan_spec_shaders}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=5dbfd58daa08d01e28fb0ec7a08f3ef5}{%
+           family={{The Khronos Group}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Khronos Group}%
+      }
+      \strng{namehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{fullhash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{fullhashraw}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{bibnamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorbibnamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authornamehash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorfullhash}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \strng{authorfullhashraw}{5dbfd58daa08d01e28fb0ec7a08f3ef5}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{title}{Vulkan Documentation: Shaders}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://docs.vulkan.org/spec/latest/chapters/shaders.html
+      \endverb
+      \verb{url}
+      \verb https://docs.vulkan.org/spec/latest/chapters/shaders.html
+      \endverb
+    \endentry
+    \entry{vulkan_validation}{manual}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d58b3ef217c73e2a256c9fcaed6f5c18}{%
+           family={{The Khronos Group Inc.}},
+           familyi={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{fullhash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{fullhashraw}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{bibnamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorbibnamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authornamehash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorfullhash}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \strng{authorfullhashraw}{d58b3ef217c73e2a256c9fcaed6f5c18}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Accedido en 2026}
+      \field{title}{Vulkan 1.3 Specification - Validation Layers}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://registry.khronos.org/vulkan/
+      \endverb
+      \verb{url}
+      \verb https://registry.khronos.org/vulkan/
+      \endverb
+    \endentry
+    \entry{willems_vulkan}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=bfb3d736b7e5e44d323660c9e659d5d3}{%
+           family={Willems},
+           familyi={W\bibinitperiod},
+           given={Sascha},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{fullhash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{fullhashraw}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{bibnamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorbibnamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authornamehash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorfullhash}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \strng{authorfullhashraw}{bfb3d736b7e5e44d323660c9e659d5d3}
+      \field{sortinit}{W}
+      \field{sortinithash}{4315d78024d0cea9b57a0c6f0e35ed0d}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Vulkan C++ examples and demos}
+      \field{year}{2023}
+      \true{nocite}
+      \verb{urlraw}
+      \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+      \verb{url}
+      \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
