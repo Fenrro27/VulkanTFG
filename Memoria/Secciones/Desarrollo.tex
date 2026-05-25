@@ -1,9 +1,7 @@
 \chapter{Desarrollo}
-Una vez definidos los fundamentos teóricos y el diseño metodológico de la aplicación, este capítulo aborda la materialización práctica del motor gráfico y la integración de los diferentes subsistemas de simulación.
+Una vez definidos los fundamentos teóricos y el diseño metodológico de la aplicación, este capítulo aborda la materialización práctica del motor gráfico y la integración de los diferentes subsistemas de simulación. La arquitectura diseñada permite delegar de forma íntegra la carga computacional asociada al ciclo de vida de las partículas a la GPU, eliminando con ello las transferencias síncronas redundantes entre la CPU y la memoria de vídeo dedicada (\textit{VRAM}).
 
-El núcleo de este desarrollo radica en la transición arquitectónica hacia un ecosistema de bajo nivel gobernado por la API Vulkan. Esta aproximación técnica permite delegar de forma íntegra la carga computacional del ciclo de vida de las partículas a la GPU, eliminando de forma efectiva las transferencias redundantes entre la CPU y la memoria de vídeo (VRAM).
-
-<Revisar> En las siguientes secciones se detallan las herramientas y los procedimientos técnicos empleados para configurar las \textit{pipelines} globales, la carga y compilación de sombreadores en lenguaje GLSL, y la fragmentación del flujo monolítico de comandos en favor de un sistema asíncrono y desacoplado. Asimismo, se desglosa el diseño analítico, matemático y empírico de los tres fenómenos simulados (agua, fuego y humo), justificando las decisiones de implementación tomadas para alcanzar una simulación masiva y de alto rendimiento.
+A lo largo de las siguientes secciones, se detallan las herramientas y los procedimientos técnicos empleados para configurar los pipelines globales, la carga y compilación de shaders en lenguaje GLSL, y la reestructuración del flujo monolítico tradicional de comandos en favor de un sistema asíncrono y desacoplado. Asimismo, se desglosa el diseño procedimental de los tres fenómenos simulados (agua, fuego y humo), justificando las decisiones de implementación adoptadas para garantizar una simulación masiva que satisfaga las estrictas restricciones de rendimiento e interactividad exigidas.
 
 \section{Creación de la pipeline de Computación}
 
@@ -26,7 +24,7 @@ La inicialización física de la \textit{pipeline} requiere interactuar de forma
 
 El proceso de carga y vinculación de recursos sigue el siguiente protocolo estricto en la GPU:
 \begin{itemize}
-    \item \textbf{Compilación y Configuración de Pipelines:} Se leen los \textit{shaders} de cómputo previamente compilados en formato SPIR-V (\texttt{shaders/particles.comp.spv}). A través de \texttt{VkComputePipelineCreateInfo}, se enlaza el \textit{Shader Module} con el punto de entrada \texttt{"main"}.
+    \item \textbf{Compilación y Configuración de Pipelines:} Se leen los \textit{shaders} de cómputo previamente compilados en formato SPIR-V (\texttt{shaders/fire\_comp.spv, shaders/water\_comp.spv, shaders/smoke\_comp.spv}). A través de \texttt{VkComputePipelineCreateInfo}, se enlaza el \textit{Shader Module} con el punto de entrada \texttt{"main"}.
     \item \textbf{Layouts de Descriptores y Buffers:} Se establece un \texttt{VkDescriptorSetLayout} que define cómo se exponen los recursos al \textit{shader}. La estructura diseñada emplea dos tipos de recursos vinculados en el \texttt{GEDescriptorSet}:
     \begin{itemize}
         \item \textbf{Storage Buffers (SSBO):} Dos \textit{buffers} de almacenamiento masivo (\texttt{particlesIn} y \texttt{particlesOut}) mapeados dinámicamente mediante la clase de partículas. Uno opera en modo lectura para el estado anterior y el otro en modo escritura para salvar las actualizaciones físicas.
@@ -57,7 +55,7 @@ Para incorporar el soporte de computación, el código original sufrió transfor
 \texttt{GEComputeShader} & No existía en el motor. & Creada para inicializar \texttt{VkPipeline} de cómputo, \textit{descriptor pools} y layouts específicos para \textit{compute}. \\ \hline
 \texttt{GEParticleSystem} \newline \texttt{GEParticle} & No existía en el motor. & Implementadas para definir la estructura de datos física de la partícula y despachar hilos (\textit{workgroups}). \\ \hline
 \texttt{GECommandContext} & Solo grababa comandos para \texttt{VK\_PIPELINE\_BIND\_POINT\_GRAPHICS}. & Extendida para soportar la grabación de comandos \textit{Compute} mediante el método \texttt{recordCommands}. \\ \hline
-\texttt{GEScene} \newline \texttt{GEApplication} & Controlaban únicamente figuras geométricas estáticas u objetos indexados (\texttt{GEPiece}). & Integran el ciclo \texttt{update} de físicas en la GPU y configuran el \textit{Render Pass} para consumir los SSBOs. \\ \hline
+\texttt{GEScene} \newline \texttt{GEApplication} & Controlaban únicamente figuras geométricas estáticas u objetos indexados (\texttt{GEPiece}). & Añaden la gestión del ciclo \texttt{update} de simulaciones físicas en la GPU. \\ \hline
 \end{tabular}
 \caption{Comparativa de modificaciones estructurales en el motor gráfico.}
 \label{tab:modificaciones}
@@ -65,6 +63,7 @@ Para incorporar el soporte de computación, el código original sufrió transfor
 
 \subsection{Arquitectura del Pipeline de Computación}
 
+<Revisar>
 En la Figura~\ref{fig:compute_pipeline} se ilustra de manera gráfica el flujo de datos e interconexión de componentes del pipeline de computación diseñado a partir del código de la aplicación.
 
 \begin{figure}[h!]
