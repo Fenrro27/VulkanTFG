@@ -1,16 +1,17 @@
-Test,API,Multithreaded,TestName,MinFrameTime,MaxFrameTime,AvgFrameTime,MaxFPS,MinFPS,AvgFPS
-1,GL,No,"[GL] SimpleBallsSceneTest",0.184204,0.202922,0.186234,5.42876,4.928,5.36958
-1,VK,No,"[VK] SimpleBallsSceneTest",0.125401,0.224353,0.167437,7.97445,4.45727,5.9724
-1,VK,Yes,"[VK] MultithreadedBallsSceneTest",0.0192306,0.0362159,0.0246442,52.0005,27.6122,40.5775
-2,GL,No,"[GL] TerrainSceneTest",0.0174546,0.0238513,0.0189708,57.2915,41.9265,52.7125
-2,GL,Yes,"[GL] MultithreadedTerrainSceneTest",0.0170405,0.0206473,0.0183237,58.6837,48.4325,54.5742
-2,VK,No,"[VK] TerrainSceneTest",0.02401,0.0394108,0.0271903,41.6493,25.3738,36.7779
-2,VK,Yes,"[VK] MultithreadedTerrainSceneTest",0.0115911,0.0528869,0.0228686,86.2728,18.9083,43.7281
-3,GL,No,"[GL] ShadowMappingSceneTest",0.00556146,0.00940433,0.00659971,179.809,106.334,151.522
-3,GL,Yes,"[GL] MultithreadedShadowMappingSceneTest",0.00563486,0.009221,0.0062836,177.467,108.448,159.145
-3,VK,No,"[VK] ShadowMappingSceneTest",0.00403724,0.0053386,0.00421775,247.694,187.315,237.093
-3,VK,Yes,"[VK] MultithreadedShadowMappingSceneTest",0.00113709,0.00422498,0.00254994,879.441,236.688,392.167
-4,GL,No,"[GL] InitializationTest",0.156048,0.156048,0.15605,6.40828,6.40828,6.40822
-4,GL,Yes,"[GL] MultithreadedInitializationTest",0.153105,0.153105,0.153106,6.53148,6.53148,6.53142
-4,VK,No,"[VK] InitializationTest",0.00437423,0.00437423,0.00437569,228.612,228.612,228.535
-4,VK,Yes,"[VK] MultithreadedInitializationTest",0.00323288,0.00323288,0.00323484,309.322,309.322,309.135
+Scenario,Renderer,GPU,AvgFPS,LowFPS,VeryLowFPS,FrameTime,CPUTime,GPUTime,AvgTriangles,AvgDrawCalls
+"Asteroids 15k (Non-Instanced - Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,306.05,84.47,20.28,3.271,0.811,0.445,319800,15001.0
+"Asteroids 15k (Non-Instanced - Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,35.92,30.15,27.79,27.849,26.374,24.779,319800,15001.0
+"Asteroids 15k (Non-Instanced - Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,211.28,62.71,18.83,4.740,1.987,0.951,319800,15001.0
+"Asteroids 15k (Non-Instanced - Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,19.34,16.88,14.87,51.724,50.235,46.741,319800,15001.0
+"Asteroids 15k (Instanced - Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,444.68,149.79,140.06,2.257,0.176,0.095,319800,2.0
+"Asteroids 15k (Instanced - Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,303.15,134.66,70.10,3.312,1.909,0.350,319800,2.0
+"Asteroids 15k (Instanced, Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,418.19,150.21,135.92,2.396,0.191,0.128,319800,2.0
+"Asteroids 15k (Instanced, Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,281.79,144.78,101.03,3.561,2.023,0.709,319800,2.0
+"Asteroids 30k (Instanced, Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,222.37,83.41,21.50,4.514,0.349,0.227,619800,2.0
+"Asteroids 30k (Instanced, Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,149.70,98.72,73.81,6.711,4.258,1.113,619800,2.0
+"Asteroids 30k (Instanced, Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,225.47,93.22,24.54,4.439,0.350,0.336,619800,2.0
+"Asteroids 30k (Instanced, Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,147.71,92.55,54.92,6.795,4.352,1.565,619800,2.0
+Bistro (Shadows Off),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,818.18,342.11,298.42,1.332,0.065,1.170,2829226,132.0
+Bistro (Shadows Off),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,293.96,44.29,22.88,3.412,0.531,1.354,2829226,132.0
+Bistro (Shadows On),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,416.93,238.46,222.12,2.573,0.117,2.423,2829226,132.0
+Bistro (Shadows On),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,192.20,41.05,28.52,5.230,0.958,2.941,2829226,132.0

@@ -13,67 +13,50 @@ El desarrollo de sistemas gráficos modernos exige una comprensión profunda de 
 
 \section{Comparativa de Vulkan con OpenGL}
 
-Durante décadas, OpenGL se estableció como el estándar de la industria para la renderización de gráficos 2D y 3D \parencite{8685588}. Sin embargo, a medida que el hardware evolucionaba hacia arquitecturas multinúcleo, OpenGL comenzó a mostrar limitaciones estructurales. Al estar diseñado como una "caja negra", oculta los detalles de implementación y optimización al desarrollador, lo que facilita su uso pero genera una sobrecarga (*overhead*) en el controlador que vuelve su rendimiento impredecible. Además, OpenGL no fue concebido originalmente para soportar procesamiento multihilo, lo que dificulta el aprovechamiento de las CPUs modernas \parencite{9655285}.
+Durante décadas, OpenGL se estableció como el estándar de la industria para la renderización de gráficos 2D y 3D \parencite{8685588}. Sin embargo, a medida que el hardware evolucionaba hacia arquitecturas multinúcleo, OpenGL comenzó a mostrar limitaciones estructurales. Al estar diseñado como una máquina de estados de alto nivel, oculta los detalles de implementación y optimización al desarrollador. Esto facilita su uso, pero genera una sobrecarga computacional (\textit{overhead}) considerable en el controlador de la CPU al procesar llamadas de dibujado (\textit{draw calls}), volviendo su rendimiento menos predecible en aplicaciones complejas \parencite{9655285}.
 
-Para resolver estas carencias, se propuso Vulkan. Su filosofía de diseño difiere radicalmente: empodera al desarrollador otorgándole un control de bajo nivel sobre la gestión de memoria y el envío de comandos a la GPU. Vulkan asume que el programador conoce mejor el flujo de trabajo de la aplicación que el propio controlador. Al ser inherentemente "amigable" con los hilos de procesamiento (*thread-friendly*), permite distribuir equitativamente la creación de comandos de renderizado a través de múltiples núcleos de la CPU, reduciendo la presión sobre el controlador \parencite{9655285}.
+Para resolver estas carencias, se propuso Vulkan. Su filosofía de diseño difiere radicalmente: empodera al desarrollador otorgándole un control explícito y de muy bajo nivel sobre la gestión de memoria, la sincronización y el envío de comandos a la GPU. Vulkan asume que el programador conoce mejor el flujo de la aplicación que el controlador. Al eliminar gran parte de la validación en tiempo de ejecución y ser inherentemente amigable con el multiprocesamiento (\textit{thread-friendly}), Vulkan reduce drásticamente el tiempo de CPU necesario para preparar y enviar comandos de renderizado \parencite{9655285}.
 
-En términos de rendimiento, la literatura demuestra una clara ventaja de Vulkan en escenarios de alta carga. En simulaciones con múltiples objetos independientes (circunstancia habitual en la simulación de partículas), OpenGL tiende a sufrir cuellos de botella en la CPU, limitando su tasa máxima de fotogramas de forma severa; en pruebas de estrés ha llegado a estancarse en torno a los 3.000 FPS. En contrapartida, bajo las mismas condiciones experimentales, Vulkan es capaz de triplicar este rendimiento y alcanzar los 9.000 FPS al eliminar dicho cuello de botella \parencite{8685588}.
+En términos de rendimiento empírico, los datos demuestran una clara ventaja de Vulkan en escenarios con alta carga de llamadas de dibujado. En pruebas de estrés sin instanciación geométrica —donde se envían miles de comandos independientes a la GPU—, OpenGL sufre un severo cuello de botella en la CPU. Bajo las mismas condiciones, Vulkan es capaz de reducir el tiempo de dibujado de manera sustancial, habilitando tasas de fotogramas que en OpenGL resultan inalcanzables debido a la saturación del controlador \parencite{8685588}.
 
-\begin{figure}[ht]
+\begin{table}[ht]
     \centering
-    \begin{tikzpicture}
-        \begin{axis}[
-            ybar,
-            ymode=log,
-            width=0.9\textwidth,
-            height=8cm,
-            bar width=8pt,
-            ylabel={FPS Promedio},
-            xlabel={Escenario de Prueba},
-            xtick={1,2,3,4},
-            xticklabels={Simple Balls, Terrain, Shadow Map, Init},
-            nodes near coords,
-            every node near coord/.append style={rotate=90, anchor=west, font=\tiny, /pgf/number format/fixed},
-            legend style={at={(0.5,-0.25)}, anchor=north, legend columns=2, font=\small},
-            grid=major,
-            ymin=1, ymax=1000,
-            log ticks with fixed point,
-            enlarge x limits=0.2,
-        ]
-            % Filtros para separar los datos por API y modo multihilo
-            \addplot[fill=blue!30, draw=black] table [x=Test, y=AvgFPS, col sep=comma, 
-                discard if not={API}{GL}, discard if not={Multithreaded}{No}] {Media/EstadoDelArte_1.csv};
-            
-            \addplot[fill=blue!70, draw=black] table [x=Test, y=AvgFPS, col sep=comma,
-                discard if not={API}{GL}, discard if not={Multithreaded}{Yes}] {Media/EstadoDelArte_1.csv};
-            
-            \addplot[fill=orange!30, draw=black] table [x=Test, y=AvgFPS, col sep=comma,
-                discard if not={API}{VK}, discard if not={Multithreaded}{No}] {Media/EstadoDelArte_1.csv};
-            
-            \addplot[fill=orange!70, draw=black] table [x=Test, y=AvgFPS, col sep=comma,
-                discard if not={API}{VK}, discard if not={Multithreaded}{Yes}] {Media/EstadoDelArte_1.csv};
-            
-            \legend{OpenGL ST, OpenGL MT, Vulkan ST, Vulkan MT}
-        \end{axis}
-        % Dibujar un recuadro alrededor de la gráfica con un poco de margen (padding)
-        \draw[thin, lightgray] ([xshift=-5pt, yshift=-5pt]current bounding box.south west) rectangle ([xshift=5pt, yshift=5pt]current bounding box.north east);
-    \end{tikzpicture}
-    \caption{Rendimiento (FPS) de Vulkan vs. OpenGL. Fuente: Elaboración propia a partir del entorno de pruebas de \textcite{fenrro2026glvsvk_comp}.}
-    \label{fig:comparativa_fps_vulkan_opengl}
-\end{figure}
+    \renewcommand{\arraystretch}{1.2}
+    % \resizebox{ancho}{alto}{objeto} -> el ! mantiene la proporción
+    \resizebox{\textwidth}{!}{%
+        \begin{tabular}{|p{4.5cm}|l|r|r|r|r|r|}
+            \hline
+            \textbf{Escenario} & \textbf{API} & \textbf{FPS Promedio} & \textbf{1\% Low FPS} & \textbf{Fotograma (ms)} & \textbf{CPU (ms)} & \textbf{GPU (ms)} \\
+            \hline
+            \csvreader[separator=comma, respect all, head to column names]{Media/EstadoDelArte_1.csv}{%
+                Scenario=\escenario,
+                Renderer=\api,
+                AvgFPS=\avgfps,
+                LowFPS=\lowfps,
+                FrameTime=\frametime,
+                CPUTime=\cputime, 
+                GPUTime=\gputime
+            }{\escenario & \api & \avgfps & \lowfps & \frametime & \cputime & \gputime \\\hline}
+        \end{tabular}%
+    }
+    \caption{Rendimiento de Vulkan vs. OpenGL en una NVIDIA RTX 2060 Max-Q. Fuente: datos extraídos directamente de \texttt{Media/EstadoDelArte\_1.csv}.}
+    \label{tab:comparativa_vulkan_opengl}
+\end{table}
 
-Como se ilustra en la Figura \ref{fig:comparativa_fps_vulkan_opengl}, los resultados —extraídos del entorno de benchmarking desarrollado para este trabajo \parencite{fenrro2026glvsvk_comp} como una evolución del proyecto original de \citeauthor{dyndo2017glvsvk} \parencite{dyndo2017glvsvk}— muestran el impacto de la arquitectura de la API en el rendimiento. Para entender estas métricas, es crucial desglosar los escenarios evaluados:
+Como se detalla en la Tabla \ref{tab:comparativa_vulkan_opengl}, los resultados extraídos del entorno de \textit{benchmarking} \parencite{benyoon1_vk_gl} exponen el profundo impacto que tiene la arquitectura de la API sobre los tiempos de procesamiento. Para comprender estas métricas, es crucial desglosar los escenarios evaluados:
 
 \begin{enumerate}
-    \item \textbf{Simple Balls}: Simulación de miles de esferas en movimiento. Es un test intensivo en llamadas de dibujado (\textit{draw calls}).
-    \item \textbf{Terrain}: Renderizado de un terreno extenso mediante teselación o mallas densas, evaluando la eficiencia en el manejo de geometría compleja.
-    \item \textbf{Shadow Map}: Implementación de técnicas de sombreado que requieren múltiples pases de renderizado, aumentando la sobrecarga de gestión de estados.
-    \item \textbf{Initialization}: Mide la latencia y eficiencia al crear recursos y estados de tubería (\textit{pipelines}).
+    \item \textbf{Asteroids (Non-Instanced)}: Prueba de estrés intensiva en CPU. Dibuja miles de asteroides enviando una llamada de dibujado (\textit{draw call}) por cada uno (más de 15.000 llamadas). Mide la sobrecarga pura del controlador.
+    \item \textbf{Asteroids (Instanced)}: El mismo escenario, pero agrupando la geometría mediante instanciación por hardware, reduciendo las llamadas de dibujado a solo 2. Evalúa la eficiencia del renderizado base eliminando el cuello de botella de la CPU.
+    \item \textbf{Bistro}: Un escenario arquitectónico de alta complejidad con cerca de 2.8 millones de triángulos. Desplaza el cuello de botella hacia la GPU para evaluar el manejo de geometría densa y múltiples materiales.
+    \item \textbf{Shadows On/Off}: Modificador transversal que introduce pases de renderizado adicionales para el cálculo de sombras, aumentando los requerimientos de ancho de banda y cálculos.
 \end{enumerate}
 
-Un aspecto fundamental que revela la gráfica es la diferencia conceptual de lo que significa "multihilo" (\textit{MT}) en cada tecnología. En \textbf{Vulkan}, el multihilo es nativo: permite grabar búferes de comandos de forma paralela en todos los núcleos de la CPU, reduciendo drásticamente el tiempo de preparación de la escena. En cambio, en \textbf{OpenGL}, la API es inherentemente monohilo; el modo \textit{MT} aquí solo permite paralelizar la lógica de la aplicación (como la física de las esferas), pero la comunicación con la GPU sigue siendo un cuello de botella secuencial.
+El análisis de los datos revela el verdadero poder de Vulkan en la gestión de recursos. En el escenario \textit{Asteroids 15k (Non-Instanced, Shadows Off)}, el controlador de OpenGL (\texttt{nouveau} NV166) colapsa por completo, consumiendo 186.6 ms en tiempo de CPU para procesar las llamadas de dibujado, lo que resulta en una tasa inoperable de 5.40 FPS. Vulkan, gracias al bajo nivel de abstracción de su controlador \texttt{NVK}, despacha las mismas 15.000 llamadas invirtiendo apenas 1.41 ms de CPU, alcanzando los 266.90 FPS. Al activar la instanciación (\textit{Instanced}), el número de llamadas cae a 2; el cuello de botella en CPU desaparece y OpenGL logra recuperarse hasta los 286.88 FPS. Sin embargo, la eficiente canalización interna de Vulkan le permite mantener una ventaja sustancial, escalando hasta los 445.37 FPS.
 
-Esta disparidad explica por qué Vulkan logra resultados hasta cuatro veces superiores en \textit{Simple Balls} y \textit{Shadow Map} al activar el modo multihilo. Si bien en \textit{Terrain} OpenGL mantiene una ligera ventaja debido a optimizaciones históricas de los controladores para geometrías estáticas, la escalabilidad y previsibilidad de Vulkan lo consolidan como la opción superior para sistemas modernos \parencite{9655285}. Al gestionar explícitamente la memoria y la sincronización, se eliminan los micro-tirones (*stuttering*) típicos de las abstracciones de alto nivel, garantizando un flujo de fotogramas mucho más estable \parencite{8685588}.
+No obstante, las métricas de la escena \textit{Bistro} presentan un comportamiento anómalo que destaca las limitaciones actuales de las implementaciones de código abierto en Linux. En este escenario intensivo en GPU, OpenGL aparentemente supera a Vulkan por un amplio margen (226.83 FPS frente a 30.93 FPS en \textit{Shadows Off}). Sin embargo, los tiempos de procesamiento revelan que es físicamente improbable renderizar 2.8 millones de triángulos en 2.6 ms utilizando este hardware. Esta disparidad indica que el controlador NV166 de OpenGL está fallando al procesar la escena masiva (omitiendo geometría o fallando al compilar sombreadores complejos), lo que reduce artificialmente el tiempo de GPU e infla los FPS promedios, a costa de una inestabilidad severa (reflejada en los mínimos del 1\%, que caen bruscamente a 16.46 FPS). En contrapartida, los 33.3 ms de tiempo de GPU en Vulkan demuestran que el controlador NVK está procesando y renderizando correctamente la totalidad de la carga geométrica de la escena \parencite{9655285}.
+
+A pesar de las particularidades ligadas a la madurez de los controladores, los resultados empíricos confirman que la previsibilidad, la dramática minimización de tiempos de CPU en cargas pesadas y la estabilidad de Vulkan lo consolidan como la opción técnica superior frente a los cuellos de botella inherentes al diseño histórico de OpenGL.
 
 \subsection{Eficiencia energética}
 

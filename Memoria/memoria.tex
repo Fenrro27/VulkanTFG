@@ -11,6 +11,7 @@
 \usepackage{graphicx}          % Para insertar imágenes
 \usepackage{pgfplots}          % Para generar gráficas directamente
 \usepackage{pgfplotstable}     % Para manejar tablas de datos
+\usepackage{csvsimple}         % Para leer CSV con campos entrecomillados
 \pgfplotsset{compat=1.18}
 \pgfplotsset{
     discard if not/.style 2 args={
@@ -102,6 +103,12 @@
 
 \usepackage[section]{placeins} % Pone una barrera automática en cada \section
 \newcommand{\refanexo}[1]{[\ref{#1}]}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+% Añadir color para resaltar el mejor rendimiento
+\usepackage{colortbl}
+
 
 % --- Inicio del Documento ---
 \begin{document}

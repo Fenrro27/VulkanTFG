@@ -99,71 +99,6 @@
       \verb https://github.com/ocornut/imgui
       \endverb
     \endentry
-    \entry{dyndo2017glvsvk}{online}{}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=a5bda8f421d1f46ae45f1d18971e754c}{%
-           family={Dyńdo},
-           familyi={D\bibinitperiod},
-           given={Damian},
-           giveni={D\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{fullhash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{fullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{bibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorbibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authornamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorfullhash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorfullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
-      \field{sortinit}{D}
-      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \true{uniqueprimaryauthor}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{note}{Repositorio original}
-      \field{title}{GL\_vs\_VK: Comparison of OpenGL and Vulkan API in terms of performance}
-      \field{year}{2017}
-      \verb{urlraw}
-      \verb https://github.com/RippeR37/GL_vs_VK
-      \endverb
-      \verb{url}
-      \verb https://github.com/RippeR37/GL_vs_VK
-      \endverb
-    \endentry
-    \entry{fenrro2026glvsvk_comp}{online}{}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
-           family={Fenrro27},
-           familyi={F\bibinitperiod}}}%
-      }
-      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
-      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
-      \field{sortinit}{F}
-      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \true{uniqueprimaryauthor}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{note}{Bifurcación (fork) adaptada y expandida para este trabajo}
-      \field{title}{GL\_vs\_VK (Branch Comparative): Entorno de benchmarking para TFG}
-      \field{year}{2026}
-      \verb{urlraw}
-      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
-      \endverb
-      \verb{url}
-      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
-      \endverb
-    \endentry
     \entry{9655285}{article}{}{}
       \name{author}{4}{}{%
         {{un=0,uniquepart=base,hash=58ca0c97fadeb13bf485d1adda698068}{%
@@ -449,6 +384,46 @@
       \verb https://github.com/microsoft/vcpkg
       \endverb
     \endentry
+    \entry{moreno_gii_ao}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=099e0b81792959d5f796ec3d55d22cd0}{%
+           family={Moreno\bibnamedelima Velo},
+           familyi={M\bibinitperiod\bibinitdelim V\bibinitperiod},
+           given={Francisco\bibnamedelima José},
+           giveni={F\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{organization}{1}{%
+        {Universidad de Huelva}%
+      }
+      \strng{namehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{fullhash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{fullhashraw}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{bibnamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorbibnamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authornamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorfullhash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorfullhashraw}{099e0b81792959d5f796ec3d55d22cd0}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Animación por Ordenador (Grado en Ingeniería Informática)}
+      \field{urlday}{25}
+      \field{urlmonth}{5}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.uhu.es/francisco.moreno/gii_ao/
+      \endverb
+      \verb{url}
+      \verb https://www.uhu.es/francisco.moreno/gii_ao/
+      \endverb
+    \endentry
     \entry{Sellers_Kessenich_2017a}{book}{}{}
       \name{author}{2}{}{%
         {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
@@ -582,6 +557,40 @@
       \endverb
       \verb{url}
       \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+    \endentry
+    \entry{benyoon1_vk_gl}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=2d6ad427170721db78a7f87921aed9ca}{%
+           family={Yoon},
+           familyi={Y\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{fullhash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{fullhashraw}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{bibnamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorbibnamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authornamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorfullhash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorfullhashraw}{2d6ad427170721db78a7f87921aed9ca}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositorio de GitHub modificado para pruebas de rendimiento}
+      \field{title}{Vulkan vs OpenGL Benchmark}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://github.com/benyoon1/vulkan-vs-opengl
+      \endverb
+      \verb{url}
+      \verb https://github.com/benyoon1/vulkan-vs-opengl
       \endverb
     \endentry
   \enddatalist
@@ -666,71 +675,6 @@
       \verb https://github.com/ocornut/imgui
       \endverb
     \endentry
-    \entry{dyndo2017glvsvk}{online}{}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=a5bda8f421d1f46ae45f1d18971e754c}{%
-           family={Dyńdo},
-           familyi={D\bibinitperiod},
-           given={Damian},
-           giveni={D\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{fullhash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{fullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{bibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorbibnamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authornamehash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorfullhash}{a5bda8f421d1f46ae45f1d18971e754c}
-      \strng{authorfullhashraw}{a5bda8f421d1f46ae45f1d18971e754c}
-      \field{sortinit}{D}
-      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \true{uniqueprimaryauthor}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{note}{Repositorio original}
-      \field{title}{GL\_vs\_VK: Comparison of OpenGL and Vulkan API in terms of performance}
-      \field{year}{2017}
-      \verb{urlraw}
-      \verb https://github.com/RippeR37/GL_vs_VK
-      \endverb
-      \verb{url}
-      \verb https://github.com/RippeR37/GL_vs_VK
-      \endverb
-    \endentry
-    \entry{fenrro2026glvsvk_comp}{online}{}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
-           family={Fenrro27},
-           familyi={F\bibinitperiod}}}%
-      }
-      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
-      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
-      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
-      \field{sortinit}{F}
-      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \true{uniqueprimaryauthor}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{note}{Bifurcación (fork) adaptada y expandida para este trabajo}
-      \field{title}{GL\_vs\_VK (Branch Comparative): Entorno de benchmarking para TFG}
-      \field{year}{2026}
-      \verb{urlraw}
-      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
-      \endverb
-      \verb{url}
-      \verb https://github.com/Fenrro27/GL_vs_VK/tree/Comparative
-      \endverb
-    \endentry
     \entry{9655285}{article}{}{}
       \name{author}{4}{}{%
         {{un=0,uniquepart=base,hash=58ca0c97fadeb13bf485d1adda698068}{%
@@ -1016,6 +960,46 @@
       \verb https://github.com/microsoft/vcpkg
       \endverb
     \endentry
+    \entry{moreno_gii_ao}{online}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=099e0b81792959d5f796ec3d55d22cd0}{%
+           family={Moreno\bibnamedelima Velo},
+           familyi={M\bibinitperiod\bibinitdelim V\bibinitperiod},
+           given={Francisco\bibnamedelima José},
+           giveni={F\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{organization}{1}{%
+        {Universidad de Huelva}%
+      }
+      \strng{namehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{fullhash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{fullhashraw}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{bibnamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorbibnamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authornamehash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorfullhash}{099e0b81792959d5f796ec3d55d22cd0}
+      \strng{authorfullhashraw}{099e0b81792959d5f796ec3d55d22cd0}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Animación por Ordenador (Grado en Ingeniería Informática)}
+      \field{urlday}{25}
+      \field{urlmonth}{5}
+      \field{urlyear}{2026}
+      \field{year}{2024}
+      \field{urldateera}{ce}
+      \verb{urlraw}
+      \verb https://www.uhu.es/francisco.moreno/gii_ao/
+      \endverb
+      \verb{url}
+      \verb https://www.uhu.es/francisco.moreno/gii_ao/
+      \endverb
+    \endentry
     \entry{Sellers_Kessenich_2017a}{book}{}{}
       \name{author}{2}{}{%
         {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
@@ -1149,6 +1133,40 @@
       \endverb
       \verb{url}
       \verb https://github.com/SaschaWillems/Vulkan
+      \endverb
+    \endentry
+    \entry{benyoon1_vk_gl}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=2d6ad427170721db78a7f87921aed9ca}{%
+           family={Yoon},
+           familyi={Y\bibinitperiod},
+           given={Ben},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{fullhash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{fullhashraw}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{bibnamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorbibnamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authornamehash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorfullhash}{2d6ad427170721db78a7f87921aed9ca}
+      \strng{authorfullhashraw}{2d6ad427170721db78a7f87921aed9ca}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Repositorio de GitHub modificado para pruebas de rendimiento}
+      \field{title}{Vulkan vs OpenGL Benchmark}
+      \field{year}{2024}
+      \verb{urlraw}
+      \verb https://github.com/benyoon1/vulkan-vs-opengl
+      \endverb
+      \verb{url}
+      \verb https://github.com/benyoon1/vulkan-vs-opengl
       \endverb
     \endentry
   \enddatalist
