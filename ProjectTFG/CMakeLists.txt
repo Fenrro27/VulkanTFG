@@ -1,11 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
 project(ProjectTFG LANGUAGES CXX)
 
-# 1. Buscar herramientas necesarias
-find_program(GLSL_VALIDATOR glslangValidator)
+find_package(Vulkan REQUIRED)
+
+# ---- CONFIGURACIÓN CON VULKAN SDK GLOBAL ----
+find_program(GLSL_VALIDATOR NAMES glslangValidator glslc REQUIRED)
+
 if(NOT GLSL_VALIDATOR)
-    message(WARNING "No se encontró glslangValidator. Los shaders no se compilarán.")
+    message(FATAL_ERROR "No se encontró el compilador de shaders del Vulkan SDK.")
 endif()
+
+message(STATUS "=== Vulkan SDK Encontrado ===")
+message(STATUS "-> Librería Vulkan: ${Vulkan_LIBRARIES}")
+message(STATUS "-> Compilador Shaders: ${GLSL_VALIDATOR}")
 
 # 2. Lista de Shaders
 file(GLOB SHADER_SOURCES "shaders/*.vert" "shaders/*.frag" "shaders/*.comp")
@@ -51,7 +58,6 @@ if(GLSL_VALIDATOR)
 endif()
 
 # 6. Dependencias con vcpkg
-find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
