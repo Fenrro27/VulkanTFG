@@ -13,7 +13,7 @@ Este proyecto consiste en un motor gráfico de alto rendimiento desarrollado en 
 
 ## Requisitos Previos
 1. **Vulkan SDK**: Instalado y en el PATH del sistema.
-2. **vcpkg**: Gestor de paquetes configurado con la variable de entorno `VCPKG_ROOT`.
+2. **vcpkg**: Gestor de paquetes configurado con la variable de entorno `VCPKG_ROOT` (o instalado en visual studio).
 > **⚠️ Importante:** La versión de vcpkg debe ser posterior al **18 de octubre de 2023** para que reconozca el campo `license` en las dependencias modernas (como ImGui).
 > * Tu historial local de vcpkg debe estar lo suficientemente actualizado para contener el commit del **baseline exigido por este proyecto** (`d80785c4ee1df22a4119a3451452f59e978e06aa`).
 3. **CMake**: Versión 3.20 o superior.
