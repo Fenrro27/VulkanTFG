@@ -49,18 +49,16 @@ Las consecuencias directas de esta falta de sincronización en el motor gráfico
 
 Para solventar este cuello de botella sin degradar el paralelismo masivo de la arquitectura de vídeo, se ha diseñado un protocolo de sincronización explícito mediante comandos \texttt{vkCmdPipelineBarrier}. Al registrar la estructura, se definen dos políticas de control:
 
-\begin{subsection}{Barrera de Ejecución (\textit{Execution Barrier})}
+\subsection{Barrera de Ejecución (\textit{Execution Barrier})}
 Se restringe el flujo del planificador de hardware vinculando la etapa productora y la etapa consumidora de datos:
 \begin{center}
 \texttt{VK\_PIPELINE\_STAGE\_COMPUTE\_SHADER\_BIT} $\longrightarrow$ \texttt{VK\_PIPELINE\_STAGE\_VERTEX\_SHADER\_BIT}
 \end{center}
 Esto obliga a las unidades de cómputo gráfico a congelar el procesamiento de vértices hasta que los núcleos destinados al \textit{Compute Shader} hayan alcanzado su instrucción de salida.
-\end{subsection}
 
-\begin{subsection}{Barrera de Acceso a Memoria (\textit{Memory Access Barrier})}
+\subsection{Barrera de Acceso a Memoria (\textit{Memory Access Barrier})}
 Garantiza de forma física que las cachés L1 y L2 de la GPU se hayan vaciado (\textit{flushed}) e invalidado respectivamente:
 \begin{center}
 \texttt{VK\_ACCESS\_SHADER\_WRITE\_BIT} $\longrightarrow$ \texttt{VK\_ACCESS\_VERTEX\_ATTRIBUTE\_READ\_BIT}
 \end{center}
 Esta transición de acceso asegura que las escrituras en el almacenamiento masivo sean globalmente visibles para los registros de atributos de entrada de los shaders de dibujado, convirtiendo un acceso asíncrono indeterminado en una arquitectura lineal determinista de alto rendimiento.
-\end{subsection}

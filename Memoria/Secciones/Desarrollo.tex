@@ -194,10 +194,82 @@ La textura seleccionada para el sistema de agua (Figura \ref{fig:texAgua}) es un
     \label{fig:texAgua}
 \end{figure}
 
-\subsection{Shader} Descripcion de como esta montado
+\subsection{Shader}
 
-\subsection{Descripción en C++} Parametros que le pasamos al shader para hacer determinadas cosas
+El procesamiento y la actualización física de las partículas de agua se delegan a la GPU mediante un \textit{Compute Shader} (water.comp) escrito en GLSL (versión 450). Esta arquitectura permite calcular simultáneamente la física de miles de gotas de agua, liberando a la CPU de una carga de trabajo intensiva.
 
+\subsubsection{Estructura de Datos y Configuración}
+El shader recibe la información estructurada a través de bloques de memoria. Utiliza dos \textit{Shader Storage Buffer Objects} (SSBO) estandarizados (\texttt{std430}): \texttt{ParticleBufferIn} (lectura del estado actual) y \texttt{ParticleBufferOut} (escritura del estado actualizado). Los parámetros globales del emisor (posición, fuerzas, colores, delta de tiempo) se reciben mediante un \textit{Uniform Buffer Object} (UBO) en \texttt{std140}.
+
+El espacio de trabajo se define mediante \texttt{layout(local\_size\_x = 256)}, agrupando la ejecución en bloques de 256 hilos, donde cada hilo (\texttt{gl\_GlobalInvocationID.x}) se encarga exclusivamente de una partícula.
+
+\subsubsection{Generación Pseudoaleatoria en GPU}
+Debido a que GLSL no cuenta con un generador de números aleatorios nativo, se implementa una función matemática de *hashing* basada en operaciones de bits (\textit{bitwise shifts} y XOR) sobre una semilla (\texttt{seed}). Esta función devuelve un valor normalizado entre $0.0$ y $1.0$, fundamental para introducir variabilidad en la emisión de las partículas sin depender de la CPU.
+
+\subsubsection{Lógica Principal de Simulación}
+El ciclo de vida de cada gota se rige restando el tiempo transcurrido (\texttt{deltaTime}) a su tiempo de vida actual (\texttt{currentTtl}). Dependiendo de si la partícula ha «muerto» o sigue viva, el hilo de ejecución toma dos caminos distintos.
+
+\paragraph{Reaparición y Emisión Dinámica (Reset)}
+Cuando \texttt{currentTtl} $\le 0.0$, la partícula se reubica en la posición del emisor y renueva su TTL. Para mejorar el efecto visual de la fuente, el shader aplica una rotación dinámica continua sobre los 8 chorros definidos originalmente en C++. 
+
+Se define una velocidad de rotación ($v_{\text{rot}} = 1$) y se calcula un ángulo base ($\theta_{\text{base}}$) modificado por el tiempo de la simulación. Además, la inclinación respecto al eje vertical ($\phi$) y la fuerza inicial varían ligeramente gracias a la función aleatoria de la GPU. Las componentes del vector normal de velocidad ($\vec{v}$) se calculan mediante la siguiente conversión esférica:
+
+\begin{equation}
+    \begin{aligned}
+        \theta_{\text{base}} &= \left(45^\circ \cdot (i \bmod 8) \cdot \frac{\pi}{180}\right) + (\text{time} \cdot v_{\text{rot}}) \\
+        \phi &= 0.5236 + (\text{random}(i) - 0.5) \cdot 0.175 \\
+        v_x &= \sin(\phi) \cdot \cos(\theta_{\text{base}}) \\
+        v_y &= \cos(\phi) \\
+        v_z &= \sin(\phi) \cdot \sin(\theta_{\text{base}})
+    \end{aligned}
+\end{equation}
+
+El vector resultante se multiplica por la fuerza calculada, proporcionando el impulso inicial curvo y rotatorio característico de una fuente ornamental.
+
+\paragraph{Física Constante e Integración}
+Si la partícula sigue activa (\texttt{currentTtl} > 0.0), el shader actualiza su estado aplicando fuerzas físicas reales. A diferencia de C++, aquí se simula la gravedad restando una constante aceleración ($g = 9.8$) a la componente $Y$ de la velocidad.
+
+Adicionalmente, se simula la resistencia del aire en el plano horizontal (XZ). En lugar de mantener una velocidad de expansión infinita, las gotas pierden un porcentaje de su inercia lateral por segundo (factor de retención $R = 0.5$). La integración de la velocidad y la posición obedece a las siguientes ecuaciones:
+
+\begin{equation}
+    \begin{aligned}
+        v_y &= v_y - (g \cdot \Delta t) \\
+        \vec{v}_{xz} &= \vec{v}_{xz} \cdot R^{\Delta t} \\
+        \vec{p} &= \vec{p} + (\vec{v} \cdot \Delta t)
+    \end{aligned}
+\end{equation}
+
+Finalmente, se calcula un factor de vida normalizado (entre $0.0$ y $1.0$) mediante la proporción entre el tiempo actual y el TTL total. Este factor se utiliza como peso en la función de interpolación lineal \texttt{mix()} de GLSL, logrando que la gota disminuya de tamaño y se vuelva transparente gradualmente mientras cae.
+
+\subsection{Descripción en C++} 
+
+La clase que tiene la descripción en C++ es \texttt{GEAgua}, que hereda de \texttt{GEParticlesSystem} y está diseñada para configurar los parámetros específicos que simulan el comportamiento físico y visual de un flujo de agua, concretamente el de una fuente. A continuación, se detalla su estructura y la lógica matemática empleada para la emisión de las partículas.
+
+\subsubsection{Estructura del Encabezado}
+El archivo de cabecera (\texttt{GEAgua.h}) mantiene una estructura minimalista. Al heredar de la clase base \texttt{GEParticlesSystem}, basta con redefinir el constructor explícito, el cual acepta como parámetro el número inicial de partículas (por defecto 200). Toda la infraestructura de almacenamiento y actualización reside en la clase padre.
+
+\subsubsection{Implementación y Lógica de Emisión}
+Toda la configuración del sistema reside en el constructor definido en \texttt{GEAgua.cpp}. Este se encarga de definir las propiedades globales del emisor y de inicializar el estado individual de cada gota de agua.
+
+\paragraph{Parámetros del Emisor y Aleatoriedad}
+Para dar naturalidad a la simulación, se emplea la librería \texttt{<random>} de C++. Se instancia un generador \texttt{std::mt19937} declarado como \texttt{static} para asegurar que la semilla (\texttt{std::random\_device}) se inicialice una única vez, mejorando el rendimiento.
+
+Mediante distribuciones uniformes (\texttt{std::uniform\_real\_distribution}), se asigna a cada partícula un tiempo de vida (TTL) aleatorio de entre 2.0 y 3.5 segundos. Asimismo, se define una transición de color desde un azul brillante y opaco hacia un tono claro y transparente, simulando la dispersión y evaporación del agua. El tamaño de la partícula también decae desde $1.0$ hasta $0.3$ a lo largo de su ciclo de vida.
+
+\paragraph{Distribución Espacial de las Partículas}
+Para recrear el efecto de una fuente, las partículas deben dispararse desde la base formando un cono de expansión. En lugar de utilizar una dispersión puramente aleatoria, el algoritmo distribuye las partículas simétricamente en 8 direcciones.
+
+Para cada partícula $i$, se define un ángulo fijo de inclinación respecto al eje vertical de $60^\circ$ y un ángulo de rotación horizontal (acimut) que avanza en pasos de $45^\circ$. El vector de dirección normalizado, que posteriormente se multiplica por la fuerza de emisión (10.0), se calcula matemáticamente de la siguiente forma:
+
+\begin{equation}
+    \begin{aligned}
+        v_x &= \sin(60^\circ) \cdot \cos(45^\circ \cdot (i \bmod 8)) \\
+        v_y &= \cos(60^\circ) \\
+        v_z &= \sin(60^\circ) \cdot \sin(45^\circ \cdot (i \bmod 8))
+    \end{aligned}
+\end{equation}
+
+Esta configuración inicial proporciona el impulso ascendente y la apertura del chorro.
 
 \subsection{Resultado}
 
@@ -238,7 +310,77 @@ La textura para el sistema de fuego se ha seleccionado por su cualidad de luz vo
 
 \subsection{Shader}
 
+
+Al igual que en el sistema de agua, la actualización física de las partículas se procesa en paralelo en la GPU. Omitiendo la arquitectura de lectura y escritura de búferes, que es idéntica a la del agua, el \textit{Compute Shader} del fuego (fire.comp) se caracteriza por aplicar un modelo de dinámica de fluidos simulada, aproximando los efectos de la termodinámica y el comportamiento orgánico de las llamas.
+
+\subsubsection{Nacimiento y Distribución Espacial}
+Cuando una partícula consume su tiempo de vida (\texttt{currentTtl} $\le 0.0$), se reinicia. En lugar de nacer en un punto exacto, el fuego requiere una base volumétrica. Para ello, se genera una distribución circular uniforme en el plano $XZ$.
+
+Para evitar que las partículas se agrupen de forma irreal en el centro del círculo, se aplica la raíz cuadrada a la función aleatoria del radio, garantizando una densidad uniforme en toda el área de emisión. El ángulo ($\theta$) y el radio ($r$) se calculan de la siguiente forma:
+
+\begin{equation}
+    \begin{aligned}
+        \theta &= \text{random}(i) \cdot 2\pi \\
+        r &= \sqrt{\text{random}(i + 1000)} \cdot \text{randomness} \cdot 0.5
+    \end{aligned}
+\end{equation}
+
+Posteriormente, a la partícula se le asigna un vector normal aleatorioizado con un fuerte sesgo vertical, dotándola de su impulso térmico inicial.
+
+\subsubsection{Dinámica de Fluidos Simulada}
+Si la partícula está viva, el hilo de ejecución calcula su trayectoria basándose en tres principios termodinámicos aproximados. La altura alcanzada por la partícula desde su punto de origen (\texttt{upwardProgress}) actúa como variable de control para varias de estas fuerzas.
+
+\paragraph{Flotabilidad y Convección}
+La llama asciende constantemente gracias a una aceleración térmica base, que incrementa progresivamente la componente $Y$ de su velocidad. Simultáneamente, el fuego real tiende a estrecharse en su cúspide debido al aire frío circundante. Esto se simula mediante una fuerza de convección que empuja las partículas hacia el centro de la columna ($P_{\text{centro}} - P_{\text{actual}}$). Esta fuerza de atracción aumenta proporcionalmente con la altura:
+\begin{equation}
+    \vec{F}_{\text{convecci\'on}} = \vec{\text{dir}}_{\text{centro}} \cdot (\text{upwardProgress} \cdot 2.0)
+\end{equation}
+
+\paragraph{Turbulencia Base}
+Para recrear el movimiento oscilante característico de las llamas, se aplican funciones trigonométricas (seno para el eje $X$, coseno para el eje $Z$) al vector de velocidad. La fase de estas ondas está modulada por el tiempo global, la altura de la partícula y una semilla única por hilo (\texttt{seed}), generando un caos orgánico y evitando movimientos sincronizados.
+
+\subsubsection{Comportamiento Especial: Subsistema de Chispas}
+Una de las particularidades de este \textit{shader} es la diferenciación de partículas. Aproximadamente 1 de cada 15 partículas (\texttt{index \% 15 == 0}) es designada lógicamente como una ``chispa''. 
+
+Estas chispas se rebelan contra el flujo general del sistema aplicando modificadores a la física principal:
+\begin{enumerate}
+    \item \textbf{Resistencia a la convección:} La atracción hacia el centro se reduce drásticamente (al $5\%$), permitiendo que escapen lateralmente de la columna principal.
+    \item \textbf{Turbulencia agresiva:} Se les añade un movimiento en espiral de alta frecuencia (velocidad de giro de $12.0$) y gran amplitud, simulando el vuelo errático provocado por el viento térmico.
+    \item \textbf{Menor masa térmica:} Su tamaño base es forzado a ser un $60\%$ más pequeño que el de una partícula de fuego estándar.
+\end{enumerate}
+
+\subsubsection{Evolución Visual}
+La interpolación del color se realiza linealmente desde un amarillo incandescente hacia un rojo transparente. Sin embargo, para simular que las llamas mantienen su volumen antes de disiparse abruptamente en humo, el tamaño no decae de forma lineal. Se utiliza una curva de atenuación polinómica:
+
+\begin{equation}
+    \text{factorTama\~no} = 1.0 - (\text{lifeFactor})^2
+\end{equation}
+
+Esta función garantiza que las partículas mantengan un tamaño grande durante la mayor parte de su vida y se encojan rápidamente en su etapa final.
+
 \subsection{Descripción en C++}
+
+De manera análoga a la simulación del agua, la clase \texttt{GEFuego} hereda de \texttt{GEParticlesSystem} y adapta la configuración base para recrear el comportamiento caótico y la apariencia térmica de las llamas. 
+
+\subsubsection{Estructura del Encabezado}
+El diseño de la cabecera (\texttt{GEFuego.h}) sigue el mismo patrón minimalista. Únicamente se define el constructor explícito, el cual, en este caso, inicializa por defecto un volumen menor de partículas (100) para ajustarse a la densidad visual deseada para el emisor de fuego.
+
+\subsubsection{Implementación y Lógica de Emisión}
+El constructor en \texttt{GEFuego.cpp} establece las reglas de física y renderizado específicas.
+
+\paragraph{Parámetros del Emisor y Evolución Visual}
+Se emplea la misma infraestructura eficiente de generación de números aleatorios estáticos (\texttt{std::mt19937}) para gestionar el ciclo de vida. No obstante, el tiempo de vida (TTL) se reduce a un rango de entre 1.0 y 3.0 segundos, simulando la rápida extinción y evaporación de las llamas.
+
+El aspecto térmico y de combustión se logra mediante la interpolación de color y tamaño. Las partículas nacen con un color amarillo brillante y opaco ($1.0, 0.8, 0.1, 1.0$) y un tamaño considerable de $6.0$. A medida que se consumen, el tamaño se encoge drásticamente hasta $0.5$ y el color se desvanece hacia un rojo completamente transparente ($1.0, 0.0, 0.0, 0.0$), emulando la pérdida de calor y la conversión en humo.
+
+\paragraph{Distribución Espacial y Comportamiento Caótico}
+A diferencia de la distribución cónica calculada trigonométricamente para la fuente de agua, el fuego no sigue un patrón de expansión simétrico. Para cada partícula, el vector normal inicial se define puramente vertical:
+
+\begin{equation}
+    \vec{n} = (0.0, 1.0, 0.0)
+\end{equation}
+
+El emisor aplica una fuerza direccional ascendente de $2.0$. La clave del efecto visual reside en el parámetro de aleatoriedad (\texttt{randomness = 2.0f}), el cual es significativamente mayor que en el sistema de agua. Esta alta tasa de perturbación es la encargada de introducir el caos lateral en el \textit{shader}, rompiendo la linealidad del vector normal y generando el movimiento orgánico, turbulento e impredecible característico de las llamas.
 
 \subsection{Resultado}
 
@@ -278,7 +420,57 @@ La textura elegida para el humo (Figura \ref{fig:texHumo}) se caracteriza por se
 
 \subsection{Shader}
 
+
+Como colofón a la simulación de partículas, el \textit{Compute Shader} del humo (smoke.comp) comparte la misma arquitectura fundamental que el agua y el fuego. Su diseño, no obstante, difiere sustancialmente en el cálculo de físicas, priorizando la emulación de un gas ligero que se expande y se ve afectado por corrientes de aire lentas a medida que asciende.
+
+\subsubsection{Emisión y Dispersión Inicial}
+Al agotar su tiempo de vida, la partícula de humo se reinicia regresando al centro exacto del emisor (\texttt{emitterPos}). A diferencia del fuego, que requiere una base volumétrica, el humo genera su volumen inicial a través de su dispersión direccional. 
+
+El vector normal inicial (\texttt{norm}) se calcula asignando valores puramente aleatorios a los tres ejes ($X$, $Y$, $Z$). Al restar $0.5$ al resultado de la función aleatoria, se obtiene un rango normalizado entre $-0.5$ y $0.5$, que luego se multiplica por el factor de aleatoriedad (\texttt{randomness}). Esto asegura una explosión inicial esférica y homogénea en todas las direcciones.
+
+\subsubsection{Dinámica del Gas y Evolución Temporal}
+Si la partícula se encuentra activa, su actualización física es más directa que en las simulaciones anteriores. La velocidad (\texttt{norm}) se incrementa de manera lineal sumándole la fuerza constante del sistema (habitualmente configurada en C++ como un impulso puramente ascendente) y se integra en la posición general.
+
+\paragraph{Efecto de Remolino (Swirl)}
+La característica definitoria del movimiento del humo es su turbulencia ondulante. Para lograr este efecto de deriva atmosférica sin cálculos complejos de simulación de fluidos por vórtices, se implementa un desplazamiento de remolino de baja frecuencia directamente sobre la posición espacial de la partícula.
+
+Se emplean funciones trigonométricas (seno y coseno) dependientes tanto de la altura actual de la partícula ($P_y$) como del tiempo global. Al aplicar frecuencias diferentes para los ejes $X$ ($2.0$) y $Z$ ($1.5$), se evita un patrón puramente circular, consiguiendo en su lugar una deriva elíptica e irregular.
+
+\begin{equation}
+    \begin{aligned}
+        \text{swirl}_x &= \sin(P_y \cdot 0.5 + \text{time} \cdot 2.0) \cdot \text{randomness} \\
+        \text{swirl}_z &= \cos(P_y \cdot 0.5 + \text{time} \cdot 1.5) \cdot \text{randomness}
+    \end{aligned}
+\end{equation}
+
+Estas fuerzas de remolino se suman a las coordenadas espaciales escaladas por el $\Delta t$, provocando que la columna de humo ondule orgánicamente a medida que gana altura.
+
+\paragraph{Expansión Volumétrica Lineal}
+Para la apariencia visual, se calcula el factor de vida normalizado (\texttt{lifeFactor}). A diferencia del fuego, que utilizaba una curva de atenuación polinómica para su tamaño, el humo emplea una interpolación estrictamente lineal (\texttt{mix()}) tanto para el color como para la escala. Como los parámetros de C++ dictan que el tamaño final (\texttt{endSize}) es exponencialmente mayor que el inicial, esta simple interpolación lineal resulta en un crecimiento masivo y continuo del \textit{quad} de la partícula, emulando a la perfección la disipación geométrica del gas hasta volverse completamente transparente.
+
 \subsection{Descripción en C++}
+
+Siguiendo el mismo paradigma arquitectónico que los sistemas de agua y fuego, la clase \texttt{GEHumo} hereda de \texttt{GEParticlesSystem}. Dado que la infraestructura base y la gestión de memoria ya han sido detalladas, esta sección se centra exclusivamente en la parametrización que dota al humo de su característico comportamiento de disipación volumétrica.
+
+\subsubsection{Estructura del Encabezado}
+El archivo \texttt{GEHumo.h} mantiene la consistencia del motor definiendo únicamente el constructor. Al igual que el fuego, inicializa el sistema con una densidad por defecto de 100 partículas, delegando la gestión estructural a la clase padre.
+
+\subsubsection{Implementación y Lógica de Emisión}
+En el archivo \texttt{GEHumo.cpp}, se configura el emisor bajo el identificador \texttt{particleType = 0}. La principal diferencia radica en cómo evolucionan las partículas a lo largo del tiempo para simular un gas en expansión.
+
+\paragraph{Evolución Visual y Expansión Volumétrica}
+Utilizando el mismo motor estático de números aleatorios previamente descrito, se asigna a las partículas un tiempo de vida (TTL) notablemente superior, oscilando entre 2.0 y 6.0 segundos. Esto refleja la naturaleza del humo, que permanece suspendido en el aire mucho más tiempo que las llamas.
+
+A nivel de renderizado, la transición de color va desde un gris denso inicial ($0.6, 0.6, 0.6, 1.0$) hacia un negro totalmente transparente ($0.0, 0.0, 0.0, 0.0$). Sin embargo, la característica definitoria de esta clase es su escala: a diferencia del fuego o el agua, que reducen su tamaño, las partículas de humo nacen con un tamaño base de $1.5$ y experimentan un crecimiento masivo hasta alcanzar un tamaño de $15.0$ al final de su ciclo, emulando la dispersión del gas en la atmósfera.
+
+\paragraph{Distribución Espacial y Ascenso}
+La emisión inicial comparte la base matemática del fuego. Las partículas se generan sin rotación, con un vector normal estrictamente vertical:
+
+\begin{equation}
+    \vec{n} = (0.0, 1.0, 0.0)
+\end{equation}
+
+El sistema aplica una fuerza ascendente constante de $2.0$. Para evitar una columna de humo artificialmente recta, se aplica un factor de perturbación (\texttt{randomness = 1.5f}). Este valor, ligeramente inferior al del fuego, proporciona una turbulencia más suave y ondulante, adecuada para una columna de humo ascendente que se abre paso por el aire mientras se expande.
 
 \subsection{Resultado}
 

@@ -101,6 +101,7 @@
 }
 
 \usepackage[section]{placeins} % Pone una barrera automática en cada \section
+\newcommand{\refanexo}[1]{[\ref{#1}]}
 
 % --- Inicio del Documento ---
 \begin{document}
@@ -159,6 +160,9 @@
 \clearpage
 \pagenumbering{Roman} 
 \setcounter{page}{1}
+\setcounter{chapter}{0}
+\renewcommand{\chaptername}{Anexo}
+\renewcommand{\thechapter}{\arabic{chapter}}
 \input{Secciones/Anexo.tex}
 
 \end{document} 
