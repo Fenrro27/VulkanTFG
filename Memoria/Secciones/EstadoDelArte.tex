@@ -24,39 +24,43 @@ En términos de rendimiento empírico, los datos demuestran una clara ventaja de
     \renewcommand{\arraystretch}{1.2}
     % \resizebox{ancho}{alto}{objeto} -> el ! mantiene la proporción
     \resizebox{\textwidth}{!}{%
-        \begin{tabular}{|p{4.5cm}|l|r|r|r|r|r|}
-            \hline
-            \textbf{Escenario} & \textbf{API} & \textbf{FPS Promedio} & \textbf{1\% Low FPS} & \textbf{Fotograma (ms)} & \textbf{CPU (ms)} & \textbf{GPU (ms)} \\
-            \hline
-            \csvreader[separator=comma, respect all, head to column names]{Media/EstadoDelArte_1.csv}{%
-                Scenario=\escenario,
-                Renderer=\api,
-                AvgFPS=\avgfps,
-                LowFPS=\lowfps,
-                FrameTime=\frametime,
-                CPUTime=\cputime, 
-                GPUTime=\gputime
-            }{\escenario & \api & \avgfps & \lowfps & \frametime & \cputime & \gputime \\\hline}
-        \end{tabular}%
+        \csvreader[
+            separator=comma,
+            respect all,
+            head to column names,
+            tabular={|p{4.5cm}|l|r|r|r|r|r|},
+            table head=\hline \textbf{Escenario} & \textbf{API} & \textbf{FPS Promedio} & \textbf{1\% Low FPS} & \textbf{Fotograma (ms)} & \textbf{CPU (ms)} & \textbf{GPU (ms)} \\\hline,
+            late after line=\\\hline,
+            late after last line=\\\hline
+        ]{Media/EstadoDelArte_1.csv}{%
+            Scenario=\escenario,
+            Renderer=\api,
+            AvgFPS=\avgfps,
+            LowFPS=\lowfps,
+            FrameTime=\frametime,
+            CPUTime=\cputime, 
+            GPUTime=\gputime
+        }{\escenario & \api & \avgfps & \lowfps & \frametime & \cputime & \gputime}%
     }
-    \caption{Rendimiento de Vulkan vs. OpenGL en una NVIDIA RTX 2060 Max-Q. Fuente: datos extraídos directamente de \texttt{Media/EstadoDelArte\_1.csv}.}
+    \caption{Rendimiento de Vulkan vs. OpenGL en una NVIDIA RTX 2060 Max-Q. Elaboración propia a partir de los datos obtenidos del programa de nuestro entorno de pruebas.}
     \label{tab:comparativa_vulkan_opengl}
 \end{table}
 
-Como se detalla en la Tabla \ref{tab:comparativa_vulkan_opengl}, los resultados extraídos del entorno de \textit{benchmarking} \parencite{benyoon1_vk_gl} exponen el profundo impacto que tiene la arquitectura de la API sobre los tiempos de procesamiento. Para comprender estas métricas, es crucial desglosar los escenarios evaluados:
+Como se detalla en la Tabla \ref{tab:comparativa_vulkan_opengl}, los resultados extraídos del experimento llevado a cabo en nuestro entorno de pruebas \parencite{fenrro27_vulkan_vs_opengl} —el cual está basado en el \textit{benchmark} original de \parencite{benyoon1_vk_gl}— exponen el profundo impacto que tiene la arquitectura de la API sobre los tiempos de procesamiento. Para comprender estas métricas, es crucial desglosar los escenarios evaluados:
 
 \begin{enumerate}
-    \item \textbf{Asteroids (Non-Instanced)}: Prueba de estrés intensiva en CPU. Dibuja miles de asteroides enviando una llamada de dibujado (\textit{draw call}) por cada uno (más de 15.000 llamadas). Mide la sobrecarga pura del controlador.
-    \item \textbf{Asteroids (Instanced)}: El mismo escenario, pero agrupando la geometría mediante instanciación por hardware, reduciendo las llamadas de dibujado a solo 2. Evalúa la eficiencia del renderizado base eliminando el cuello de botella de la CPU.
-    \item \textbf{Bistro}: Un escenario arquitectónico de alta complejidad con cerca de 2.8 millones de triángulos. Desplaza el cuello de botella hacia la GPU para evaluar el manejo de geometría densa y múltiples materiales.
-    \item \textbf{Shadows On/Off}: Modificador transversal que introduce pases de renderizado adicionales para el cálculo de sombras, aumentando los requerimientos de ancho de banda y cálculos.
+    \item \textbf{Asteroids (Non-Instanced)}: Prueba de estrés intensiva en CPU. Dibuja miles de asteroides enviando una llamada de dibujado independiente por cada uno. Mide la sobrecarga pura del controlador.
+    \item \textbf{Asteroids (Instanced)}: El mismo escenario, pero agrupando la geometría mediante instanciación por hardware, reduciendo drásticamente las llamadas de dibujado. Evalúa la eficiencia del renderizado base eliminando el cuello de botella de la CPU.
+    \item \textbf{Bistro}: Un escenario arquitectónico de alta complejidad con una densidad geométrica masiva. Desplaza el cuello de botella hacia la GPU para evaluar el manejo de geometría pesada y múltiples materiales.
+    \item \textbf{Shadows On/Off}: Modificador transversal que introduce pases de renderizado adicionales para el cálculo de sombras, aumentando los requerimientos de ancho de banda y cálculos computacionales.
 \end{enumerate}
 
-El análisis de los datos revela el verdadero poder de Vulkan en la gestión de recursos. En el escenario \textit{Asteroids 15k (Non-Instanced, Shadows Off)}, el controlador de OpenGL (\texttt{nouveau} NV166) colapsa por completo, consumiendo 186.6 ms en tiempo de CPU para procesar las llamadas de dibujado, lo que resulta en una tasa inoperable de 5.40 FPS. Vulkan, gracias al bajo nivel de abstracción de su controlador \texttt{NVK}, despacha las mismas 15.000 llamadas invirtiendo apenas 1.41 ms de CPU, alcanzando los 266.90 FPS. Al activar la instanciación (\textit{Instanced}), el número de llamadas cae a 2; el cuello de botella en CPU desaparece y OpenGL logra recuperarse hasta los 286.88 FPS. Sin embargo, la eficiente canalización interna de Vulkan le permite mantener una ventaja sustancial, escalando hasta los 445.37 FPS.
+El análisis de los datos revela el verdadero poder de Vulkan en la gestión de recursos. En los escenarios sin instanciación (\textit{Non-Instanced}), el controlador de OpenGL sufre un severo cuello de botella debido a la altísima sobrecarga en la CPU requerida para procesar cada llamada de dibujado. Vulkan, por el contrario, gracias al bajo nivel de abstracción de su controlador, minimiza de forma drástica el tiempo de procesamiento en la CPU, logrando una tasa de fotogramas promedio inmensamente superior. Al activar la instanciación por hardware (\textit{Instanced}), el trabajo en la CPU disminuye para ambas APIs, permitiendo que OpenGL recupere un rendimiento muy competitivo; sin embargo, la eficiente canalización de comandos de Vulkan le permite conservar el liderazgo absoluto, mejorando no solo el promedio de fotogramas, sino también la estabilidad general del sistema (evidenciada en los mejores registros de \textit{1\% Low FPS}). Este patrón de superioridad se mantiene independientemente de si se aumenta la cantidad de entidades en pantalla (de 15k a 30k asteroides).
 
-No obstante, las métricas de la escena \textit{Bistro} presentan un comportamiento anómalo que destaca las limitaciones actuales de las implementaciones de código abierto en Linux. En este escenario intensivo en GPU, OpenGL aparentemente supera a Vulkan por un amplio margen (226.83 FPS frente a 30.93 FPS en \textit{Shadows Off}). Sin embargo, los tiempos de procesamiento revelan que es físicamente improbable renderizar 2.8 millones de triángulos en 2.6 ms utilizando este hardware. Esta disparidad indica que el controlador NV166 de OpenGL está fallando al procesar la escena masiva (omitiendo geometría o fallando al compilar sombreadores complejos), lo que reduce artificialmente el tiempo de GPU e infla los FPS promedios, a costa de una inestabilidad severa (reflejada en los mínimos del 1\%, que caen bruscamente a 16.46 FPS). En contrapartida, los 33.3 ms de tiempo de GPU en Vulkan demuestran que el controlador NVK está procesando y renderizando correctamente la totalidad de la carga geométrica de la escena \parencite{9655285}.
+En cuanto a la escena compleja \textit{Bistro}, el cuello de botella se traslada del procesador a la tarjeta gráfica. En este entorno, Vulkan demuestra una capacidad sobresaliente para gestionar cargas geométricas densas, superando con creces a OpenGL. Vulkan no solo entrega una fluidez mucho mayor, sino que requiere notablemente menos tiempo de ejecución tanto en la CPU como en la GPU. Esta superioridad se mantiene intacta al someter a ambas APIs a cargas de trabajo adicionales: al activar el pase de sombras (\textit{Shadows On}), el rendimiento de OpenGL se desploma de forma abrupta, mientras que Vulkan absorbe el impacto de manera mucho más eficiente, conservando una ventaja sustancial en todas las métricas de renderizado.
 
-A pesar de las particularidades ligadas a la madurez de los controladores, los resultados empíricos confirman que la previsibilidad, la dramática minimización de tiempos de CPU en cargas pesadas y la estabilidad de Vulkan lo consolidan como la opción técnica superior frente a los cuellos de botella inherentes al diseño histórico de OpenGL.
+A pesar de las particularidades de rendimiento ligadas al diseño de cada API, los resultados empíricos confirman que la previsibilidad, la dramática minimización de tiempos de CPU en cargas pesadas, la resiliencia en la GPU y la estabilidad general consolidan a Vulkan como la opción técnica superior frente a los cuellos de botella inherentes al diseño histórico de OpenGL.
+
 
 \subsection{Eficiencia energética}
 

@@ -1,16 +1,16 @@
 Scenario,Renderer,GPU,AvgFPS,LowFPS,VeryLowFPS,FrameTime,CPUTime,GPUTime,AvgTriangles,AvgDrawCalls
-"Asteroids 15k (Non-Instanced - Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,306.05,84.47,20.28,3.271,0.811,0.445,319800,15001.0
-"Asteroids 15k (Non-Instanced - Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,35.92,30.15,27.79,27.849,26.374,24.779,319800,15001.0
-"Asteroids 15k (Non-Instanced - Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,211.28,62.71,18.83,4.740,1.987,0.951,319800,15001.0
-"Asteroids 15k (Non-Instanced - Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,19.34,16.88,14.87,51.724,50.235,46.741,319800,15001.0
-"Asteroids 15k (Instanced - Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,444.68,149.79,140.06,2.257,0.176,0.095,319800,2.0
-"Asteroids 15k (Instanced - Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,303.15,134.66,70.10,3.312,1.909,0.350,319800,2.0
-"Asteroids 15k (Instanced, Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,418.19,150.21,135.92,2.396,0.191,0.128,319800,2.0
-"Asteroids 15k (Instanced, Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,281.79,144.78,101.03,3.561,2.023,0.709,319800,2.0
-"Asteroids 30k (Instanced, Shadows Off)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,222.37,83.41,21.50,4.514,0.349,0.227,619800,2.0
-"Asteroids 30k (Instanced, Shadows Off)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,149.70,98.72,73.81,6.711,4.258,1.113,619800,2.0
-"Asteroids 30k (Instanced, Shadows On)",Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,225.47,93.22,24.54,4.439,0.350,0.336,619800,2.0
-"Asteroids 30k (Instanced, Shadows On)",OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,147.71,92.55,54.92,6.795,4.352,1.565,619800,2.0
+Asteroids 15k (Non-Instanced - Shadows Off),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,306.05,84.47,20.28,3.271,0.811,0.445,319800,15001.0
+Asteroids 15k (Non-Instanced - Shadows Off),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,35.92,30.15,27.79,27.849,26.374,24.779,319800,15001.0
+Asteroids 15k (Non-Instanced - Shadows On),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,211.28,62.71,18.83,4.740,1.987,0.951,319800,15001.0
+Asteroids 15k (Non-Instanced - Shadows On),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,19.34,16.88,14.87,51.724,50.235,46.741,319800,15001.0
+Asteroids 15k (Instanced - Shadows Off),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,444.68,149.79,140.06,2.257,0.176,0.095,319800,2.0
+Asteroids 15k (Instanced - Shadows Off),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,303.15,134.66,70.10,3.312,1.909,0.350,319800,2.0
+Asteroids 15k (Instanced - Shadows On),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,418.19,150.21,135.92,2.396,0.191,0.128,319800,2.0
+Asteroids 15k (Instanced - Shadows On),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,281.79,144.78,101.03,3.561,2.023,0.709,319800,2.0
+Asteroids 30k (Instanced - Shadows Off),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,222.37,83.41,21.50,4.514,0.349,0.227,619800,2.0
+Asteroids 30k (Instanced - Shadows Off),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,149.70,98.72,73.81,6.711,4.258,1.113,619800,2.0
+Asteroids 30k (Instanced - Shadows On),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,225.47,93.22,24.54,4.439,0.350,0.336,619800,2.0
+Asteroids 30k (Instanced - Shadows On),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,147.71,92.55,54.92,6.795,4.352,1.565,619800,2.0
 Bistro (Shadows Off),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,818.18,342.11,298.42,1.332,0.065,1.170,2829226,132.0
 Bistro (Shadows Off),OpenGL,NVIDIA GeForce RTX 2060 with Max-Q Design/PCIe/SSE2,293.96,44.29,22.88,3.412,0.531,1.354,2829226,132.0
 Bistro (Shadows On),Vulkan,NVIDIA GeForce RTX 2060 with Max-Q Design,416.93,238.46,222.12,2.573,0.117,2.423,2829226,132.0
