@@ -1,7 +1,7 @@
 \chapter{Conclusion}
 \label{cap:conclusiones}
 
-En este capítulo final se presenta un balance crítico del desarrollo del proyecto, evaluando el cumplimiento de los objetivos establecidos y analizando de forma detallada los resultados visuales obtenidos en cada uno de los sistemas de partículas implementados. Asimismo, se esbozan las líneas de investigación y desarrollo que quedan abiertas para futuras expansiones del motor gráfico.
+A continuación, se presenta un balance crítico del desarrollo del proyecto, evaluando el cumplimiento de los objetivos establecidos y analizando de forma detallada los resultados visuales obtenidos en cada uno de los sistemas de partículas implementados. Asimismo, se esbozan las líneas de investigación y desarrollo que quedan abiertas para futuras expansiones del motor gráfico.
 
 La evolución del motor gráfico desde su estado inicial hasta el sistema de partículas masivo actual ha estado fuertemente condicionada por la necesidad de construir un software robusto, estable y mantenible. La API Vulkan, debido a su naturaleza de bajo nivel, no proporciona abstracciones para tareas comunes como la carga de geometría, el manejo de memoria o la creación de interfaces de usuario. Por ello, la incorporación de tecnologías adicionales estuvo plenamente justificada bajo criterios de ingeniería de software:
 
@@ -18,12 +18,10 @@ El propósito principal de este Trabajo de Fin de Grado consistía en diseñar e
 
 A través de la arquitectura modular construida, se ha logrado demostrar que es posible generar efectos atmosféricos y dinámicos visualmente complejos sin incurrir en los cuellos de botella de comunicación entre la CPU y la VRAM que penalizan a las APIs tradicionales. El motor gráfico final es capaz de simular de manera fluida y simultánea los fenómenos de agua, fuego y humo.
 
-\section{Evaluación visual y resultados del sistema}
+\section{Resultados del sistema}
 
 A diferencia de una prueba de rendimiento comparativo puro, el foco de esta evaluación radica en demostrar el éxito del sistema en su vertiente estética y procedimental: cómo fórmulas cinemáticas y matemáticas simples, ejecutadas en paralelo, son capaces de falsear con gran fidelidad la naturaleza de fluidos y gases mediante el menor coste computacional posible.
-
-A continuación, se comentan y analizan los resultados visuales finales obtenidos en cada uno de los tres entornos desarrollados:
-
+Como hemos visto a los largo del desarrollo los efectos generados son lo suficientemente convincentes como para decir que ha sido un exito la ganeracion de efectos visuales convincentes.
 
 \section{Trabajo futuro}
 
@@ -32,7 +30,7 @@ Aunque el motor gráfico desarrollado cumple con creces los objetivos de generac
 \begin{itemize}
     \item \textbf{Campos de fuerza dinámicos (Campos de vectores):} Integrar en el \textit{compute shader} ecuaciones matemáticas basadas en ruido procedural tridimensional (como el Ruido de Perlin o Simplex) para generar corrientes de viento dinámicas o turbulencias caóticas que afecten la trayectoria del humo y las llamas en tiempo real, rompiendo la linealidad del movimiento.
     \item \textbf{Colisiones básicas en GPU:} Implementar un sistema analítico simplificado de colisiones (por ejemplo, mediante planos o \textit{bounding spheres} matemáticas) calculado directamente en la tarjeta gráfica, permitiendo que las gotas de agua reboten o se desvíen al tocar la base de la fuente o el suelo simulado.
-    \item \textbf{Sombras portadas y auto-oclusión:} Desarrollar mapas de sombras específicos para los sistemas volumétricos (\textit{shadow maps} para partículas), permitiendo que el humo densificado proyecte sombras sobre sí mismo y sobre la geometría del escenario, elevando drásticamente el nivel de profundidad visual.
+    \item \textbf{Sombras:} Desarrollar mapas de sombras específicos para los sistemas volumétricos (\textit{shadow maps} para partículas), permitiendo que el humo densificado proyecte sombras sobre sí mismo y sobre la geometría del escenario, elevando drásticamente el nivel de profundidad visual.
     \item \textbf{Editor visual de partículas:} Diseñar una extensión en la interfaz de ImGui que actúe como un editor de curvas y nodos, permitiendo que un artista técnico modifique los gradientes de color, las escalas y los tiempos de vida de manera completamente visual e interactiva sin necesidad de alterar los parámetros numéricos directamente en el código fuente de C++.
 \end{itemize}
 

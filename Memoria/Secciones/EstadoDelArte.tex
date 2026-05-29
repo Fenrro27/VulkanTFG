@@ -13,11 +13,13 @@ El desarrollo de sistemas gráficos modernos exige una comprensión profunda de 
 
 \section{Comparativa de Vulkan con OpenGL}
 
-Durante décadas, OpenGL se estableció como el estándar de la industria para la renderización de gráficos 2D y 3D \parencite{8685588}. Sin embargo, a medida que el hardware evolucionaba hacia arquitecturas multinúcleo, OpenGL comenzó a mostrar limitaciones estructurales. Al estar diseñado como una máquina de estados de alto nivel, oculta los detalles de implementación y optimización al desarrollador. Esto facilita su uso, pero genera una sobrecarga computacional (\textit{overhead}) considerable en el controlador de la CPU al procesar llamadas de dibujado (\textit{draw calls}), volviendo su rendimiento menos predecible en aplicaciones complejas \parencite{9655285}.
+Durante décadas, OpenGL se estableció como el estándar de la industria para la renderización de gráficos 2D y 3D \parencite{8685588}. Sin embargo, a medida que el hardware evolucionaba hacia arquitecturas multinúcleo, OpenGL comenzó a mostrar limitaciones estructurales. Al estar diseñado como una máquina de estados de alto nivel, oculta los detalles de implementación y optimización al desarrollador. Esto facilita su uso, pero genera una sobrecarga computacional (\textit{overhead}) considerable en el controlador de la CPU al procesar llamadas de dibujado (\textit{draw calls}), volviendo su rendimiento menos predecible en aplicaciones complejas.
 
 Para resolver estas carencias, se propuso Vulkan. Su filosofía de diseño difiere radicalmente: empodera al desarrollador otorgándole un control explícito y de muy bajo nivel sobre la gestión de memoria, la sincronización y el envío de comandos a la GPU. Vulkan asume que el programador conoce mejor el flujo de la aplicación que el controlador. Al eliminar gran parte de la validación en tiempo de ejecución y ser inherentemente amigable con el multiprocesamiento (\textit{thread-friendly}), Vulkan reduce drásticamente el tiempo de CPU necesario para preparar y enviar comandos de renderizado \parencite{9655285}.
 
 En términos de rendimiento empírico, los datos demuestran una clara ventaja de Vulkan en escenarios con alta carga de llamadas de dibujado. En pruebas de estrés sin instanciación geométrica —donde se envían miles de comandos independientes a la GPU—, OpenGL sufre un severo cuello de botella en la CPU. Bajo las mismas condiciones, Vulkan es capaz de reducir el tiempo de dibujado de manera sustancial, habilitando tasas de fotogramas que en OpenGL resultan inalcanzables debido a la saturación del controlador \parencite{8685588}.
+
+\medskip
 
 \begin{table}[ht]
     \centering

@@ -61,60 +61,7 @@ Para incorporar el soporte de computación, el código original sufrió transfor
 \label{tab:modificaciones}
 \end{table}
 
-\subsection{Arquitectura del Pipeline de Computación}
-
-<Revisar>
-En la Figura~\ref{fig:compute_pipeline} se ilustra de manera gráfica el flujo de datos e interconexión de componentes del pipeline de computación diseñado a partir del código de la aplicación.
-
-\begin{figure}[h!]
-\centering
-\begin{tikzpicture}[
-    node distance=1.8cm,
-    block/.style={draw, fill=blue!10, rectangle, minimum width=3.5cm, minimum height=0.9cm, rounded corners, align=center, font=\small\sffamily},
-    resource/.style={draw, fill=gray!10, rectangle, minimum width=2.8cm, minimum height=0.7cm, align=center, font=\small\sffamily},
-    shader/.style={draw, fill=green!10, minimum width=3.2cm, minimum height=0.9cm, rectangle, align=center, font=\small\sffamily\bfseries},
-    arrow/.style={thick, ->, >=stealth}
-]
-
-    % Componentes Principales
-    \node [block] (app) {\textbf{GEApplication}};
-    \node [block] (scene) [below of=app] {\textbf{GEScene}};
-    \node [block] (compShader) [below of=scene, xshift=-3cm] {\texttt{GEComputeShader}};
-    \node [block] (rendContext) [below of=scene, xshift=3cm] {\texttt{GERenderingContext}};
-    
-    % Sistema de Partículas
-    \node [block] (partSys) [below of=compShader, yshift=-0.5cm] {\texttt{GEParticleSystem}};
-    
-    % Recursos vinculados
-    \node [resource] (ubo) [below of=partSys, xshift=-2.2cm] {\textbf{GEUniformBuffer} \\ (Constantes / Params)};
-    \node [resource] (ssbo) [below of=partSys, xshift=2.2cm] {\textbf{GEParticleBuffer} \\ (Storage Buffers SSBO)};
-    
-    % Shaders
-    \node [shader] (compKernel) [below of=ssbo, yshift=-0.5cm] {Compute Shader \\ (particles.comp)};
-    \node [shader] (vertShader) [right of=compKernel, xshift=3.5cm] {Vertex Shader \\ (particles.vert)};
-
-    % Líneas de flujo y control
-    \draw [arrow] (app) -- (scene);
-    \draw [arrow] (scene) -- (compShader);
-    \draw [arrow] (scene) -- (rendContext);
-    \draw [arrow] (compShader) -- (partSys);
-    
-    % Vinculación de recursos
-    \draw [arrow] (partSys) -- (ubo);
-    \draw [arrow] (partSys) -- (ssbo);
-    
-    % Flujo del Kernel de Cómputo
-    \draw [arrow] (ubo) |- (compKernel);
-    \draw [arrow] (ssbo) -- (compKernel);
-    
-    % Consumo de datos (Sincronización Compute -> Graphics)
-    \draw [arrow, dashed, red, thick] (ssbo) -- node[midway, right, align=left, font=\scriptsize\color{black}] {Lectura Directa \\ de Posiciones} (vertShader);
-    \draw [arrow] (rendContext) |- (vertShader);
-
-\end{tikzpicture}
-\caption{Diagrama de bloques y flujo de datos del Pipeline de Computación e integración gráfica en Vulkan.}
-\label{fig:compute_pipeline}
-\end{figure}
+\subsection{Vertex y Fragment shader del Pipeline de Computación}
 
 A continuación, se van a explicar los shader principales de la pipeline de computación.
 \subsubsection{Vertex Shader de Partículas}
@@ -168,7 +115,7 @@ A continuación, se detalla el funcionamiento de la lógica matemática y estruc
 \end{itemize}
 
 \subsubsection{Compute Shader}
-Estos se explicaran en cada uno de los sistemas. (ver \textbf{Subsección \ref{subsection:ElComputeShader}})
+Estos se explicaran en cada uno de los sistemas. Ya se definio previamente (ver \textbf{Subsección \ref{subsection:ElComputeShader}})
 
 
 \section{Agua}
