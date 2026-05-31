@@ -1,23 +1,23 @@
-\chapter{Justificación y Objetivos}
+% Finalizado
+chapter{Justificación y Objetivos}
 \label{sec:justificacion_y_objetivos}
 
 \section{Motivación}
-La creación de efectos visuales atmosféricos como el fuego, el agua y el humo es un pilar fundamental en la narrativa visual de los entornos virtuales modernos. Lograr que estos elementos se vean orgánicos y dinámicos en tiempo real requiere una gestión masiva de datos que las APIs gráficas tradicionales a menudo limitan debido a su sobrecarga de CPU (CPU overhead).
+El fuego, el agua y el humo dan realismo a los mundos virtuales. Sin embargo, mover estos elementos con fluidez consume muchos recursos. Hace falta procesar demasiados datos por segundo. En este punto, las herramientas clásicas muestran sus límites. El motivo principal es el procesador. Las APIs de antes saturan la CPU con tareas de control (\textit{CPU overhead}). Esto frena el rendimiento general del sistema.
 
-La motivación de este proyecto reside en explorar el potencial estético y técnico de Vulkan para el renderizado masivo de partículas. A diferencia de otros entornos, Vulkan permite una comunicación directa con el hardware, lo que nos habilita para renderizar densidades de partículas sin precedentes. Este trabajo se centra en el desafío de traducir fenómenos visuales complejos en instanciación de geometría y manipulación de fragmentos, buscando el equilibrio perfecto entre la fidelidad visual y una tasa de refresco estable.
+Ahí es donde entra este proyecto. Queremos ir un paso más allá usando Vulkan. La meta es renderizar nubes de partículas masivas. Para conseguirlo, hablamos de tú a tú con la tarjeta gráfica. Sin intermediarios pesados. Esto nos abre las puertas a densidades de elementos muy altas. El reto de verdad es de código: transformar las leyes de la física en geometría simple y píxeles rápidos. Al final, todo se resume en buscar un buen equilibrio. Queremos que el resultado entre por los ojos, pero sin que la aplicación sufra tirones.
 
 \section{Objetivos}
-Desarrollar un motor de partículas de alto rendimiento mediante la API Vulkan enfocado en la representación visual de fuego, agua y humo, priorizando la estética visual y la optimización de los pipelines de renderizado.
-A continuación, algunos de los objetivos específicos que se intentan alcanzar:
+Queremos crear un motor de partículas rápido y eficiente con Vulkan. Nos centraremos en limpiar y exprimir las pipelines gráficas. Así, para alcanzar esta meta general, nos marcamos las siguientes tareas concretas:
 
 \begin{itemize}
-    \item Implementación de un Sistema de Partículas en GPU: Crear un sistema donde el ciclo de vida, el color y la transformación de las partículas se gestionen íntegramente en la GPU mediante Compute Shaders, maximizando la carga visual.
+    \item \textbf{Cómputo en GPU:} La tarjeta gráfica asume todo el trabajo sucio. Programamos \textit{Compute Shaders} para que calculen el ciclo de vida, la posición y el color de cada punto. La CPU ya no interviene aquí.
 
-    \item Simulación Visual de Fluidos y Gases: Diseñar comportamientos visuales.
+    \item \textbf{Fluidos y gases:} Escribir algoritmos de tipo procedural directos en el hardware gráfico. Con esto imitamos la física real detrás de líquidos o columnas de humo.
 
-    \item Técnicas de Renderizado Volumétrico: Aplicar técnicas de Alpha Blending avanzado y Point Sprites para generar la ilusión de densidad y volumen en el humo y las llamas.
+    \item \textbf{Efectos con volumen:} Dar sensación de masa y densidad al fuego. Lo haremos sumando técnicas de mezcla de color (\textit{Alpha Blending}) con el uso de \textit{Point Sprites}.
 
-    \item Sincronización y Gestión de Memoria en Vulkan: Configurar las barreras de ejecución y las colas gráficas para permitir el renderizado fluido de miles de partículas concurrentes sin errores de carrera (race conditions), ver Anexo \refanexo{anexo:race_conditions}.
+    \item \textbf{Sincronización:} Configurar barreras de memoria y organizar bien las colas en Vulkan. Esto evita que los hilos choquen entre sí al pintar miles de datos a la vez (ver Anexo~\ref{anexo:race_conditions}).
 
-    \item Optimización Estética: Implementar un sistema de materiales que permita variar las propiedades visuales (opacidad, brillo, gradientes de color) de las partículas en función de su tiempo de vida.
+    \item \textbf{Control estético:} Crear materiales sencillos que cambien con el tiempo. El brillo, el color y la opacidad se alteran solos según la edad de la partícula.
 \end{itemize}

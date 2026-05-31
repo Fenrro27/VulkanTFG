@@ -1,3 +1,4 @@
+% Finalizado hasta indicacion
 \chapter{Anexo}
 \label{anexo:principal}
 
@@ -6,12 +7,20 @@
 \section{Repositorio de Código Fuente}
 \label{anexo:repositorio}
 
-Todo el código fuente desarrollado en este Trabajo de Fin de Grado, incluyendo el motor gráfico en Vulkan, los sombreadores (\textit{shaders}) de cómputo y representación, las escenas de prueba y los scripts de análisis comparativo con OpenGL, se encuentra alojado públicamente y a libre disposición en el repositorio de GitHub del proyecto \parencite{fenrro27_vulkan_tfg}. Este repositorio contiene la estructura completa del proyecto, las instrucciones detalladas para su compilación y ejecución, así como el histórico completo de control de versiones que documenta de forma transparente el desarrollo evolutivo de las optimizaciones implementadas en la simulación.
+Todo el código fuente de este proyecto esta publicado en GitHub para que esté disponible de forma libre \parencite{fenrro27_vulkan_tfg}. Esto incluye el motor gráfico en Vulkan, los \textit{shaders} de cómputo, la escena de prueba y los scripts comparativos con OpenGL. El repositorio contiene los archivos del sistema, guías de compilación y el histórico de cambios que documenta la evolución de nuestras optimizaciones.
 
 \section{Condiciones de Carrera en Arquitecturas de Cómputo Paralelo}
 \label{anexo:race_conditions}
 
-A diferencia de APIs de alto nivel como OpenGL, Vulkan delega la gestión de la concurrencia íntegramente en el desarrollador, lo que exige resolver explícitamente las condiciones de carrera (\textit{race conditions}) donde el resultado final de la GPU depende de la temporización o del orden físico impredecible en el que se despachan los hilos concurrentes al acceder sin control a una misma zona de memoria de vídeo (VRAM) habiendo al menos una operación de escritura. En este proyecto, la simulación de partículas presenta una dependencia de datos de tipo \textit{Read-After-Write} (RAW) en los \textit{Storage Buffers} (\texttt{GEParticleBuffer}) compartidos, ya que la fase de cómputo (\textit{Compute Shader}) escribe las posiciones físicas y la fase gráfica (\textit{Vertex Shader}) las lee inmediatamente para proyectarlas en pantalla; sin sincronización, la GPU procesa vértices con datos a medio actualizar de distintos frames, provocando parpadeos (\textit{flickering}) y deformaciones geométricas al mezclar coordenadas desfasadas. Para solventar este problema de forma óptima, tal y como se ilustra en el esquema de la Figura~\ref{fig:anexo_barrera}, se implementa una barrera de pipeline explícita (\texttt{vkCmdPipelineBarrier}) que define tanto una barrera de ejecución para congelar el procesamiento de vértices hasta que el shader de cómputo finalice (\texttt{COMPUTE\_SHADER} $\longrightarrow$ \texttt{VERTEX\_SHADER}), como una barrera de acceso a memoria para vaciar e invalidar las cachés de la GPU, garantizando que las escrituras del \textit{Compute Shader} sean globalmente visibles antes de ser consumidas por el sombreador de dibujado (\texttt{SHADER\_WRITE} $\longrightarrow$ \texttt{VERTEX\_ATTRIBUTE\_READ}).
+A diferencia de OpenGL, Vulkan delega el control de la concurrencia en el programador. Esto nos obliga a resolver a mano las condiciones de carrera (\textit{race conditions}). Estos fallos ocurren si varios hilos acceden a la misma zona de VRAM de forma desordenada y al menos uno escribe datos. 
+
+En nuestro motor, las partículas sufren una dependencia de datos de tipo lectura tras escritura o \textit{Read-After-Write} (RAW) en los búferes compartidos (\texttt{GEParticleBuffer}). El Compute Shader escribe las nuevas posiciones y el Vertex Shader las lee de inmediato para dibujarlas. Sin sincronización, la GPU procesa vértices con datos a medio actualizar de frames distintos. Esto causa parpadeos (\textit{flickering}) y fallos visuales. 
+
+Para solucionarlo, usamos una barrera de pipeline (\texttt{vkCmdPipelineBarrier}) como muestra la Figura~\ref{fig:anexo_barrera}. Esta barrera hace dos cosas:
+\begin{enumerate}
+    \item \textbf{Barrera de ejecución:} Congela el procesado de vértices hasta que el Compute Shader termina (\texttt{COMPUTE\_SHADER} $\longrightarrow$ \texttt{VERTEX\_SHADER}).
+    \item \textbf{Barrera de memoria:} Limpia e invalida las cachés de la GPU. Esto asegura que las escrituras del Compute Shader sean visibles antes de pintar los puntos (\texttt{SHADER\_WRITE} $\longrightarrow$ \texttt{VERTEX\_ATTRIBUTE\_READ}).
+\end{enumerate}
 
 \begin{figure}[h!]
 \centering
@@ -33,3 +42,16 @@ A diferencia de APIs de alto nivel como OpenGL, Vulkan delega la gestión de la 
 \caption{Mecanismo de resolución de la condición de carrera RAW mediante barreras de hardware.}
 \label{fig:anexo_barrera}
 \end{figure}
+
+
+
+% No comprobado:
+
+\section{RAII}
+
+
+\section{Perlin y Simplex}
+
+\section{bounding spheres}
+
+\section{Buffer Ping Pong}

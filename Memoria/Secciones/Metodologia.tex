@@ -1,60 +1,62 @@
 \chapter{Metodología}
 \label{sec:metodologia}
 
-A continuación, se exponen los fundamentos teóricos y los paradigmas computacionales que sustentan el diseño de un motor de partículas avanzado. Esto permite comprender y justificar la transición desde una arquitectura gráfica tradicional hacia un sistema complejo de procesamiento paralelo masivo.
+En esta sección detallamos los pilares teóricos y los métodos informáticos que guían nuestro motor de partículas. Analizamos el cambio de una arquitectura de dibujado tradicional a un sistema complejo que aprovecha el procesamiento en paralelo de la GPU.
 
 \section{Definición de Partícula}
-En el contexto de la simulación gráfica, una partícula es la unidad atómica y fundamental utilizada para representar fenómenos difusos o fluidos, tales como fuego, humo, magia o polvo. Teóricamente, una partícula carece de geometría compleja y se define mediante un conjunto mínimo de atributos matemáticos que dictan su comportamiento y apariencia a lo largo del tiempo:
+En la simulación gráfica, una partícula es la pieza fundamental para representar elementos difusos o fluidos como el fuego, el humo, el agua o la magia. Al no tener una geometría tridimensional compleja, cada partícula se define con un grupo mínimo de variables matemáticas que controlan su comportamiento en el tiempo:
 \begin{itemize}
-    \item \textbf{Posición espacial:} Coordenadas tridimensionales que ubican a la partícula en la escena.
-    \item \textbf{Vector de velocidad:} Magnitud y dirección que determinan el desplazamiento de la partícula, susceptible a ser modificado por fuerzas externas (gravedad, viento, fricción).
-    \item \textbf{Color y opacidad:} Valores que definen el aspecto visual de la partícula, los cuales suelen interpolarse a lo largo de su ciclo de vida para simular efectos como el desvanecimiento del humo o el enfriamiento del fuego.
-    \item \textbf{Escala temporal (Vida):} Cada partícula posee un tiempo de vida útil. Nace en un punto de emisión y, a medida que transcurre el tiempo de la simulación, "envejece". Al agotar su ciclo, la partícula se recicla o reinicia, lo que permite mantener una emisión continua sin necesidad de reservar nueva memoria constantemente.
+    \item \textbf{Posición espacial:} Coordenadas 3D para ubicar la partícula en el mundo virtual.
+    \item \textbf{Vector de velocidad:} Indica hacia dónde y con qué fuerza se mueve. Factores externos como la gravedad o el viento cambian este vector fotograma a fotograma.
+    \item \textbf{Color y opacidad:} Definen el aspecto visual. El motor interpola estos valores a lo largo del tiempo para simular cómo se enfría el fuego o cómo se desvanece el humo.
+    \item \textbf{Vida útil (TTL):} Indica la duración de la partícula en segundos. Nace en un emisor y envejece con la simulación. Al llegar a cero, la reiniciamos. Así logramos un flujo continuo sin reservar nueva memoria constantemente.
 \end{itemize}
 
 \section{Sistemas de Partículas en CPU vs GPU}
-El principal desafío en la simulación de sistemas de partículas es la enorme cantidad de cálculos requeridos por fotograma. 
+El mayor problema al simular partículas es el elevado volumen de cálculos que exige cada fotograma. 
 
-En el \textbf{enfoque tradicional basado en CPU}, el procesador central recalcula secuencialmente (o mediante un número limitado de hilos) el estado de cada partícula. Posteriormente, esta masiva cantidad de datos actualizados debe transmitirse a la memoria gráfica (VRAM) a través del bus PCI-Express (PCIe) para ser dibujada. Este constante trasiego de información genera un cuello de botella arquitectónico que satura el ancho de banda de comunicación inter-hardware, limitando drásticamente la cantidad de partículas simultáneas que el sistema puede manejar sin perder fluidez~\parencite{latta2004massively}.
+En el \textbf{enfoque clásico basado en CPU}, el procesador calcula secuencialmente el estado de cada elemento. Después, envía todo el bloque de datos actualizados a la memoria de vídeo (VRAM) por el canal PCI-Express. Este flujo constante colapsa la transmisión y genera un grave cuello de botella. Por eso, los sistemas basados en CPU no pueden manejar grandes nubes de partículas sin perder fluidez~\parencite{latta2004massively}.
 
-Por el contrario, el \textbf{enfoque basado en GPU (GPGPU - \textit{General-Purpose computing on Graphics Processing Units})} plantea alojar permanentemente los datos en la memoria de vídeo (VRAM). Al delegar la lógica a \textit{Compute Shaders}, la tarjeta gráfica aprovecha una arquitectura masivamente paralela con miles de núcleos independientes para calcular las físicas de cientos de miles de partículas en paralelo~\parencite{akenine2018real}. Al eliminar la transferencia constante de datos a través del bus de datos y garantizar la residencia de datos local, se mitiga el cuello de botella de transferencia y se logra una escalabilidad computacional órdenes de magnitud superior.
+El \textbf{enfoque basado en GPU (GPGPU)}, en cambio, mantiene toda la información en la memoria de vídeo de forma permanente. Al delegar las físicas a los \textit{Compute Shaders}, la tarjeta gráfica usa sus miles de núcleos para calcular el movimiento en paralelo~\parencite{akenine2018real}. Al eliminar el viaje de datos por el bus PCI-Express, la tasa de fotogramas sube y el rendimiento escala de forma espectacular.
 
 \section{Fundamentos de Computación en GPU}
-Para entender la evolución de los sistemas de partículas modernos, es necesario definir las tecnologías que permiten tratar a la tarjeta gráfica como un procesador de propósito general.
+Para entender los motores de partículas modernos, debemos explicar cómo convertimos la tarjeta gráfica en un procesador de propósito general.
 
 \subsection{El Compute Shader}
 \label{subsection:ElComputeShader}
 
-El \textit{Compute Shader} es una etapa de procesamiento altamente programable que permite ejecutar algoritmos de propósito general dentro de la GPU. A diferencia de los \textit{shaders} tradicionales (como el de vértices o fragmentos), el \textit{Compute Shader} no está vinculado a una etapa específica del renderizado gráfico ni a una geometría concreta. 
+El \textit{Compute Shader} es una etapa programable que permite correr algoritmos de propósito general en la GPU. No está atado a la geometría 3D ni al proceso clásico de pintar píxeles. 
 
-Su función principal es realizar operaciones matemáticas masivas sobre datos arbitrarios. Su arquitectura está diseñada para el paralelismo: en lugar de ejecutar una tarea compleja tras otra, lanza miles de pequeñas tareas simples (hilos) simultáneamente. Esto lo convierte en la herramienta ideal para la simulación de físicas, donde cada hilo se encarga de actualizar una única partícula de forma independiente a las demás.
+Su función es realizar operaciones matemáticas masivas de forma simultánea. En lugar de procesar tareas largas una tras otra, el hardware ejecuta miles de hilos sencillos a la vez. Por esta razón, es la herramienta perfecta para calcular la física de las partículas: cada hilo evalúa y actualiza un único elemento de forma independiente.
 
 \subsection{El Pipeline de Computación}
-Mientras que el \textit{pipeline} gráfico está diseñado como una cadena de montaje fija para convertir triángulos en píxeles, el \textbf{Pipeline de Computación} es una estructura lógica simplificada destinada exclusivamente al procesamiento de datos.
+Mientras que el \textit{pipeline} gráfico convierte triángulos en píxeles paso a paso, el \textbf{Pipeline de Computación} es un flujo lógico sencillo diseñado solo para tratar datos.
 
-Este flujo de trabajo se caracteriza por su autonomía. Un sistema puede despachar un pipeline de computación para actualizar millones de posiciones de partículas en la memoria de vídeo sin necesidad de interactuar con el sistema de dibujado. Este proceso se gestiona mediante tres fases conceptuales:
+Este sistema destaca por su autonomía. La GPU actualiza millones de posiciones de partículas sin tener que interactuar con el pipeline gráfico. El proceso se organiza en tres fases claras:
 \begin{enumerate}
-    \item \textbf{Despacho (\textit{Dispatch}):} <Añadir foto codigo c++> El sistema define cuántos grupos de hilos se necesitan para cubrir el volumen total de datos.
-    \item \textbf{Ejecución Paralela:} Los hilos procesan la información en bloques, compartiendo recursos y memoria local para optimizar el rendimiento.
-    \item \textbf{Sincronización:} <Añadir foto de codigo c++ de barreras de este> Se asegura que todos los cálculos hayan terminado antes de que el motor gráfico intente leer los resultados para mostrarlos en pantalla.
+    \item \textbf{Despacho (\textit{Dispatch}):} % TODO: Añadir foto código C++ 
+    El motor define el número de grupos de hilos necesarios para procesar todos los datos.
+    \item \textbf{Ejecución paralela:} Los hilos ejecutan sus operaciones en bloques, optimizando el acceso a la memoria local compartida.
+    \item \textbf{Sincronización:} % TODO: Añadir código C++ de barreras 
+    Aseguramos que la GPU termine de calcular antes de que el motor intente leer y pintar los resultados.
 \end{enumerate}
 
 
 \subsection{Técnica de Renderizado}
-La materialización visual de la simulación se articula mediante una arquitectura de doble almacenamiento indexado en la GPU, conocida técnicamente como la técnica de \textit{Ping-Pong Buffers}. Esta estrategia distribuye y coordina el flujo de datos del sistema concurrentemente a través de dos bloques de memoria independientes pero acoplados: un buffer de entrada (\texttt{particlesIn}) y un buffer de salida (\texttt{particlesOut}). Al operar bajo este enfoque simétrico, se mitigan los cuellos de botella de transferencia de datos entre la CPU y la VRAM, permitiendo un paralelismo masivo optimizado.
+Para pintar la simulación de forma fluida, adoptamos una estrategia de doble almacenamiento indexado en la GPU, conocida como \textit{Ping-Pong Buffers}. Repartimos la información en dos bloques de memoria acoplados pero independientes: el búfer de entrada (\texttt{particlesIn}) y el de salida (\texttt{particlesOut}). Con este diseño simétrico, agilizamos el flujo de datos y evitamos bloqueos de memoria.
 
-En la primera fase del ciclo, el Compute Shader toma el buffer de entrada como una referencia estática de lectura para evaluar el estado físico previo de las partículas (fuerzas, aceleración y tiempo de vida diferencial). Los resultados calculados se escriben inmediatamente en el buffer de salida. Una vez concluida y sincronizada esta etapa matemática mediante las barreras de hardware pertinentes, los buffers alternan sus roles para el siguiente cuadro (\textit{frame}), y el motor gráfico accede de forma directa al bloque de memoria actualizado para extraer las posiciones espaciales, colores y dimensiones. De este modo, el pipeline gráfico se limita exclusivamente a la rasterización y dibujado de la geometría en pantalla, aislando por completo la lógica física del proceso de representación visual.
+El proceso funciona de la siguiente manera. El Compute Shader lee el búfer de entrada para conocer las variables del frame anterior (fuerzas, velocidad y vida restante). Tras resolver las ecuaciones físicas, guarda los resultados en el búfer de salida. Una vez que las barreras de sincronización del hardware garantizan que la GPU ha terminado, los búferes intercambian sus roles para el siguiente fotograma. El motor gráfico accede al búfer recién actualizado para extraer posiciones y colores, limitándose a dibujar los puntos en pantalla. De este modo, aislamos las físicas del renderizado.
 
-\subsection{Simulaciones Procedurales} 
-Generar movimiento orgánico, fluido y dinámico (como turbulencias o dinámicas de vórtices) utilizando fórmulas estrictas de la mecánica de fluidos clásica —tales como las ecuaciones de <Añadir referencia> Navier-Stokes— presenta un coste computacional prohibitivo para aplicaciones interactivas en tiempo real. Como alternativa eficiente, la síntesis de efectos naturales en entornos virtuales se delega a técnicas procedimentales masivas ejecutadas en la GPU. Estas metodologías no simulan la física real del medio, sino que emulan su comportamiento visual mediante el uso de funciones matemáticas deterministas que generan aleatoriedad controlada.
+\subsection{Simulaciones Procedurales} % Revisar
+Si intentamos aplicar fórmulas físicas rigurosas para recrear fluidos o turbulencias —como las famosas ecuaciones de Navier-Stokes \parencite{akenine2018real}—, el coste computacional resulta prohibitivo para correr en tiempo real. Por eso, en computación gráfica recurrimos a simulaciones procedimentales. Estas técnicas no imitan la realidad a nivel molecular; en su lugar, emulan el comportamiento visual usando fórmulas matemáticas muy eficientes que generan aleatoriedad controlada.
 
-En el ámbito de la computación gráfica moderna basada en GPGPU (\textit{General-Purpose Computing on Graphics Processing Units}), existen dos enfoques predominantes para la generación procedimental de dinamismo:
+En las arquitecturas GPGPU modernas dominan dos estrategias para crear este dinamismo:
 
 \begin{enumerate}
-    \item \textbf{Ruido Coherente Estructural (Perlin, Simplex o Muestreo de Texturas):} Se fundamenta en la interpolación de gradientes pseudoaleatorios sobre una rejilla espacial fijada. Aunque produce transiciones espaciales muy suaves e ideales para dinámicas continuas, su cálculo analítico directo es computacionalmente costoso. Alternativamente, su precomputación en texturas tridimensionales penaliza críticamente el ancho de banda de la memoria de vídeo (\textit{VRAM}) debido a los constantes accesos de lectura por hilo.
-    \item \textbf{Generadores de Ruido Hash Pseudoaleatorios:} Basados en algoritmos numéricos de dispersión (como transformaciones matemáticas lineales, operaciones de bits o esquemas inspirados en funciones \textit{hash}). Estas funciones toman como entrada un valor entero único y determinista por unidad de cómputo y devuelven un valor escalar normalizado. 
+    \item \textbf{Ruido coherente estructural (como Perlin, Simplex o muestreo de texturas):} Se basa en interpolar gradientes pseudoaleatorios sobre una cuadrícula espacial. Aunque produce transiciones suaves ideales para gases, su coste matemático es alto. Además, si precalculamos el ruido en texturas 3D, saturamos el ancho de banda de la VRAM por los constantes accesos de lectura de cada hilo.
+    \item \textbf{Generadores de ruido tipo Hash pseudoaleatorios:} Usamos funciones matemáticas rápidas de dispersión, operaciones a nivel de bit o transformaciones lineales. Estas funciones reciben como entrada un valor determinista y devuelven un decimal normalizado.
 \end{enumerate}
 
-Para sistemas de partículas masivos donde la concurrencia es crítica, el uso de funciones \textit{hash} procedimentales sobre el Compute Shader ofrece ventajas sustanciales. Al alimentar la función matemática utilizando el identificador global de invocación del hilo (\textit{Thread ID}) como semilla primaria, cada unidad de ejecución calcula de forma matemática autónoma e independiente sus propios vectores de dispersión. 
+Para mover millones de partículas en paralelo, los generadores \textit{hash} en Compute Shaders son imbatibles. Si alimentamos la función usando el identificador global del hilo (\textit{Thread ID}) como semilla, cada unidad aritmética calcula de forma autónoma sus propios desplazamientos. 
 
-Mediante la aplicación de desfases o componentes ortogonales (\textit{offsets}), es posible derivar gradientes tridimensionales asíncronos que rompen la homogeneidad visual de la simulación. Desde una perspectiva de arquitectura de hardware, este enfoque procedimental matemático elimina por completo las dependencias de memoria por texturas, ejecutando las operaciones exclusivamente a nivel de los registros internos de las unidades aritmético-lógicas (\textit{ALUs}) de la GPU. Esto se traduce en una huella computacional óptima que maximiza la tasa de refresco estructural manteniendo la ilusión de un comportamiento caótico y orgánico en la nube de puntos.
+Al aplicar pequeños desfases (\textit{offsets}), generamos ráfagas asíncronas en las tres dimensiones. Esto rompe cualquier patrón visual simétrico. Desde la perspectiva del hardware, esta técnica matemática elimina por completo los accesos a texturas en memoria. Todo se calcula directamente en las unidades aritmético-lógicas (\textit{ALUs}) de la GPU. El resultado es un consumo de recursos mínimo, lo que nos permite mantener una alta tasa de refresco a la vez que simulamos nubes de puntos caóticas y muy naturales.
