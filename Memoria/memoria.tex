@@ -33,6 +33,12 @@
 \usepackage{eso-pic}           % Para imagen de fondo en portada
 \usepackage{fancyhdr}          % Cabeceras y pies de página personalizados
 
+% --- Numeración continua para figuras, tablas y ecuaciones ---
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+\counterwithout{table}{chapter}
+\counterwithout{equation}{chapter}
+
 % --- Configuración de Párrafo ---
 \setstretch{1.2}               % Interlineado 120%
 \setlength{\parindent}{1.27cm} % Sangría APA 7 (0.5 pulgadas)

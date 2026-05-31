@@ -1,20 +1,17 @@
-\chapter{Condiciones de Carrera en Arquitecturas de Cómputo Paralelo}
+\chapter{Anexo}
+\label{anexo:principal}
+
+\renewcommand{\thesection}{\arabic{section}}
+
+\section{Repositorio de Código Fuente}
+\label{anexo:repositorio}
+
+Todo el código fuente desarrollado en este Trabajo de Fin de Grado, incluyendo el motor gráfico en Vulkan, los sombreadores (\textit{shaders}) de cómputo y representación, las escenas de prueba y los scripts de análisis comparativo con OpenGL, se encuentra alojado públicamente y a libre disposición en el repositorio de GitHub del proyecto \parencite{fenrro27_vulkan_tfg}. Este repositorio contiene la estructura completa del proyecto, las instrucciones detalladas para su compilación y ejecución, así como el histórico completo de control de versiones que documenta de forma transparente el desarrollo evolutivo de las optimizaciones implementadas en la simulación.
+
+\section{Condiciones de Carrera en Arquitecturas de Cómputo Paralelo}
 \label{anexo:race_conditions}
 
-En el desarrollo de aplicaciones que hacen un uso intensivo de la GPU mediante APIs de bajo nivel como Vulkan, la gestión explícita de la concurrencia es uno de los pilares fundamentales. A diferencia de las abstracciones automáticas presentes en APIs heredadas como OpenGL, Vulkan delega la responsabilidad de mitigar y evitar las condiciones de carrera (\textit{race conditions}) íntegramente en el desarrollador.
-
-\section{Definición Teórica de una Race Condition}
-
-Una condición de carrera es un defecto de sincronización de software que se produce cuando el resultado final de la ejecución depende de la temporización o del orden físico impredecible en el que se despachan los hilos de ejecución dentro de los núcleos paralelos de la GPU. Formalmente, este fenómeno se manifiesta cuando se cumplen simultáneamente tres condiciones:
-\begin{enumerate}
-    \item Dos o más hilos concurrentes acceden a la misma dirección de memoria compartida (VRAM).
-    \item Al menos uno de estos accesos consiste en una operación de modificación o escritura (\textit{write}).
-    \item No se implementa ningún mecanismo de exclusión mutua, barrera o sincronización de hardware que ordene jerárquicamente dichos accesos.
-\end{enumerate}
-
-\section{Manifestación en el Pipeline de Partículas del TFG}
-
-En el sistema de partículas implementado en este trabajo, el riesgo latente de sufrir una condición de carrera se clasifica como una dependencia de datos de tipo \textbf{RAW} (\textit{Read-After-Write} o Lectura tras Escritura). El flujo del ciclo de ejecución por cada cuadro (\textit{frame}) se fragmenta en dos fases asíncronas consecutivas que comparten de manera directa la misma memoria de vídeo alojada en los \textit{Storage Buffers} (\texttt{GEParticleBuffer}):
+A diferencia de APIs de alto nivel como OpenGL, Vulkan delega la gestión de la concurrencia íntegramente en el desarrollador, lo que exige resolver explícitamente las condiciones de carrera (\textit{race conditions}) donde el resultado final de la GPU depende de la temporización o del orden físico impredecible en el que se despachan los hilos concurrentes al acceder sin control a una misma zona de memoria de vídeo (VRAM) habiendo al menos una operación de escritura. En este proyecto, la simulación de partículas presenta una dependencia de datos de tipo \textit{Read-After-Write} (RAW) en los \textit{Storage Buffers} (\texttt{GEParticleBuffer}) compartidos, ya que la fase de cómputo (\textit{Compute Shader}) escribe las posiciones físicas y la fase gráfica (\textit{Vertex Shader}) las lee inmediatamente para proyectarlas en pantalla; sin sincronización, la GPU procesa vértices con datos a medio actualizar de distintos frames, provocando parpadeos (\textit{flickering}) y deformaciones geométricas al mezclar coordenadas desfasadas. Para solventar este problema de forma óptima, tal y como se ilustra en el esquema de la Figura~\ref{fig:anexo_barrera}, se implementa una barrera de pipeline explícita (\texttt{vkCmdPipelineBarrier}) que define tanto una barrera de ejecución para congelar el procesamiento de vértices hasta que el shader de cómputo finalice (\texttt{COMPUTE\_SHADER} $\longrightarrow$ \texttt{VERTEX\_SHADER}), como una barrera de acceso a memoria para vaciar e invalidar las cachés de la GPU, garantizando que las escrituras del \textit{Compute Shader} sean globalmente visibles antes de ser consumidas por el sombreador de dibujado (\texttt{SHADER\_WRITE} $\longrightarrow$ \texttt{VERTEX\_ATTRIBUTE\_READ}).
 
 \begin{figure}[h!]
 \centering
@@ -36,29 +33,3 @@ En el sistema de partículas implementado en este trabajo, el riesgo latente de 
 \caption{Mecanismo de resolución de la condición de carrera RAW mediante barreras de hardware.}
 \label{fig:anexo_barrera}
 \end{figure}
-
-Si se omitiera la inyección de restricciones de sincronización, la GPU comenzaría de manera optimista a leer las coordenadas espaciales de los vértices para proyectarlos en la pantalla a través del \textit{Vertex Shader} antes de que los grupos de trabajo (\textit{workgroups}) del \textit{Compute Shader} hubieran terminado de calcular la física o el tiempo de vida de todo el lote de partículas. 
-
-Las consecuencias directas de esta falta de sincronización en el motor gráfico serían:
-\begin{itemize}
-    \item \textbf{Artefactos Visuales (\textit{Flickering}):} Parpadeos intermitentes en la pantalla provocados porque el motor representa fragmentos de memoria que se encuentran a caballo entre frames distintos en un mismo instante.
-    \item \textbf{Corrupción y Desplazamiento Geométrico:} Deformación espacial de la simulación. El \textit{Vertex Shader} podría leer la componente $X$ de una partícula que ya ha sido actualizada por la GPU, pero obtener las componentes $Y$ y $Z$ pertenecientes al estado físico desfasado del cuadro anterior.
-\end{itemize}
-
-\section{Solución Implementada mediante Primitivas de Vulkan}
-
-Para solventar este cuello de botella sin degradar el paralelismo masivo de la arquitectura de vídeo, se ha diseñado un protocolo de sincronización explícito mediante comandos \texttt{vkCmdPipelineBarrier}. Al registrar la estructura, se definen dos políticas de control:
-
-\subsection{Barrera de Ejecución (\textit{Execution Barrier})}
-Se restringe el flujo del planificador de hardware vinculando la etapa productora y la etapa consumidora de datos:
-\begin{center}
-\texttt{VK\_PIPELINE\_STAGE\_COMPUTE\_SHADER\_BIT} $\longrightarrow$ \texttt{VK\_PIPELINE\_STAGE\_VERTEX\_SHADER\_BIT}
-\end{center}
-Esto obliga a las unidades de cómputo gráfico a congelar el procesamiento de vértices hasta que los núcleos destinados al \textit{Compute Shader} hayan alcanzado su instrucción de salida.
-
-\subsection{Barrera de Acceso a Memoria (\textit{Memory Access Barrier})}
-Garantiza de forma física que las cachés L1 y L2 de la GPU se hayan vaciado (\textit{flushed}) e invalidado respectivamente:
-\begin{center}
-\texttt{VK\_ACCESS\_SHADER\_WRITE\_BIT} $\longrightarrow$ \texttt{VK\_ACCESS\_VERTEX\_ATTRIBUTE\_READ\_BIT}
-\end{center}
-Esta transición de acceso asegura que las escrituras en el almacenamiento masivo sean globalmente visibles para los registros de atributos de entrada de los shaders de dibujado, convirtiendo un acceso asíncrono indeterminado en una arquitectura lineal determinista de alto rendimiento.

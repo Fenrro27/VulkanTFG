@@ -3089,6 +3089,7 @@
     <bcf:citekey order="17" intorder="1">vcpkg_ms</bcf:citekey>
     <bcf:citekey order="18" intorder="1" nocite="1">willems_vulkan</bcf:citekey>
     <bcf:citekey order="19" intorder="2" nocite="1">vulkan_spec</bcf:citekey>
+    <bcf:citekey order="20" intorder="1">fenrro27_vulkan_tfg</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="apa">

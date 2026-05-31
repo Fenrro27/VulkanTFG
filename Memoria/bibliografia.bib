@@ -1,5 +1,7 @@
+% =============================================================================
+% 1. ARTÍCULOS DE CONFERENCIAS Y REVISTAS (PAPERS)
+% =============================================================================
 
-% https://ieeexplore.ieee.org/abstract/document/8685588
 @INPROCEEDINGS{8685588,
   author={Lujan, Michael and Baum, Michael and Chen, Dayuan and Zong, Ziliang},
   booktitle={2019 International Conference on Computing, Networking and Communications (ICNC)}, 
@@ -9,11 +11,9 @@
   number={},
   pages={777-781},
   keywords={Graphics;Three-dimensional displays;Power demand;Process control;Rendering (computer graphics);Energy efficiency;Libraries;Servers;Standards;Optimization;performance;energy efficiency;OpenGL;Vulkan},
-  doi={10.1109/ICCNC.2019.8685588}}
+  doi={10.1109/ICCNC.2019.8685588}
+}
 
-
-% Vulkan vs OpenGL
-% https://ieeexplore.ieee.org/abstract/document/9655285
 @INPROCEEDINGS{9655285,
   author={Ferraz, Oscar and Menezes, Paulo and Silva, Vitor and Falcao, Gabriel},
   booktitle={2021 International Conference on Graphics and Interaction (ICGI)}, 
@@ -23,56 +23,43 @@
   number={},
   pages={1-8},
   keywords={Headphones;Semiconductor device modeling;Embedded systems;Three-dimensional displays;Production;Benchmark testing;Rendering (computer graphics);Low-power GPU;Energy-efficiency;OpenGL;Vulkan;Virtual/Augmented reality;VR/AR headset},
-  doi={10.1109/ICGI54032.2021.9655285}}
-  
-@online{dyndo2017glvsvk,
-  author = {Damian Dyńdo},
-  title = {GL\_vs\_VK: Comparison of OpenGL and Vulkan API in terms of performance},
-  year = {2017},
-  url = {https://github.com/RippeR37/GL_vs_VK},
-  note = {Repositorio original}
+  doi={10.1109/ICGI54032.2021.9655285}
 }
 
-@online{fenrro2026glvsvk_comp,
-  author = {Fenrro27},
-  title = {GL\_vs\_VK (Branch Comparative): Entorno de benchmarking para TFG},
-  year = {2026},
-  url = {https://github.com/Fenrro27/GL_vs_VK/tree/Comparative},
-  note = {Bifurcación (fork) adaptada y expandida para este trabajo}
-}
 
+% =============================================================================
+% 2. LIBROS Y CAPÍTULOS DE LIBROS
+% =============================================================================
+
+@book{akenine2018real,
+  title     = "Real-time rendering, fourth edition",
+  author    = "Akenine-Moller, Tomas and Haines, Eric and Hoffman, Naty",
+  publisher = "CRC Press",
+  edition   =  4,
+  month     =  aug,
+  year      =  2018,
+  address   = "London, England",
+  isbn      = {978-1138627000}
+}
 
 @book{Sellers_Kessenich_2017a,
-title={Vulkan Programming Guide: The Official Guide to Learning Vulkan}, 
-publisher={OpenGL}, 
-author={Sellers, Graham and Kessenich, John M.}, 
-year={2017}, month=ene }
-
-
-
-@online{willems_vulkan,
-  author = {Sascha Willems},
-  title = {Vulkan C++ examples and demos},
-  year = {2023},
-  url = {https://github.com/SaschaWillems/Vulkan}
-  }
-
-@online{vulkan_spec,
-  author = {Khronos Group},
-  title = {Vulkan Specification},
-  year = {2024},
-  url = {https://docs.vulkan.org/spec/latest/index.html},
-  note = {Especificación oficial de la API Vulkan}
+  title     = "Vulkan programming guide",
+  author    = "Sellers, Graham M and Kessenich, John M",
+  publisher = "Addison-Wesley Educational",
+  month     =  oct,
+  year      =  2016,
+  address   = "Boston, MA", 
+  isbn      = {978-0134464541}
 }
 
-
-@online{vulkan_spec_shaders,
-  author = {{The Khronos Group}},
-  title = {Vulkan Documentation: Shaders},
-  year = {2024},
-  url = {https://docs.vulkan.org/spec/latest/chapters/shaders.html},
-  publisher = {Khronos Group},
-  langid = {english}
+@book{lengyel2011mathematics,
+  title     = "Mathematics for {3D} game programming and computer graphics",
+  author    = "Lengyel, Eric",
+  publisher = "Delmar Cengage Learning",
+  month     =  jun,
+  year      =  2011,
+  address   = "Florence, AL",
+  isbn      = {978-1435458864}
 }
 
 @incollection{latta2004massively,
@@ -86,13 +73,25 @@ year={2017}, month=ene }
   isbn      = {978-1584503576}
 }
 
-@book{akenine2018real,
-  author    = {Tomas Akenine-M{\"o}ller and Eric Haines and Naty Hoffman},
-  title     = {Real-Time Rendering},
-  edition   = {4th},
-  publisher = {A K Peters/CRC Press},
-  year      = {2018},
-  isbn      = {978-1138627000}
+
+% =============================================================================
+% 3. DOCUMENTACIÓN OFICIAL, ESPECIFICACIONES Y MANUALES
+% =============================================================================
+
+@online{vulkan_spec,
+  author       = {{Khronos Group}},
+  title        = {Vulkan Specification},
+  year         = {2024},
+  url          = {https://docs.vulkan.org/spec/latest/index.html},
+  note         = {Especificación oficial de la API Vulkan}
+}
+
+@online{vulkan_spec_shaders,
+  author       = {{The Khronos Group}},
+  title        = {Vulkan Documentation: Shaders},
+  year         = {2024},
+  url          = {https://docs.vulkan.org/spec/latest/chapters/shaders.html},
+  publisher    = {Khronos Group}
 }
 
 @manual{vulkan_validation,
@@ -103,21 +102,33 @@ year={2017}, month=ene }
   note         = {Accedido en 2026}
 }
 
+@online{moreno_gii_ao,
+  author       = {Moreno Velo, Francisco José},
+  title        = {Animación por Ordenador (Grado en Ingeniería Informática)},
+  year         = {2024},
+  organization = {Universidad de Huelva},
+  url          = {https://www.uhu.es/francisco.moreno/gii_ao/},
+  urldate      = {2026-05-25}
+}
+
+
+% =============================================================================
+% 4. LIBRERÍAS, HERRAMIENTAS Y REPOSITORIOS DE CÓDIGO
+% =============================================================================
+
+@online{willems_vulkan,
+  author       = {Sascha Willems},
+  title        = {Vulkan C++ examples and demos},
+  year         = {2023},
+  url          = {https://github.com/SaschaWillems/Vulkan}
+}
+
 @misc{tinyobjloader,
   author       = {Syoyo Fujita},
   title        = {tinyobjloader: A lightweight OBJ parser},
   year         = {2026},
   publisher    = {GitHub},
   url          = {https://github.com/tinyobjloader/tinyobjloader}
-}
-
-@book{lengyel2011mathematics,
-  author       = {Eric Lengyel},
-  title        = {Mathematics for 3D Game Programming and Computer Graphics},
-  publisher    = {Course Technology PTR},
-  year         = {2011},
-  edition      = {3rd},
-  isbn         = {978-1435458864}
 }
 
 @misc{dearimgui,
@@ -136,73 +147,69 @@ year={2017}, month=ene }
   url          = {https://github.com/microsoft/vcpkg}
 }
 
+@misc{benyoon1_vk_gl,
+  author       = {Ben Yoon},
+  title        = {Vulkan vs OpenGL Benchmark},
+  year         = {2024},
+  url          = {https://github.com/benyoon1/vulkan-vs-opengl},
+  note         = {Repositorio de GitHub modificado para pruebas de rendimiento}
+}
 
-% Modelos y Assets
+@misc{fenrro27_vulkan_vs_opengl,
+  author       = {Fenrro27},
+  title        = {vulkan-vs-opengl},
+  year         = {2026},
+  publisher    = {GitHub},
+  url          = {https://github.com/Fenrro27/vulkan-vs-opengl},
+  note         = {Accedido: 26 de mayo de 2026}
+}
+
+@misc{fenrro27_vulkan_tfg,
+  author       = {Fenrro27},
+  title        = {{VulkanTFG}: Repositorio de código fuente},
+  year         = {2026},
+  publisher    = {GitHub},
+  url          = {https://github.com/Fenrro27/VulkanTFG},
+  note         = {Disponible en GitHub}
+}
+
+
+% =============================================================================
+% 5. MODELOS 3D, ASSETS Y RECURSOS GRÁFICOS
+% =============================================================================
 
 @online{owenp88_fountain_2023,
-    author = {OwenP88},
-    title = {Círculo Fuente de agua Material de piedra Modelo 3D},
-    year = {2023},
-    url = {https://open3dmodel.com/es/3d-models/circle-water-fountain-stone-material_624984.html},
-    organization = {Open3dModel},
-    urldate = {2026-05-18}
+  author       = {OwenP88},
+  title        = {Círculo Fuente de agua Material de piedra Modelo 3D},
+  year         = {2023},
+  url          = {https://open3dmodel.com/es/3d-models/circle-water-fountain-stone-material_624984.html},
+  organization = {Open3dModel},
+  urldate      = {2026-05-18}
 }
 
 @online{hexmirelive_campfire_2026,
-    author = {hexmirelive},
-    title = {Optimized Stylized Campfire (Game-Ready)},
-    year = {2026},
-    date = {2026-03-16},
-    url = {https://sketchfab.com/3d-models/optimized-stylized-campfire-game-ready-f5cb633628cb422ea676a12dcffa7909},
-    organization = {Sketchfab},
-    urldate = {2026-05-18}
+  author       = {hexmirelive},
+  title        = {Optimized Stylized Campfire (Game-Ready)},
+  year         = {2026},
+  url          = {https://sketchfab.com/3d-models/optimized-stylized-campfire-game-ready-f5cb633628cb422ea676a12dcffa7909},
+  organization = {Sketchfab},
+  urldate      = {2026-05-18}
 }
 
 @online{planeharmony389_dolgoch_2026,
-    author = {PlaneHarmony389},
-    title = {Talyllyn Railway No.2 Dolgoch Locomotive},
-    year = {2026},
-    date = {2026-03-7},
-    url = {https://sketchfab.com/3d-models/talyllyn-railway-no2-dolgoch-locomotive-3030b8cbf0eb41d28635caa897595b8a},
-    organization = {Sketchfab},
-    urldate = {2026-05-18}
+  author       = {PlaneHarmony389},
+  title        = {Talyllyn Railway No.2 Dolgoch Locomotive},
+  year         = {2026},
+  url          = {https://sketchfab.com/3d-models/talyllyn-railway-no2-dolgoch-locomotive-3030b8cbf0eb41d28635caa897595b8a},
+  organization = {Sketchfab},
+  urldate      = {2026-05-18}
 }
-
 
 @online{pngwing_imagen_bnrwi,
-    author = {{PNGWing}},
-    title = {Salpicadura gota de agua, salpicadura de agua, salpicadura de agua, blanco, salpicadura de color, monocromo png}, 
-    year = {2026},
-    url = {https://www.pngwing.com/es/free-png-bnrwi},
-    organization = {PNGWing},
-    urldate = {2026-05-18}
-}
-
-@online{moreno_gii_ao,
-  author       = {Moreno Velo, Francisco José},
-  title        = {Animación por Ordenador (Grado en Ingeniería Informática)},
-  year         = {2024}, % Año de la última actualización/curso del material
-  organization = {Universidad de Huelva},
-  url          = {https://www.uhu.es/francisco.moreno/gii_ao/},
-  urldate      = {2026-05-25} % Fecha en la que has consultado la web
-}
-
-
-@misc{benyoon1_vk_gl,
-    author = {Ben Yoon},
-    title = {Vulkan vs OpenGL Benchmark},
-    year = {2024}, % o el año que corresponda
-    url = {https://github.com/benyoon1/vulkan-vs-opengl},
-    note = {Repositorio de GitHub modificado para pruebas de rendimiento}
-}
-
-
-@misc{fenrro27_vulkan_vs_opengl,
-  author = {Fenrro27},
-  title = {vulkan-vs-opengl},
-  year = {2026},
-  publisher = {GitHub},
-  journal = {GitHub repository},
-  howpublished = {\url{https://github.com/Fenrro27/vulkan-vs-opengl}},
-  note = {Accedido: 26 de mayo de 2026}
+  author       = {{PNGWing}},
+  title        = {Salpicadura gota de agua, salpicadura de agua, salpicadura de agua, blanco, salpicadura de color, monocromo png}, 
+  year         = {2026},
+  url          = {https://www.pngwing.com/es/free-png-bnrwi},
+  organization = {PNGWing},
+  urldate      = {2026-05-18}
 }
