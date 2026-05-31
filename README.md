@@ -50,7 +50,7 @@ cmake --preset linux-debug
 cmake --build --preset linux-debug --target run
 ```
 
-#### macOS
+#### macOS (Aún no compatible)
 ```bash
 # Configurar
 cmake --preset macos-debug
