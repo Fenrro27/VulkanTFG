@@ -28,10 +28,10 @@ createInfo.ppEnabledLayerNames = validationLayers;
 \end{figure}
 
 \section{TinyObjLoader}
-Queríamos montar escenas más ricas. Por eso, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
+Queríamos montar escenas más enriquecedoras. Por eso, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
 
 \subsection{Adaptación estructural: \texttt{GEObject} y \texttt{GEModel}}
-El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject} y creamos \texttt{GEModel}.
+El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject} y creamos \texttt{GEModel}, cuya arquitectura modular simplifica futuras ampliaciones del motor, como el cálculo de volúmenes de envoltura para la detección de colisiones rápidas (véase Anexo~\ref{anexo:bounding_spheres}).
 
 Convertimos la clase abstracta \texttt{GEObject} en un contenedor genérico y seguro. Ahora guarda vectores de punteros inteligentes para sus texturas (\texttt{std::shared\_ptr<GETexture>}) y sus piezas (\texttt{std::unique\_ptr<GEPiece>}). Gracias a este cambio, un solo objeto puede tener sub-mallas con materiales distintos. Centralizamos el dibujo, las matrices de modelo y los cambios en un único sitio.
 
@@ -54,7 +54,7 @@ Implementamos estas tres opciones:
 \end{itemize}
 
 \section{ImGui}
-Para vigilar el rendimiento del motor en tiempo real, metimos la interfaz \textit{Dear ImGui} \parencite{dearimgui}. Trabaja bajo el paradigma de modo inmediato (\textit{Immediate Mode GUI}). Su impacto en la CPU es mínimo. Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), partículas vivas, tipo de cámara y controles. Nos ayuda a detectar fallos rápido.
+Para vigilar el rendimiento del motor en tiempo real, metimos la interfaz \textit{Dear ImGui} \parencite{dearimgui}. Trabaja bajo el paradigma de modo inmediato o \textit{Immediate Mode GUI} (cuyo funcionamiento conceptual se describe en el Anexo~\ref{anexo:imgui}). Su impacto en la CPU es mínimo. Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), partículas vivas, tipo de cámara y controles. Nos ayuda a detectar fallos rápido.
 
 \begin{figure}[ht]
     \centering
@@ -128,7 +128,8 @@ void GEApplication::ControlsGUI(GECamera* cam) {
     \caption{Maquetación condicional del menú de controles en función del estado de la cámara del motor.}
     \label{fig:imgui_controles}
 \end{figure}
-
+    \bigskip
+    \bigskip
     \item \textbf{Inyección en el Render Pass:} La interfaz debe dibujarse siempre en último lugar para garantizar que actúe como un \textit{overlay} plano sobre los objetos tridimensionales y el sistema de partículas. Durante la grabación del búfer de comandos (\texttt{VkCommandBuffer}), la llamada nativa \texttt{ImGui\_ImplVulkan\_RenderDrawData} se inserta justo antes de dar por finalizado el pase de renderizado actual, enviando la geometría de los menús directamente a la GPU.
 \end{enumerate}
 

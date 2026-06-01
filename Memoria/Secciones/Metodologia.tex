@@ -18,7 +18,7 @@ Simular partículas exige realizar millones de operaciones matemáticas por segu
 
 El \textbf{enfoque clásico en CPU} trabaja de forma secuencial. El procesador calcula el estado de la partícula uno a uno. Al terminar, copia todo ese bloque de datos hacia la memoria de vídeo (VRAM) usando el bus PCI-Express. Este viaje constante satura el canal de comunicación. Se genera un cuello de botella crítico. Por este motivo, la CPU colapsa si intentamos mover nubes masivas de elementos sin perder fluidez~\parencite{latta2004massively}. Es un límite físico.
 
-Por el contrario, el \textbf{enfoque basado en GPU (GPGPU)} aloja la información en la memoria gráfica de manera fija. Al programar las físicas dentro de los \textit{Compute Shaders}, la tarjeta aprovecha sus miles de núcleos dedicados para actualizar todo en paralelo~\parencite{akenine2018real}. Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. La tasa de fotogramas sube de forma drástica.
+Por el contrario, el enfoque basado en GPU (GPGPU) aloja la información en la memoria gráfica de manera fija. Al programar las físicas dentro de los \textit{Compute Shaders}, la tarjeta aprovecha sus miles de núcleos dedicados para actualizar todo en paralelo~\parencite{akenine2018real}. Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. La tasa de fotogramas sube de forma drástica.
 
 \section{Fundamentos de Computación en GPU}
 Para entender la arquitectura del motor, primero debemos ver cómo convertimos la tarjeta gráfica en una unidad de cálculo de propósito general.
