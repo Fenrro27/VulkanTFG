@@ -1,4 +1,10 @@
-const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
-
-createInfo.enabledLayerCount = 1;
-createInfo.ppEnabledLayerNames = validationLayers;
+void GEApplication::ControlsGUI(GECamera* cam) {
+    ImGui::Begin("Controles de Camara", nullptr, flags);
+    if (mostrarControles) {
+        if (cam->getCurrentMode() == GECamera::CameraMode::FREE) {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
+            ImGui::Text("M: Cambiar modo | Flechas: Rotar...");
+        }
+    }
+    ImGui::End();
+}

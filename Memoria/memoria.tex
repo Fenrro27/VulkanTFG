@@ -58,10 +58,14 @@
 \titlespacing*{\chapter}{0pt}{0pt}{20pt} 
 
 \usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 % --- Código para pintar codigos en la memoria ---
 \usepackage{tcolorbox}
 \tcbuselibrary{listings, skins} 
+\usepackage{float}
+\newfloat{listing}{htbp}{lol}[chapter]
+\floatname{listing}{Código}
 
 % --- Colores estilo Dark Theme (Más claro, estilo Nord) ---
 \definecolor{carbonbg}{HTML}{434C5E}   % Gris oscuro más claro y suave
