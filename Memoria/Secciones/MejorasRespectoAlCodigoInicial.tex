@@ -1,10 +1,13 @@
 % Finalizado
 \chapter{Mejoras respecto al código inicial}
 
-Durante el desarrollo no solo creamos las partículas. También optimizamos y limpiamos el código base del motor. Estas mejoras hacen que la aplicación sea más sólida, facilitan la programación y mejoran la usabilidad. Detallamos los cambios principales a continuación.
+A lo largo del desarrollo han ido surgiendo nuevas necesidades. Esto nos ha hecho mejorar el código original haciendo una aplicacion mas solida. 
+Las mejoras las vamos a comentar a continuacion.
 
 \section{Punteros inteligentes}
-Refactorizamos el motor a fondo. Eliminamos los viejos punteros crudos (\textit{raw pointers}) de C y los cambiamos por punteros inteligentes (\textit{smart pointers}) de C++ moderno. Esta estrategia afecta a todas las clases. Buscamos asegurar la gestión de la memoria. Queremos evitar a toda costa las fugas de recursos (\textit{memory leaks}).
+Refactorizamos el motor a fondo. Eliminamos los viejos punteros crudos (\textit{raw pointers}) y los cambiamos por punteros inteligentes (\textit{smart pointers}). 
+Esta estrategia afecta practicamente a todas las clases. Buscamos asegurar la gestión de la memoria. 
+Queremos evitar a toda costa las fugas de recursos (\textit{memory leaks}).
 
 Para lograrlo, usamos dos herramientas clave:
 \begin{itemize}
@@ -13,7 +16,12 @@ Para lograrlo, usamos dos herramientas clave:
 \end{itemize}
 
 \section{Capa de Validación de Vulkan}
-Vulkan busca el rendimiento bruto. Por eso, no comprueba si el desarrollador comete errores en tiempo de ejecución. Delega todo el control de la memoria. Para no programar a ciegas, activamos la capa de validación oficial (\textit{Vulkan Validation Layer}). Este sistema actúa como un filtro entre nuestro código y el controlador gráfico. Analiza cada llamada de la API. Como muestra la Figura~\ref{fig:codigoValidacion}, inyectamos la capa de Khronos al arrancar la instancia. El entorno revisa la sincronización y los parámetros en directo, enviando alertas claras a la consola ante cualquier fallo \parencite{vulkan_validation}.
+Una caracteristica de Vulkan es que no comprueba si el desarrollador comete errores en tiempo de ejecución.
+Delega todo el control a la memoria. Esto provoca que no tengamos un control de errores real. 
+Para poder ver que falla activamos la capa de validación (\textit{Vulkan Validation Layer}). 
+Esta capa nos ayuda a detectar errores en nuestro código, o incompatibilidades con el controlador gráfico. 
+Como muestra la Figura~\ref{fig:codigoValidacion}, inyectamos la capa de Khronos al arrancar la instancia. 
+El entorno revisa la sincronización y los parámetros en directo, avisando ante cualquier fallo \parencite{vulkan_validation}.
 
 \begin{figure}[ht]
     \centering
@@ -28,14 +36,23 @@ createInfo.ppEnabledLayerNames = validationLayers;
 \end{figure}
 
 \section{TinyObjLoader}
-Queríamos montar escenas más enriquecedoras. Por eso, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
+Queríamos montar escenas más enriquecedoras. Por eso, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. 
+Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. 
+La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
 
+<.h de GEObject y de GEModel>
+ 
 \subsection{Adaptación estructural: \texttt{GEObject} y \texttt{GEModel}}
-El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject} y creamos \texttt{GEModel}, cuya arquitectura modular simplifica futuras ampliaciones del motor, como el cálculo de volúmenes de envoltura para la detección de colisiones rápidas (véase Anexo~\ref{anexo:bounding_spheres}).
+El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject}.
+Ademas, creamos \texttt{GEModel}, cuya arquitectura modular simplifica futuras ampliaciones del motor,
+ como el cálculo de volúmenes de envoltura para la detección de colisiones rápidas (véase Anexo~\ref{anexo:bounding_spheres}).
 
-Convertimos la clase abstracta \texttt{GEObject} en un contenedor genérico y seguro. Ahora guarda vectores de punteros inteligentes para sus texturas (\texttt{std::shared\_ptr<GETexture>}) y sus piezas (\texttt{std::unique\_ptr<GEPiece>}). Gracias a este cambio, un solo objeto puede tener sub-mallas con materiales distintos. Centralizamos el dibujo, las matrices de modelo y los cambios en un único sitio.
 
-A partir de ahí programamos \texttt{GEModel}. Esta clase hereda de \texttt{GEObject} y exprime las funciones de \texttt{tinyobjloader}. El proceso de carga tiene cuatro pasos:
+La clase \texttt{GEObject} se convierte en un contenedor genérico. Las texturas y piezas se almacenan ahora con punteros inteligentes. 
+Gracias a esta clase tenemos toda la logica de dibujo en un unico sitio. 
+
+A partir de ahí programamos \texttt{GEModel}. Esta clase hereda de \texttt{GEObject} y aprovecha las funciones de \texttt{tinyobjloader}. 
+El proceso de carga tiene cuatro pasos:
 \begin{enumerate}
     \item \textbf{Lectura del archivo:} Con \texttt{tinyobj::LoadObj} leemos los ficheros \texttt{.obj} y \texttt{.mtl}. El motor busca las rutas de las imágenes en el disco de forma dinámica.
     \item \textbf{Control de fallos:} Cargamos los archivos en la VRAM. Para evitar cuelgues (\textit{crashes}) si falta un archivo, usamos un bloque \texttt{try-catch}. Si algo falla, el motor asigna una textura por defecto y la ejecución sigue.
@@ -44,17 +61,22 @@ A partir de ahí programamos \texttt{GEModel}. Esta clase hereda de \texttt{GEOb
 \end{enumerate}
 
 \section{Modos de cámara}
-Inspeccionar las partículas en detalle requería mejores controles. Por este motivo, rediseñamos la cámara. Añadimos dos modos nuevos (FPS y orbital) al modo libre que ya venía en el código base. El usuario cambia de modo pulsando el teclado. Los cálculos internos usan matrices de proyección y rotación estándar \parencite{lengyel2011mathematics}.
+
+Para poder navegar mejor por la escena se ha rediseñado la cámara. Añadimos dos modos nuevos (FPS y orbital) al modo libre que ya venía en el código base. 
+Los cálculos internos usan matrices de proyección y rotación estándar \parencite{lengyel2011mathematics}.
 
 Implementamos estas tres opciones:
 \begin{itemize}
-    \item \textbf{Modo Libre:} Es el original. Permite volar por la escena sin límites.
+    \item \textbf{Modo Libre:} Permite volar por la escena sin límites.
     \item \textbf{Modo FPS:} Se mueve de forma similar a un juego en primera persona.
     \item \textbf{Modo Orbital:} Bloquea el objetivo en el centro del emisor que elijas. Puedes girar alrededor, hacer zoom y saltar de un sistema a otro de forma suave.
 \end{itemize}
 
 \section{ImGui}
-Para vigilar el rendimiento del motor en tiempo real, metimos la interfaz \textit{Dear ImGui} \parencite{dearimgui}. Trabaja bajo el paradigma de modo inmediato o \textit{Immediate Mode GUI} (cuyo funcionamiento conceptual se describe en el Anexo~\ref{anexo:imgui}). Su impacto en la CPU es mínimo. Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), partículas vivas, tipo de cámara y controles. Nos ayuda a detectar fallos rápido.
+Se ha añadido la interfaz \textit{Dear ImGui} \parencite{dearimgui}. Con ella vemos metricas e informacion interesante.
+Trabaja bajo el paradigma de modo inmediato o \textit{Immediate Mode GUI} (cuyo funcionamiento conceptual se describe en el Anexo~\ref{anexo:imgui}). 
+Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), número de partículas, tipo de cámara y controles. 
+
 
 \begin{figure}[ht]
     \centering
@@ -63,17 +85,22 @@ Para vigilar el rendimiento del motor en tiempo real, metimos la interfaz \texti
     \label{fig:ImGui}
 \end{figure}
 
-Buscamos un diseño limpio, como se ve en la Figura~\ref{fig:ImGui}. No queríamos tapar la simulación. Arriba del panel va la telemetría general: fotogramas, milisegundos por frame y total de partículas en ejecución. Abajo a la izquierda dejamos una lista con los atajos de teclado de la cámara activa. Sirve de chuleta para el usuario.
+Buscamos un diseño limpio, como se ve en la Figura~\ref{fig:ImGui}. 
+Arriba del panel va la telemetría general: fotogramas, milisegundos por frame y total de partículas en ejecución. 
+Abajo a la izquierda dejamos una lista con los atajos de teclado de la cámara activa.
 
 \subsection{Adaptación estructural e integración en Vulkan}
-Pintar una interfaz de modo inmediato en una API tan directa como Vulkan es un reto. Hay que sincronizar los recursos de forma óptima o el rendimiento en fotogramas por segundo caerá drásticamente.
+Para poder pintar la interfaz es necesario sincronizar los recursos optimamente. De lo contrario, el rendimiento caera en picado.
+Esto modificó el diseño arquitectónico inicial del motor.
 
-Integrar esta funcionalidad alteró significativamente el diseño arquitectónico inicial del motor. Originalmente, la aplicación grababa todas las instrucciones de renderizado de forma monolítica mediante la función \texttt{fillCommandBuffer}. Debido a los requisitos de actualización por cuadro de ImGui, dicha estructura fue descartada y fragmentada en métodos modulares repartidos entre los contextos correspondientes (\texttt{GECommandContext} y \texttt{GEGraphicsContext}) y los gestores de la propia interfaz gráfica.
+Origianlmente, la funcion \texttt{fillCommandBuffer} grababa las intrucciones de renderizado. Esto lo hacia de forma monolítica.
+Debido a como deben actualizarse los datos de ImGui, se separo la lodica de fillCommandBuffer.
+Las funciones se repartieron entre los distintos contextos (\texttt{GECommandContext}, \texttt{GEGraphicsContext}) y los gestores de la propia interfaz gráfica.
 
 El ciclo de vida y la grabación de comandos de la interfaz en el motor se estructuran en cuatro fases fundamentales:
 
 \begin{enumerate}
-    \item \textbf{Reserva de espacio e inicialización:} Vulkan exige conocer de antemano los recursos que utilizará la interfaz. Como se detalla en la Figura~\ref{fig:imgui_init}, se reserva un pool de descriptores (\texttt{VkDescriptorPool}) exclusivo para los muestreadores (\textit{samplers}) de ImGui. Posteriormente, se inicializa el sistema vinculando la ventana gestionada por GLFW y el contexto de Vulkan.
+    \item \textbf{Reserva de espacio e inicialización:} Como se detalla en la Figura~\ref{fig:imgui_init}, se reserva un pool de descriptores (\texttt{VkDescriptorPool}). Siendo este exclusivo para los muestreadores (\textit{samplers}) de ImGui. Posteriormente, se inicializa el sistema.
 
 \begin{figure}[ht]
     \centering
@@ -91,7 +118,7 @@ void GEApplication::inicializarImGui() {
     \label{fig:imgui_init}
 \end{figure}
 
-    \item \textbf{Puesta al día (\textit{New Frame}) y Maquetación:} Al comienzo de cada iteración del bucle principal (método \texttt{draw}), se prepara la interfaz capturando los eventos de periféricos y actualizando los temporizadores internos. Si el usuario interactúa haciendo clic sobre el panel, los eventos del ratón se detienen de forma prioritaria en la UI, impidiendo que la cámara rote por error. En esta etapa se definen los elementos que se pintarán en la barra superior flotante y se invoca la lógica de las ventanas secundarias (Figura~\ref{fig:imgui_draw}).
+    \item \textbf{Puesta al día (\textit{New Frame}) y Maquetación:} En cada iteración del bucle principal (método \texttt{draw}), se capturan los eventos de periféricos y actualizan los temporizadores internos. Si el usuario interactúa haciendo clic sobre el panel, los eventos del ratón se detienen de forma prioritaria en la UI, impidiendo que la cámara rote por error. En esta etapa se definen los elementos que se pintarán en la barra superior flotante y se invoca la lógica de las ventanas secundarias (Figura~\ref{fig:imgui_draw}).
 
 \begin{figure}[ht]
     \centering
@@ -109,7 +136,7 @@ void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double 
     \label{fig:imgui_draw}
 \end{figure}
 
-    \item \textbf{Lectura de datos y renderizado dinámico:} Para mantener una separación clara entre los datos puros del motor y la presentación visual, se implementaron métodos como \texttt{ControlsGUI} (Figura~\ref{fig:imgui_controles}). Utilizando las directivas de modo inmediato de la librería, el panel evalúa el estado del objeto \texttt{GECamera} y modifica los textos informativos en tiempo real, sirviendo de guía contextual para el usuario.
+    \item \textbf{Lectura de datos y renderizado dinámico:} El objetivo es aislar la lógica interna del motor de la interfaz gráfica. Para lograrlo se crearon métodos como \texttt{ControlsGUI} (Figura~\ref{fig:imgui_controles}). El panel evalúa el estado del objeto \texttt{GECamera}. Ademas, modifica los textos informativos, sirviendo de guía contextual para el usuario.
 
 \begin{figure}[ht]
     \centering
@@ -134,14 +161,16 @@ void GEApplication::ControlsGUI(GECamera* cam) {
 \end{enumerate}
 
 \subsection{Elementos expuestos en la interfaz}
-Con el objetivo de no saturar la simulación con logs de consola, la información recolectada por el motor se organizó conceptualmente en cuatro categorías lógicas dentro del panel superior y los menús flotantes:
+Por simplicidad, la información del sistema se dividio en cuatro categorias.
 \begin{itemize}
-    \item \textbf{Rendimiento de renderizado:} Muestra de forma constante la tasa de FPS y los milisegundos ($ms$) empleados por la CPU en computar cada frame. Permite evaluar de inmediato el impacto del renderizado de las partículas.
-    \item \textbf{Simulación física en GPU:} Expone el número total de partículas activas en la escena y calcula mediante marcas de tiempo el coste exacto en milisegundos que le toma al \textit{compute shader} resolver la física.
-    \item \textbf{Estado de la cámara:} Detecta dinámicamente si el usuario navega en modo Libre, FPS u Orbital, alternando los textos de la interfaz para refrescar la lista de atajos correspondiente.
-    \item \textbf{Datos orbitales:} Cuando se activa el modo de cámara orbital, la interfaz refleja explícitamente el nombre del emisor o del objeto geométrico que está actuando como centro de masas de la órbita actual.
+    \item \textbf{Rendimiento de renderizado:} Muestra la tasa de FPS y los milisegundos ($ms$) empleados por la CPU en computar cada frame. Permite evaluar de inmediato el impacto del renderizado.
+    \item \textbf{Simulación física en GPU:} Expone el número total de partículas. Ademas, calcula el coste exacto en milisegundos que le toma al \textit{compute shader} resolver la física.
+    \item \textbf{Estado de la cámara:} Detecta dinámicamente si el usuario navega en modo Libre, FPS u Orbital. Alternando los textos de la interfaz para refrescar la lista de atajos correspondiente.
+    \item \textbf{Datos orbitales:} Cuando se activa el modo de cámara orbital, la interfaz refleja el nombre del objeto geométrico que está orbitando.
 \end{itemize}
 
 
 \section{Vcpkg}
-Para cerrar la arquitectura del proyecto, elegimos el gestor de paquetes \textit{vcpkg} \parencite{vcpkg_ms}. Administra las librerías de C y C++. En estos entornos, compilar herramientas de terceros (como GLFW, GLM, ImGui o TinyObjLoader) suele dar fallos de enlazado. Usar \textit{vcpkg} automatiza la descarga y compilación a través de CMake. Nos asegura un entorno de trabajo limpio, portátil y que compila a la primera.
+Para cerrar la arquitectura del proyecto, elegimos el gestor de paquetes \textit{vcpkg} \parencite{vcpkg_ms}. 
+Vcpkg automatiza la descarga y configuración de las dependencias del proyecto. Evitando asi fallos de compilacion de herramientas de terceros. Ademas, tambien nos permite una compilacion sencilla a traves de CMake.
+
