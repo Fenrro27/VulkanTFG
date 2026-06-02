@@ -1,9 +1,9 @@
-% Finalizado
+% Finalizado 0 
 \begin{center}
     \textbf{Resumen}
 \end{center}
 
-\noindent Este Trabajo de Fin de Grado presenta un motor gráfico diseñado desde cero con Vulkan. El objetivo principal es lograr un alto rendimiento en la simulación y el renderizado de partículas en tiempo real. Para ello, creamos una arquitectura paralela basada en \textit{Compute Shaders}. Con esta estructura recreamos efectos complejos como fuego, humo y agua. La clave del sistema es que todo el ciclo de vida de las partículas se calcula en la GPU. El procesador ya no actualiza posiciones, colores ni físicas. Así eliminamos por completo el clásico embotellamiento de datos entre la CPU y la memoria de vídeo, algo muy común al usar APIs más antiguas o de alto nivel.
+\noindent Este Trabajo de Fin de Grado presenta un motor gráfico diseñado con Vulkan. El objetivo principal es lograr un alto rendimiento en la simulación y el renderizado de partículas en tiempo real. Para ello, creamos una arquitectura paralela basada en \textit{Compute Shaders}. Con esta estructura recreamos efectos complejos como fuego, humo y agua. La clave del sistema es que todo el ciclo de vida de las partículas se calcula en la GPU. El procesador ya no actualiza posiciones, colores ni físicas. Así eliminamos por completo el clásico embotellamiento de datos entre la CPU y la memoria de vídeo, algo muy común al usar APIs más antiguas o de alto nivel.
 
 El motor destaca por su control directo sobre el hardware. Todo se organiza mediante módulos independientes. El pipeline incluye computación procedural, control de sincronización con barreras de memoria (\texttt{VkBufferMemoryBarrier}) y renderizado volumétrico usando \textit{Point Sprites} junto con \textit{Alpha Blending}. La aplicación va más allá de las partículas. Incorpora un entorno 3D con luces ADS (ambiente, difusa y especular), un lector optimizado de modelos y un \textit{Skybox} dinámico. Al usar descriptores y búferes locales, el acceso a los datos es inmediato. Los resultados son claros, Vulkan cumple lo prometido: el motor mueve más de un millón de partículas a la vez. Mantiene los 60 FPS estables en tarjetas gráficas de gama media y ofrece muchas opciones de personalización visual. El proyecto funciona como una base sólida y escalable para crear simulaciones en videojuegos actuales.
 

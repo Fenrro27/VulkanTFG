@@ -1,9 +1,9 @@
-% Finalizado
+% Finalizado 0 
 \begin{center}
     \textbf{Abstract}
 \end{center}
 
-\noindent This Final Degree Project presents a graphics engine designed from scratch using Vulkan. The main goal is to achieve high performance in real-time particle simulation and rendering. To do this, we built a parallel architecture based on \textit{Compute Shaders}. With this structure, we recreate complex effects like fire, smoke, and water. The key to the system is that the entire particle lifecycle is calculated on the GPU. The processor no longer updates positions, colors, or physics. This completely eliminates the classic data bottleneck between the CPU and video memory, which is very common when using older or higher-level APIs.
+\noindent This Final Degree Project presents a graphics engine designed using Vulkan. The main goal is to achieve high performance in real-time particle simulation and rendering. To do this, we built a parallel architecture based on \textit{Compute Shaders}. With this structure, we recreate complex effects like fire, smoke, and water. The key to the system is that the entire particle lifecycle is calculated on the GPU. The processor no longer updates positions, colors, or physics. This completely eliminates the classic data bottleneck between the CPU and video memory, which is very common when using older or higher-level APIs.
 
 The engine stands out for its direct control over the hardware. Everything is organized through independent modules. The pipeline includes procedural computing, synchronization control with memory barriers (\texttt{VkBufferMemoryBarrier}), and volumetric rendering using \textit{Point Sprites} along with \textit{Alpha Blending}. The application goes beyond particles. It incorporates a full 3D environment with ADS (Ambient, Diffuse, Specular) lighting, an optimized model loader, and a dynamic \textit{Skybox}. By using descriptors and local buffers, data access is immediate. The results are clear, Vulkan delivers on its promise: the engine moves more than one million particles simultaneously. It maintains a stable 60 FPS on mid-range graphics cards and offers plenty of visual customization options. The project serves as a solid and scalable foundation for creating simulations in current video games.
 

@@ -1,8 +1,9 @@
-% Finalizado 
+% Finalizado 0
 \chapter{Estado del arte}
 \label{chap:estado_del_arte}
 
-Desarrollar gráficos modernos exige combinar pasado y presente. En este capítulo comparamos OpenGL (véase Figura \ref{fig:logo_opengl}) con Vulkan, su sucesor de bajo nivel \parencite{Sellers_Kessenich_2017a}. No es un debate teórico. Esta comparativa justifica nuestro proyecto. Si queremos exprimir los procesadores multinúcleo con partículas, toca entender los límites de las APIs clásicas. Eso es clave aquí.
+Para entender de lo que hablabamos en la motivacion es necesario comparar OpenGL (véase Figura \ref{fig:logo_opengl}) con Vulkan. 
+Siendo Vulkan el sucesor de bajo nivel de OpenGL \parencite{Sellers_Kessenich_2017a}.
 
 \begin{figure}[ht]
     \centering
@@ -14,13 +15,13 @@ Desarrollar gráficos modernos exige combinar pasado y presente. En este capítu
 
 \section{Comparativa de Vulkan con OpenGL}
 
-OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. Sin embargo, el hardware cambió. La llegada de los procesadores multinúcleo expuso las costuras de su diseño. Al comportarse como una máquina de estados de alto nivel, la API oculta el hardware real. Esto facilita programar, pero satura la CPU. Las llamadas de dibujado (\textit{draw calls}) acumulan demasiada sobrecarga y el rendimiento sufre. 
-
-Vulkan cambia las reglas del juego. Su diseño da un control total al programador. Memoria, sincronización, hilos: todo se gestiona a mano. La API asume que sabemos lo que hacemos. Al quitar las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}), la CPU trabaja mucho menos \parencite{9655285}. Los búferes de comandos se crean en paralelo sin atascos.
-
-Los tests de estrés reflejan esto con claridad. Si lanzamos miles de comandos sin usar instanciación, OpenGL ahoga al procesador enseguida. Vulkan no se inmuta. Prepara las instrucciones rápido y mantiene tasas de FPS altísimas \parencite{8685588}. La diferencia es abismal.
-
-\medskip
+OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. La API facilitaba la programación, pero al ocultar el hardware real limitaba el rendimiento.
+Las llamadas de dibujado (\textit{draw calls}) acumulaban demasiada sobrecarga y el rendimiento sufría. 
+ 
+Por esta razon, Vulkan surge como una alternativa ofreciendo un control total del hardware. 
+Vulkan asimila que el programador sabe lo que hace y da control total sobre la memoria, sincronizacion, hilos, etc.
+Al quitar las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}), la CPU trabaja mucho menos \parencite{9655285}. 
+Vulkan puede crear búferes de comandos en paralelo sin atascos.
 
 \begin{table}[ht]
     \centering
@@ -49,9 +50,10 @@ Los tests de estrés reflejan esto con claridad. Si lanzamos miles de comandos s
     \label{tab:comparativa_vulkan_opengl}
 \end{table}
 
-\bigskip
 
-Hicimos varias pruebas locales \parencite{fenrro27_vulkan_vs_opengl}. Usamos el \textit{benchmark} de \cite{benyoon1_vk_gl}. Los datos de la Tabla \ref{tab:comparativa_vulkan_opengl} muestran la realidad. Para entender mejor los números, estos son los escenarios probados:
+Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl}, basados en el codigo original de \cite{benyoon1_vk_gl}. 
+Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios. A continuación, 
+una breve explicacion sobre los distintos escenarios:
 
 \begin{enumerate}
     \item \textbf{Asteroids (Non-Instanced)}: Estrés puro para la CPU. Renderiza miles de asteroides enviando un comando independiente por cada uno. Mide la eficiencia del driver.
@@ -60,87 +62,109 @@ Hicimos varias pruebas locales \parencite{fenrro27_vulkan_vs_opengl}. Usamos el 
     \item \textbf{Shadows On/Off}: Un extra que añade pases para calcular sombras. Exige más ancho de banda y cálculos en general.
 \end{enumerate}
 
-Los resultados confirman nuestra hipótesis. En el test sin instanciación, OpenGL colapsa el procesador. No da abasto para procesar cada llamada una a una. Vulkan, en cambio, recorta los tiempos de CPU drásticamente y los FPS se disparan. Al activar la instanciación, la CPU respira en ambas APIs. OpenGL mejora bastante. Aun así, Vulkan lidera por su mejor gestión de comandos. La estabilidad es su fuerte. Lo vemos en los valores de \textit{1\% Low FPS}. Esta ventaja se mantiene incluso al duplicar los objetos de 15k a 30k.
 
-En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan mueve la geometría densa con más soltura. Baja los tiempos en CPU y en GPU a la vez. Al activar las sombras, OpenGL se cae por completo. Vulkan absorbe el impacto sin problemas y mantiene el tipo.
+Como podemos apreciar, en el test sin instanciación, OpenGL colapsa. No es capaz de procesar las sucesivas llamadas de dibujado. Mientras que Vulkan las procesa sin problema lo que mejora los FPS. 
+Cuando la instanciacion se activa mejora el rendimiento en ambas APIs. No obstante, Vulkan sigue siendo superior. La estabilidad de vulkan la vemos en los valores de \textit{1\% Low FPS}. 
+Esta ventaja se mantiene incluso al duplicar los objetos de 15k a 30k.
 
-Los datos no mienten. Vulkan es superior en situaciones críticas. Ofrece menos latencia, fotogramas estables y aguanta mejor las cargas pesadas en la GPU. Supera los problemas históricos de OpenGL.
+
+En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan baja los tiempos en CPU y en GPU a la vez mientras OpenGL da peor resultado. 
+Al activar las sombras, OpenGL se cae por completo. Vulkan absorbe la carga sin problemas y mantiene el tipo.
+
+En resumen, Vulkan es superior a OpenGL en todos los aspectos. Ofrece menos latencia, fotogramas estables y aguanta mejor las cargas pesadas en la GPU.
 
 
 \subsection{Eficiencia energética}
 
-El consumo importa. En móviles o sistemas empotrados (\textit{Edge GPUs}) es un factor crítico. Vulkan gasta menos energía porque quita trabajo inútil a la CPU. No tiene que revisar errores en cada fotograma. OpenGL sí lo hace en su hilo principal.
-
-Vulkan rinde mejor por vatio consumido \parencite{9655285}. Al repartir el trabajo entre los núcleos de la CPU de forma equilibrada, ningún núcleo se tuesta de forma aislada. Esto baja las temperaturas y estira la batería en portátiles. En servidores ocurre igual: renderizas más por el mismo coste eléctrico \parencite{8685588}. Es un modelo más sostenible. Es física pura.
+En móviles o sistemas empotrados (\textit{Edge GPUs}), el consumo, es un factor crítico. Vulkan gasta menos energía porque quita trabajo inútil a la CPU. 
+Ademas, no tiene que revisar errores en cada fotograma. OpenGL sí lo hace en su hilo principal.
+ 
+ 
+Vulkan tiene mejor rendimiento por vatio consumido \parencite{9655285}. 
+Al repartir el trabajo entre los núcleos de la CPU de forma equilibrada, ningún núcleo se satura. 
+Esto baja las temperaturas y estira la batería en portátiles. Pasa lo mismo con los servidores que renderizan más por el mismo coste eléctrico \parencite{8685588}. 
 
 
 
 \section{Código de Partida}
 
-No empezamos de cero. El sistema de partículas se integra en una base de código preexistente \parencite{moreno_gii_ao}. Es un motor funcional de bajo nivel. Nos da las herramientas básicas para hablar con Vulkan. Así, evitamos picar la infraestructura inicial desde la nada y nos centramos directo en las partículas y su optimización.
+Para montar nuestro sistema de partículas nos hemos basado en un motor preexistente \parencite{moreno_gii_ao}. El cual nos da las herramientas básicas para hablar con Vulkan.
+De esta forma, aprovechamos el motor funcional de bajo nivel y nos centramos directamente en la creación de partículas.
 
-\subsection{Librerías externas y dependencias}
 
-El motor usa cuatro piezas externas para gestionar cálculos y recursos:
+
+\subsection{Librerías externas}
+
+El motor usa cuatro librerías externas:
 
 \begin{itemize}
-\item \textbf{Vulkan SDK}: El pilar central. Controla la GPU, la memoria y los búferes de comandos de forma directa.
-\item \textbf{GLM}: Librería matemática de cabecera. Resuelve el álgebra lineal, las matrices MVP y la geometría procedimental.
-\item \textbf{stb\_image}: Un único archivo fuente. Convierte los archivos de imagen del disco en texturas reales para Vulkan.
-\item \textbf{glfw}: Abre ventanas. Gestiona el contexto del sistema operativo y lee el teclado o el ratón.
+\item \textbf{Vulkan SDK}: Controla la GPU, la memoria y los búferes de comandos de forma directa.
+\item \textbf{GLM}: Se ocupa de los calculos matematicos. 
+\item \textbf{stb\_image}: Convierte las imagenes en texturas para Vulkan.
+\item \textbf{glfw}: Abre ventanas y lee el teclado o el ratón.
 \end{itemize}
 
 \subsection{Estructura del motor base}
 
-La arquitectura del motor envuelve la complejidad de Vulkan con objetos C++. Así movemos datos entre CPU y GPU de forma limpia. Separamos los componentes según su papel en el pipeline gráfico:
+El motor esta formado por distintas clases de C++. Las cuales facilitan mover datos entre CPU y GPU. 
+Separamos los componentes según su papel en el pipeline gráfico:
 
-\subsubsection{Infraestructura y Control de Renderizado}
+
+Las clases de infraestructura y control de renderizado son:
 
 \begin{itemize}
-\item \textbf{\texttt{GEGraphicsContext}}: El motor arranca aquí. Levanta la instancia de Vulkan, busca la tarjeta gráfica física, crea el dispositivo lógico y abre las colas de trabajo.
-\item \textbf{\texttt{GERenderingContext}}: Es el director de orquesta. Sincroniza el bucle de render y comprueba que todo esté listo antes de pintar.
-\item \textbf{\texttt{GEDrawingContext}}: Gestiona la \textit{Swapchain}, los pases de render y los \textit{Framebuffers}. Define dónde acaban los píxeles.
+\item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Busca la tarjeta gráfica adecuada, crea el dispositivo lógico y abre las colas de trabajo.
+\item \textbf{\texttt{GERenderingContext}}: Se asegura de que todo esté en orden y listo antes de pintar un fotograma.
+\item \textbf{\texttt{GEDrawingContext}}: Gestiona la \textit{Swapchain}. Ademas, gestiona los pases de render y los \textit{Framebuffers}. 
 \item \textbf{\texttt{GECommandContext}}: Graba las instrucciones de dibujo en los \textit{Command Pools} y \textit{Command Buffers}. Luego las manda a la GPU.
 \item \textbf{\texttt{GEPipelineConfig}}: Configura los estados fijos de la tubería. Controla el rasterizador, el ensamblado y la mezcla de color (\textit{blending}).
-\item \textbf{\texttt{GEDepthBuffer}}: El búfer de profundidad. Evita que los objetos se pinten en el orden incorrecto. Resuelve qué está delante.
+\item \textbf{\texttt{GEDepthBuffer}}: Evita que los objetos se pinten en el orden incorrecto comprobando la profundidad de la escena.
 \end{itemize}
 
-\subsubsection{Gestión de Datos y Memoria}
+
+
+Las clases de gestion de datos y memoria son:
 
 \begin{itemize}
-\item \textbf{\texttt{GEVertexBuffer}, \texttt{GEIndexBuffer} y \texttt{GEUniformBuffer}}: Reservan memoria en la GPU. Los dos primeros guardan los vértices y los índices de las mallas. El último guarda datos que cambian por frame, como luces o matrices.
+\item \textbf{\texttt{GEVertexBuffer}}: Guarda los vertices de las mallas.
+\item \textbf{\texttt{GEIndexBuffer}}: Almacenalos indices de los vertices.
+\item \textbf{\texttt{GEUniformBuffer}}: Guarda datos que cambian por frame, como luces o matrices.
 \item \textbf{\texttt{GEVertex}}: Un punto en el espacio. Guarda la posición, la normal y las coordenadas de textura UV.
-\item \textbf{\texttt{GETexture}}: Crea los muestreadores de imágenes (\textit{Image Samplers}) para que Vulkan pueda usar texturas.
-\item \textbf{\texttt{GEDescriptorSet}}: El puente intermedio. Enlaza los búferes de la CPU con los registros de los shaders en la GPU.
+\item \textbf{\texttt{GETexture}}: Crea los muestreadores de imágenes (\textit{Image Samplers}) para usar texturas.
+\item \textbf{\texttt{GEDescriptorSet}}: Enlaza los búferes de la CPU con los registros de los shaders en la GPU.
 \end{itemize}
 
-\subsubsection{Cámara, Transformaciones e Iluminación}
+
+Las clases de cámara, transformaciones e iluminación son:
+ 
+\begin{itemize}
+\item \textbf{\texttt{GECamera}}: Controla lo que ve el usuario.
+\item \textbf{\texttt{GETransform}}: Mediante la posición, la rotación y la escala ubica los objetos.
+\item \textbf{\texttt{GELight}}: Define el tipo de luz.
+\item \textbf{\texttt{GEMaterial}}: Define cómo brilla el objeto.
+\item \textbf{\texttt{GEWindowPosition}}: Corrige el aspecto de la cámara si el usuario cambia el tamaño de la pantalla.
+\end{itemize}
+
+Las clases de entidades y entorno son: 
 
 \begin{itemize}
-\item \textbf{\texttt{GECamera}}: Controla la vista. Calcula las matrices de proyección y reacciona cuando el usuario se mueve.
-\item \textbf{\texttt{GETransform}}: Posición, rotación y escala. Convierte estos datos en matrices de modelo para ubicar los objetos.
-\item \textbf{\texttt{GELight} y \texttt{GEMaterial}}: Parámetros de luz y propiedades físicas. El primero define el tipo de luz; el segundo, cómo brilla el objeto.
-\item \textbf{\texttt{GEWindowPosition}}: Ajusta las dimensiones de la ventana. Corrige el aspecto de la cámara si el usuario cambia el tamaño de la pantalla.
+\item \textbf{\texttt{GEObject}}: Clase abstracta que representa un objeto formado por varias piezas
+\item \textbf{\texttt{GEFigure}}: Genera formas matemáticas a partir de vertices. 
+\item \textbf{\texttt{GEPiece}}: Clase que describe una pieza de un objeto
+\item \textbf{\texttt{GESkybox}}: Se encarga de pintar el fondo. Crea la ilusión de un horizonte infinito proyectando un \textit{cubemap}. Básicamente, envuelve la cámara en un cubo que copia hacia dónde miramos, pero ignora si avanzamos o retrocedemos. Para montar toda esta estructura se apoya en \textbf{\texttt{GESkyboxVertex}} y \textbf{\texttt{GESkyboxTransform}}.
 \end{itemize}
 
-\subsubsection{Entidades y Entorno}
 
-\begin{itemize}
-\item \textbf{\texttt{GEObject}, \texttt{GEFigure} y \texttt{GEPiece}}: Organización del mundo 3D. El primero es el nodo base. El segundo genera formas matemáticas. El tercero maneja partes sueltas de modelos complejos con texturas propias.
-\item \textbf{\texttt{GESkybox}}: Dibuja el fondo infinito. Apoyado en \textbf{\texttt{GESkyboxVertex}} y \textbf{\texttt{GESkyboxTransform}}, renderiza un cubo que ignora la traslación de la cámara usando un \textit{cubemap}.
-\end{itemize}
 
-\subsubsection{Implementación de Shaders}
+En vulkan los shaders se ejecutan directamente en el hardware grafico \parencite{vulkan_spec_shaders}. Se programan GLSL para posteriormente ser compilados a codigo SPIR-V.
 
-En Vulkan, los \textit{shaders} corren directos en el hardware gráfico \parencite{vulkan_spec_shaders}. Los programamos en GLSL y van compilados a SPIR-V. Esto nos da código binario ultra rápido. Olvidamos las tuberías fijas antiguas. Ahora controlamos cada vértice y cada píxel con algoritmos propios.
-
-Usamos dos parejas de sombreadores en el motor:
+Usamos dos parejas de shaders en el motor:
 
 \begin{itemize}
 \item \textbf{Geometría general (\texttt{shader.vert} / \texttt{shader.frag})}: Pinta los objetos comunes.
 \begin{itemize}
     \item El \textit{vertex shader} proyecta los puntos 3D a la pantalla usando las matrices MVP.
-    \item El \textit{fragment shader} saca el color de cada píxel con un modelo de iluminación clásica ADS (ambiente, difusa y especular) texturizada.
+    \item El \textit{fragment shader} saca el color de cada píxel con una iluminación ADS (ambiente, difusa y especular) texturizada.
 \end{itemize}
 
 \item \textbf{Fondo de la escena (\texttt{skybox\_shader.vert} / \texttt{skybox\_shader.frag})}: Dedicado al entorno.
@@ -150,4 +174,4 @@ Usamos dos parejas de sombreadores en el motor:
 \end{itemize}
 \end{itemize}
 
-Esta estructura modular ayudó al integrar las partículas. Reutilizamos el sistema de comandos multihilo que ya venía en el motor base.
+Esta estructura modular va a facilitarnos la integración de las partículas.

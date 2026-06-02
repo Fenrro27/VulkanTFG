@@ -100,7 +100,7 @@ Hay un detalle importante. El fuego o el humo necesitan girar sobre sí mismos. 
     \label{eq:hash_rotacion}
     \theta = \text{frac}\Big(\sin\big(\text{gl\_VertexIndex}\big) \times 43758.5453\Big) \times 2\pi
 \end{equation}
-Cogemos el índice de la partícula (\texttt{gl\_VertexIndex}) y lo metemos como semilla. Pillamos la fracción de una curva altísima. El resultado final lo multiplicamos de $0$ a $2\pi$ radianes y lo mandamos por \texttt{outAngle}. Nos resolvió el problema de inmediato.
+Cogemos el índice de la partícula (\texttt{gl\_VertexIndex}) y lo metemos como semilla. Pillamos la fracción de una curva altísima. El resultado final lo multiplicamos de $0$ a $2\pi$ radianes y lo mandamos por \texttt{outAngle}. Lo que resuelve el problema de inmediato.
 
 Si resulta que la vida de la partícula (\texttt{inActiveTTL}) baja a cero, significa que está muerta. En lugar de borrarla de memoria, simplemente falseamos su posición en pantalla (\texttt{gl\_Position}). La disparamos lejísimos, al infinito: \texttt{vec4(-2.0, -2.0, -2.0, 1.0)}. De esta forma, el rasterizador de la GPU la ignora de inmediato. Nos ahorramos repintar cosas inútiles.
 
@@ -141,7 +141,6 @@ La lógica física interna la vamos a ir detallando en cada sistema propio a par
 
 \section{Agua}
 
-El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Metimos un modelo 3D de una fuente de piedra (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. No queríamos volvernos locos con físicas de fluidos complejas basadas en Navier-Stokes (véase Anexo~\ref{anexo:navier_stokes}) o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos usando muchísimos menos recursos de los que pensábamos.
 
 \begin{figure}[ht]
     \centering
@@ -149,6 +148,8 @@ El primer sistema que diseñamos fue la simulación de una fuente. La idea inici
     \caption{Modelo de la fuente.}
     \label{fig:modFuente}
 \end{figure}
+
+El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Metimos un modelo 3D de una fuente de piedra (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. No queríamos volvernos locos con físicas de fluidos complejas basadas en Navier-Stokes (véase Anexo~\ref{anexo:navier_stokes}) o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos usando muchísimos menos recursos de los que pensábamos.
 
 Para que el chorro no se viera pobre, había que engañar al ojo. En vez de usar puntitos sueltos, cargamos un sprite de alta resolución que ya traía el dibujo de una salpicadura rica (Figura \ref{fig:texAgua}). Con esto ganamos muchísimo rendimiento. Un solo plano de textura se traga visualmente el equivalente a cientos de microgotas calculadas a mano. 
 
@@ -187,7 +188,7 @@ Si el punto sigue vivo y flotando, le aplicamos gravedad tirando del valor está
 
 Toda esta parte de shaders está apoyada por la clase \texttt{GEAgua} en C++. El arranque aquí es súper limpio. Definimos que cada partícula dure entre 2.0 y 3.5 segundos flotando, todo sacado de un motor \texttt{std::mt19937} inicializado como \texttt{static} para no perder ciclos de reloj tontos. A nivel estético, la gota pasa de azul eléctrico a transparente conforme pierde fuerza, y su tamaño se achica hasta desaparecer del todo.
 
-El resultado salta a la vista. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra quedan clavadas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido muy realista sin sobrecargar la tarjeta gráfica.
+El resultado salta a la vista. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra quedan clavadas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido sin sobrecargar la tarjeta gráfica.
 
 \begin{figure}[ht]
     \centering

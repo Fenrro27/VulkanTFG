@@ -1,17 +1,21 @@
-% Finalizado
+% Finalizado 0 
 \chapter{Justificación y Objetivos}
 \label{sec:justificacion_y_objetivos}
 
 \section{Motivación}
-El fuego, el agua y el humo dan realismo a los mundos virtuales. Sin embargo, mover estos elementos con fluidez consume muchos recursos. Hace falta procesar demasiados datos por segundo. En este punto, las herramientas clásicas muestran sus límites. El motivo principal es el procesador. Las APIs de antes saturan la CPU con tareas de control (\textit{CPU overhead}). Esto frena el rendimiento general del sistema.
+Efectos como el fuego, el agua o el humo son indispensables para crear escenas 3D realistas. Por desgracia, esto consume muchos recursos debido a la gran cantidad de datos.
+Las APIs mas antiguas saturan la CPU con tareas de control (\textit{CPU overhead}). Esto frena el rendimiento general del sistema.
 
-Ahí es donde entra este proyecto. Queremos ir un paso más allá usando Vulkan. La meta es renderizar nubes de partículas masivas. Para conseguirlo, hablamos de tú a tú con la tarjeta gráfica. Sin intermediarios pesados. Esto nos abre las puertas a densidades de elementos muy altas. El reto de verdad es de código: transformar las leyes de la física en geometría simple y píxeles rápidos. Al final, todo se resume en buscar un buen equilibrio. Queremos que el resultado entre por los ojos, pero sin que la aplicación sufra tirones.
+La meta de este proyecto es renderizar nubes de partículas  masivas. Para ello usaremos una API moderna llamada Vulkan. 
+Vulkan nos permite comunicarnos directamente con el hardware sin intermediarios pesados. Esto nos abre las puertas a densidades de elementos muy altas. 
+Para ello necesitamos  aplicar leyes fisicas en geometria simple para obtener resultados rapidos. Al final debemos lograr un equilibrio entre resultado y rendimiento.
 
+ 
 \section{Objetivos}
-Queremos crear un motor de partículas rápido y eficiente con Vulkan. Nos centraremos en limpiar y exprimir las pipelines gráficas. Así, para alcanzar esta meta general, nos marcamos las siguientes tareas concretas:
+El objetivo consiste en crear un motor de particulas rapido y eficiente con Vulkan. Para ello, nos marcamos las siguientes tareas concretas:
 
 \begin{itemize}
-    \item \textbf{Cómputo en GPU:} La tarjeta gráfica asume todo el trabajo sucio. Programamos \textit{Compute Shaders} para que calculen el ciclo de vida, la posición y el color de cada punto. La CPU ya no interviene aquí.
+    \item \textbf{Cómputo en GPU:} La tarjeta gráfica asume todo el trabajo real. Programamos \textit{Compute Shaders} para que calculen el ciclo de vida, la posición y el color de cada punto. La CPU ya no interviene aquí.
 
     \item \textbf{Fluidos y gases:} Escribir algoritmos de tipo procedural directos en el hardware gráfico. Con esto imitamos la física real detrás de líquidos o columnas de humo.
 
