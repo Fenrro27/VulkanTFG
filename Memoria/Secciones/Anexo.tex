@@ -7,19 +7,22 @@
 \section{Repositorio de Código Fuente}
 \label{anexo:repositorio}
 
-Todo el código fuente de este proyecto esta publicado en GitHub para que esté disponible de forma libre \parencite{fenrro27_vulkan_tfg}. Esto incluye el motor gráfico en Vulkan, los \textit{shaders} de cómputo, la escena de prueba y los scripts comparativos con OpenGL. El repositorio contiene los archivos del sistema, guías de compilación y el histórico de cambios que documenta la evolución de nuestras optimizaciones.
+Todo el código fuente de este proyecto esta publicado en GitHub para que esté disponible de forma libre \parencite{fenrro27_vulkan_tfg}. Esto incluye el motor gráfico en Vulkan, los \textit{shaders} de cómputo, la escena de prueba. El repositorio contiene los archivos del sistema, guías de compilación y el histórico de cambios que documenta la evolución de nuestras optimizaciones.
+Tambien esta disponible el repositorio con las comparativas con OpenGL \parencite{fenrro27_vulkan_vs_opengl}.
 
 \section{Condiciones de Carrera en Arquitecturas de Cómputo Paralelo}
 \label{anexo:race_conditions}
 
-A diferencia de OpenGL, Vulkan delega el control de la concurrencia en el programador. Esto nos obliga a resolver a mano las condiciones de carrera (\textit{race conditions}). Estos fallos ocurren si varios hilos acceden a la misma zona de VRAM de forma desordenada y al menos uno escribe datos. 
+OpenGL se diferencia de Vulkan en cuanto al manejo del acceso concurrente a la zona de VRAM; Vulkan delega todo el control a quien desarrolla la aplicación. Este comportamiento exige que se resuelvan condiciones de carrera (race conditions), que son problemas cuando múltiples hilos acceden simultáneamente a la VRAM pero solo uno está escribiendo, lo que puede dar lugar a inconsistencias en el resultado final.
 
-En nuestro motor, las partículas sufren una dependencia de datos de tipo lectura tras escritura o \textit{Read-After-Write} (RAW) en los búferes compartidos (\texttt{GEParticleBuffer}). El Compute Shader escribe las nuevas posiciones y el Vertex Shader las lee de inmediato para dibujarlas. Sin sincronización, la GPU procesa vértices con datos a medio actualizar de frames distintos. Esto causa parpadeos (\textit{flickering}) y fallos visuales. 
+En nuestro motor, los vértices experimentan una dependencia entre leer datos recientemente escritos (Read-After-Write, RAW) en los buffers compartidos (GEParticleBuffer). Cuando el Shader de Cálculo escribe las nuevas coordenadas, el Vertex Shader las lee inmediatamente para dibujarlas.
 
-Para solucionarlo, usamos una barrera de pipeline (\texttt{vkCmdPipelineBarrier}) como muestra la Figura~\ref{fig:anexo_barrera}. Esta barrera hace dos cosas:
+Sin sincronización, la GPU aplica el shader con datos en procesamiento todavía incompletos, causando cambios repentinos de color de los vértices o incluso fallos visuales (flickering). 
+Para atender esto, empleamos una barrera de pipeline (vkCmdPipelineBarrier) como se muestra en la Figura 19. Esta barrera hace lo siguiente:
+
 \begin{enumerate}
-    \item \textbf{Barrera de ejecución:} Congela el procesado de vértices hasta que el Compute Shader termina (\texttt{COMPUTE\_SHADER} $\longrightarrow$ \texttt{VERTEX\_SHADER}).
-    \item \textbf{Barrera de memoria:} Limpia e invalida las cachés de la GPU. Esto asegura que las escrituras del Compute Shader sean visibles antes de pintar los puntos (\texttt{SHADER\_WRITE} $\longrightarrow$ \texttt{VERTEX\_ATTRIBUTE\_READ}).
+    \item Congelar la operación para los vértices hasta que se complete el cálculo realizado por el Shader de Cálculo (COMPUTE\_SHADER $\rightarrow$ VERTEX\_SHADER).
+    \item Inicializar los registros de datos en la GPU. Esto asegura que las escrituras realizadas por el Shader de Cálculo sean visibles antes de dibujar los puntos (SHADER\_WRITE $\rightarrow$ VERTEX\_ATTRIBUTE\_READ).
 \end{enumerate}
 
 \begin{figure}[h!]
@@ -48,7 +51,7 @@ Para solucionarlo, usamos una barrera de pipeline (\texttt{vkCmdPipelineBarrier}
 \section{Gestión de Recursos Mediante RAII}
 \label{anexo:raii}
 
-El patrón **RAII** (\textit{Resource Acquisition Is Initialization}) \parencite{stroustrup2013cpp} nos salva de bastantes dolores de cabeza en C++. La idea básica es que un recurso viva exactamente lo mismo que el objeto que lo contiene. 
+El patrón  RAII  (\textit{Resource Acquisition Is Initialization}) \parencite{stroustrup2013cpp} nos salva de bastantes dolores de cabeza en C++. La idea básica es que un recurso viva exactamente lo mismo que el objeto que lo contiene. 
 
 Vulkan no borra la memoria por su cuenta. Si pedimos un bloque de VRAM, luego toca liberarlo a mano. Olvidarlo provoca fugas de memoria severas. RAII resuelve esto en dos pasos muy sencillos:
 \begin{itemize}
@@ -79,9 +82,9 @@ Resolver esto de forma tradicional es lentísimo. Por eso aplicamos un atajo num
 
 Necesitamos que el viento y las texturas parezcan naturales. Las matemáticas puras suelen verse demasiado perfectas. Para romper esa monotonía visual usamos ruido procedimental. 
 
-El **Ruido de Perlin** \parencite{perlin1985an} es el gran clásico. Mezcla valores al azar en una rejilla para lograr transiciones suaves. ¿El problema? Consume muchos recursos al subir a tres dimensiones ($O(2^n)$) y a veces repite patrones. 
+El  Ruido de Perlin  \parencite{perlin1985an} es el gran clásico. Mezcla valores al azar en una rejilla para lograr transiciones suaves. ¿El problema? Consume muchos recursos al subir a tres dimensiones ($O(2^n)$) y a veces repite patrones. 
 
-Hoy en día preferimos su evolución, el **Ruido Simplex** \parencite{perlin2002improving}. Cambia las celdas cuadradas por triángulos. Esto recorta los cálculos drásticamente ($O(n^2)$), rompe la repetición y se lleva mucho mejor con la arquitectura de la tarjeta gráfica.
+Hoy en día preferimos su evolución, el  Ruido Simplex  \parencite{perlin2002improving}. Cambia las celdas cuadradas por triángulos. Esto recorta los cálculos drásticamente ($O(n^2)$), rompe la repetición y se lleva mucho mejor con la arquitectura de la tarjeta gráfica.
 
 \section{Volúmenes de Envoltura Esféricos (Bounding Spheres)}
 \label{anexo:bounding_spheres}
@@ -98,8 +101,7 @@ Elevamos ambas partes al cuadrado. Hacemos esto porque calcular raíces frena ba
 \label{anexo:ping_pong}
 
 La GPU calcula el movimiento de miles de partículas en paralelo. Muchas necesitan leer dónde estaban las demás un instante antes. Si todos los hilos intentan leer y escribir a la vez en la misma memoria, los datos se pisan y se corrompen (condición de carrera).
-
-No podemos pausar el sistema para poner orden. La salida más fácil y rápida es el **Buffer Ping-Pong**. Consiste en tener dos zonas de memoria clonadas:
+No podemos pausar el sistema para poner orden. La salida más fácil y rápida es el Buffer Ping-Pong. Consiste en tener dos zonas de memoria clonadas:
 \begin{itemize}
     \item En un fotograma, leemos datos del \textbf{Búfer A} y guardamos los cálculos en el \textbf{Búfer B}.
     \item Al siguiente, damos la vuelta a la tortilla. Leemos del \textbf{Búfer B} y escribimos en el \textbf{Búfer A}.
@@ -109,7 +111,7 @@ Alternamos los roles constantemente. Así nos aseguramos de que nadie machaque u
 \section{Interfaces de Usuario de Modo Inmediato (IMGUI)}
 \label{anexo:imgui}
 
-Crear menús internos para trastear con los valores del motor suele dar bastante pereza. El paradigma de **Modo Inmediato**, famoso gracias a librerías como Dear ImGui \parencite{dearimgui}, facilita mucho la vida al programador. 
+Crear menús internos para trastear con los valores del motor suele dar bastante pereza. El paradigma de  Modo Inmediato , famoso gracias a librerías como Dear ImGui \parencite{dearimgui}, facilita mucho la vida al programador. 
 
 Las interfaces de toda la vida guardan cada botón en memoria esperando un clic. El modo inmediato pasa de eso. Simplemente reescribe toda la interfaz visual fotograma a fotograma y comprueba sobre la marcha si estás interactuando con algo. 
 
