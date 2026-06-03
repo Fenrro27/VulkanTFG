@@ -1,14 +1,14 @@
 % Finalizado 
 \chapter{Desarrollo}
-Toca meterse de lleno en el código del motor. Explicaremos cómo metimos cada módulo de simulación dentro de la arquitectura global. La estructura base va a lo que importa. El objetivo era que la GPU se tragara todo el ciclo de vida de los puntos sin rechistar. Con esto nos libramos de mover datos de un lado a otro entre el procesador principal y la memoria de vídeo (\textit{VRAM}). El subidón de rendimiento es brutal. Se nota nada más compilar. El motor va suelto.
+Toca meterse de lleno en el código del motor. Explicaremos cómo añadimos cada módulo de simulación dentro de la arquitectura global.  El objetivo era que la GPU tuviera todo el ciclo de vida de los puntos. Con esto nos libramos de mover datos de un lado a otro entre el procesador principal y la memoria de vídeo (VRAM). La mejora de rendimiento es alta. El motor va mucho mejor.
 
-En las siguientes páginas revisaremos la fontanería del proyecto. Veremos la compilación de shaders en GLSL y cómo configuramos las pipelines gráficas. También enseñaremos cómo rompimos el viejo flujo monolítico que tenía el código base. La meta pasaba por usar comandos asíncronos. Una opción mucho más limpia. Por último, destripamos las matemáticas detrás del agua, el fuego y el humo. Cada decisión de diseño tiene su motivo. Buscábamos pintar millones de puntos sin que la gráfica sufriera.
+En las siguientes páginas veremos la compilación de shaders en GLSL y cómo configuramos las pipelines gráficas. También enseñaremos cómo rompimos el viejo flujo monolítico que tenía el código base. Usando comandos asíncronos. Una opción mucho más limpia. Por último, explicaremos las matemáticas detrás del agua, el fuego y el humo. 
 
 \section{Creación de la pipeline de Computación}
 
-Queríamos simular dinámicas físicas complejas. Hablamos de mover millones de elementos a la vez en la pantalla. Para montar algo así nos tocó diseñar una arquitectura paralela desde cero (\textit{Compute Pipeline}) apoyándonos en la API Vulkan. Ojo, esta canalización no pinta píxeles. Ese no es su rol. Su función es triturar números matemáticos en crudo dentro de la GPU. Para conseguir esa fuerza bruta usamos los \textit{Compute Shaders}.
+Queríamos simular dinámicas físicas complejas. Hablamos de mover millones de elementos a la vez en la pantalla. Para montar algo así nos tocó diseñar una arquitectura paralela desde cero (\textit{Compute Pipeline}) apoyándonos en la API Vulkan. Su función es procesar datos matemáticos dentro de la GPU. Para conseguir esto usamos los \textit{Compute Shaders}.
 
-Todo este bloque de código lo controla la clase \texttt{GEComputeShader}. Se ocupa de instanciar la pipeline, vigilar los recursos y liberar la memoria al salir mediante destructores automáticos bajo el patrón de diseño RAII (véase Anexo~\ref{anexo:raii}). Por otro lado, delegamos la física real en \texttt{GEParticleSystem}. Este componente reserva el espacio en la tarjeta de vídeo. Un segundo después, lanza los hilos de ejecución de golpe (\textit{dispatch}). Las dos piezas trabajan juntas. Al pie de la letra.
+Todo este bloque de código lo controla la clase \texttt{GEComputeShader}. Se ocupa de instanciar la pipeline, vigilar los recursos y liberar la memoria al salir mediante destructores automáticos bajo el patrón de diseño RAII (véase Anexo~\ref{anexo:raii}). Por otro lado, delegamos la física real en \texttt{GEParticleSystem}. Este componente reserva el espacio en la tarjeta de vídeo. Un segundo después, lanza los hilos de ejecución de golpe (\textit{dispatch}).
 
 \subsection{Integración con la pipeline de renderizado global}
 
@@ -16,30 +16,49 @@ Tuvimos que acoplar esta maquinaria dentro del bucle de vida del motor. Para ell
 
 El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le mete los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables traga el \textit{Vertex Shader}. Enlazamos de forma directa cosas como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
 
-Antes, el contexto \texttt{GECommandContext} solo almacenaba órdenes de dibujado simples. Le dimos una vuelta a eso. Ahora también encola llamadas de cómputo (como \texttt{vkCmdBindPipeline} en formato compute, y la instrucción \texttt{vkCmdDispatch}). Todos estos comandos se despachan antes de pintar la escena. Gracias a esto, la gráfica actualiza las físicas y saca la imagen dentro de la misma fracción de segundo.
+Anteriormente, \texttt{GECommandContext} solo almacenaba órdenes de dibujado simples. Ahora también encola llamadas de cómputo (Ver codigo a continuacion). 
+Todos estos comandos se despachan antes de pintar la escena. Gracias a esto, la gráfica actualiza las físicas y muestra la imagen.
 
+% -----------------------------------------
 \subsection{Carga de los shaders de computación}
 
-Arrancar la pipeline exigió trabajar a fondo con \texttt{GEGraphicsContext}. El reparto de recursos se lleva a cabo mediante la clase \texttt{GEDescriptorSet}. Además, reservamos la memoria bruta en la VRAM de la tarjeta usando \texttt{GEParticleBuffer}. Si miramos las tripas de este último componente, veremos que maneja búferes uniformes (\textit{Uniform Buffers}) y búferes masivos de almacenamiento (\textit{Storage Buffers}).
+Arrancar la \textit{pipeline} exigió trabajar a fondo con \texttt{GEGraphicsContext}. 
+El reparto de recursos se lleva a cabo mediante la clase \texttt{GEDescriptorSet}. 
+Además, reservamos la memoria de la tarjeta usando \texttt{GEParticleBuffer}. 
+Este último componente maneja tanto \textit{Uniform Buffers} como \textit{Storage Buffers}.
 
-Para enlazar los recursos con el hardware seguimos un flujo claro. Primero leemos los binarios precompilados de SPIR-V. Estamos hablando de los ficheros \texttt{fire\_comp.spv}, \texttt{water\_comp.spv} y \texttt{smoke\_comp.spv}. Usamos la estructura nativa de C++ \texttt{VkComputePipelineCreateInfo} para conectar cada bloque al punto de entrada \texttt{"main"} del programa.
+Los recursos los enlazamos de la siguiente forma:
 
-Después toca organizar la memoria pura. Montamos un layout (con \texttt{VkDescriptorSetLayout}) para ver qué datos le pasamos al shader de forma segura. La clase \texttt{GEDescriptorSet} une dos bloques de memoria que son el corazón de esto. Por un lado, tenemos los búferes de almacenamiento (SSBO). Usamos dos de ellos, estructurados como \texttt{particlesIn} y \texttt{particlesOut}, mediante la técnica de doble búfer (véase Anexo~\ref{anexo:ping_pong}). El de entrada solo lee cómo estaba el mundo en el fotograma pasado. El de salida coge la pluma y escribe las físicas recién horneadas. Por otro lado, usamos un búfer uniforme (UBO). A este lo llamamos \texttt{params} y funciona a nivel global. Le pasa a la tarjeta gráfica las constantes vivas del juego: el delta time (\texttt{deltaTime}), la posición del emisor, la fuerza de gravedad, la brisa de viento y una semilla matemática para el azar.
+\begin{itemize}
+    \item \textbf{Carga del programa y \textit{pipeline}:} Primero, leemos los \textit{compute shaders} precompilados en formato SPIR-V. Luego, usamos la estructura \texttt{VkComputePipelineCreateInfo}, la cual nos permite apuntar directamente al punto de entrada (\texttt{"main"}) del \textit{shader}.
+    
+    \item \textbf{Organización de la memoria (\textit{Layout}):} Montamos un \textit{layout} (utilizando \texttt{VkDescriptorSetLayout}) para definir de forma segura qué datos y estructuras le vamos a pasar al \textit{shader}.
+    
+    \item \textbf{Vinculación de recursos:} La clase \texttt{GEDescriptorSet} une los dos bloques de memoria que son el corazón de la simulación:
+    \begin{itemize}
+        \item \textbf{Búferes de almacenamiento (SSBO):} Usamos dos de ellos (\texttt{particlesIn} y \texttt{particlesOut}), aplicando la técnica de doble búfer (véase Anexo~\ref{anexo:ping_pong}). El de entrada solo lee cómo estaba el mundo en el fotograma pasado. Mientras que el de salida toma el relevo y escribe las físicas recién horneadas.
+        
+        \item \textbf{Búfer uniforme (UBO):} Funciona a nivel global y lo llamamos \texttt{params}. Su función es inyectar a la tarjeta gráfica los datos cambiantes del motor. Por ejemplo, el (\texttt{deltaTime}), la posición del emisor, la fuerza de gravedad, etc.
+    \end{itemize}
+\end{itemize}
+
 
 \subsection{Flujo de integración}
 
-A vista de pájaro, la jerarquía de ejecución interna del motor se organiza de forma secuencial y modular, tal y como se ilustra en el diagrama de bloques de la Figura~\ref{fig:jerarquia_ejecucion}.
+Como vemos en el esquema de bloques de la Figura 8, la ejecución del motor sigue un orden secuencial. 
+De esta forma, la aplicación cede la administración de dichos procesos a la escena.  
+La escena se encarga de controlar el ejecutado y el ciclo de sus \textit{pipelines}. 
 
 \begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[
-    node distance=0.6cm and 0.8cm,
+    node distance=1.2cm,
     block/.style={
         rectangle, 
         draw=blue!70!black, 
         fill=blue!5, 
         thick, 
-        text width=3.2cm, 
+        text width=3.8cm, 
         align=center, 
         rounded corners=2pt,
         minimum height=0.9cm,
@@ -49,28 +68,66 @@ A vista de pájaro, la jerarquía de ejecución interna del motor se organiza de
         -{Stealth[scale=1.2]}, 
         thick, 
         draw=gray!80!black
+    },
+    dashed_arrow/.style={
+        -{Stealth[scale=1.2]}, 
+        thick, 
+        dashed,
+        draw=blue!80!black
     }
 ]
-    % Nodos del diagrama
+    % Nivel 1: Nodo inicial
     \node [block] (app) {GEApplication};
-    \node [block, right=of app] (scene) {GEScene};
-    \node [block, right=of scene] (compute) {GEComputeShader};
-    \node [block, right=of compute] (sys) {GEParticleSystem};
     
-    % Flechas conectoras
+    % Nivel 2: Nodo orquestador
+    \node [block, below=of app] (scene) {GEScene};
+    
+    % Nivel 3: Ramas de bifurcación (Físicas y Gráficos)
+    \node [block, below=1.3cm of scene, xshift=-2.6cm] (compute) {GEComputeShader};
+    \node [block, below=1.3cm of scene, xshift=2.6cm] (render) {GERenderingContext};
+    
+    % Nivel 4: Ejecutores finales
+    \node [block, below=of compute] (sys) {GEParticleSystem};
+    \node [block, below=of render] (geom) {Geometría y Skybox};
+    
+    % Conexión vertical principal
     \draw [arrow] (app) -- (scene);
-    \draw [arrow] (scene) -- (compute);
+    
+    % Bifurcación ortogonal desde la escena hacia las ramas
+    \draw [arrow] (scene.south) -- ++(0,-0.6) -| (compute.north) node[near end, left, font=\scriptsize\sffamily] {Físicas};
+    \draw [arrow] (scene.south) -- ++(0,-0.6) -| (render.north) node[near end, right, font=\scriptsize\sffamily] {Gráficos};
+    
+    % Continuación de las ramas hacia abajo
     \draw [arrow] (compute) -- (sys);
+    \draw [arrow] (render) -- (geom);
+    
+    % Flecha de sincronización (Lectura de buffers) transversal
+    \draw [dashed_arrow] (sys.east) -- (geom.west) node[midway, above, font=\scriptsize\sffamily, align=center] {Lectura de\\búferes (SSBO)};
+    
 \end{tikzpicture}
 \caption{Diagrama de bloques de la jerarquía de ejecución del motor gráfico.}
 \label{fig:jerarquia_ejecucion}
 \end{figure}
 
-Gracias a este diseño en cadena, el núcleo principal de la aplicación (\texttt{GEApplication}) delega la gestión operativa en la escena activa (\texttt{GEScene}), la cual se encarga de coordinar y administrar de forma independiente los ciclos de las pipelines correspondientes. Esta abstracción estructural garantiza un código altamente modular y previene conflictos o colisiones en el direccionamiento de recursos de hardware.
-        
+Para lograr una integración fluida entre el cálculo de física y el renderizado gráfico, la
+escena divide su flujo de trabajo en varias fases importantes:
+
+\begin{itemize}
+    \item \textbf{Gestión de actualizaciones lógicas e físicas:} La escena separa la actualización visual, que maneja los eventos de entrada y las matrices de la cámara, de la actualización física, que introduce un paso de tiempo fijo (fixed delta time) a los sistemas de partículas para asegurar un determinismo matemático.
+
+    \item \textbf{Sincronización mediante barreras de memoria:} La GPU opera asincrónicamente, por lo que el flujo para integrar la información implica la sincronización de las diferentes fases de cálculo e interpolación. Durante la fase de grabación de comandos (\texttt{recordComputeCommands}), la escena inserta barreras de memoria (\texttt{VkBufferMemoryBarrier}). Estas barreras aseguran que las operaciones de lectura y escritura entre los varios pasos del modelo sean coherentes y mantienen que el \textit{Vertex Shader} no consume los datos espaciales antes de que el \textit{Compute Shader} haya completado su escritura completa de los datos al espacio.
+
+    \item \textbf{Orquestación del renderizado:} En la última etapa del dibujo (drawGraphicsObjects), la
+escena pasa suavemente de una pipeline a otra. Define claramente el orden de visión:
+primero: Skybox; luego, modelos 3D y figuras; terminando por la combinación de los
+descriptor y buffers generados durante el paso de procesamiento para ilustrar las partículas.
+\end{itemize}
+
+
+
 \subsection{Cambios en la estructura del motor}
 
-Dar soporte al cálculo matemático en la GPU nos obligó a reescribir partes duras del código base. Usamos varias extensiones oficiales de Vulkan para conseguirlo. Para que quede claro, resumimos los cortes en la Tabla~\ref{tab:modificaciones}:
+Dar soporte al cálculo matemático en la GPU nos obligó a reescribir partes del código base. Usamos varias extensiones oficiales de Vulkan para conseguirlo. Para que quede claro, resumimos los cortes en la Tabla~\ref{tab:modificaciones}:
 
 \begin{table}[h!]
 \centering
@@ -91,20 +148,20 @@ Dar soporte al cálculo matemático en la GPU nos obligó a reescribir partes du
 A continuación desgranamos cómo funcionan por dentro los miniprogramas que pintan el resultado.
 
 \subsubsection{Vertex Shader de Partículas}
-Este programa agarra las partículas una por una leyendo de los búferes. Su rol principal es proyectarlas a las coordenadas de la pantalla aplicando la matriz de cámara (vista y proyección). Aparte de eso, decide el tamaño visual y se carga de un plumazo los elementos inactivos. Nos permite rascar rendimiento en la gráfica sin tirar memoria.
+Este programa atrapa las partículas una por una leyendo de los búferes. Su rol principal es proyectarlas a las coordenadas de la pantalla aplicando la matriz de cámara (vista y proyección). Aparte de eso, decide el tamaño visual y elimina los elementos inactivos. Lo que nos permite aumentar rendimiento en la gráfica sin gastar más memoria.
 
-A nivel de código interno, el sombreador lee los atributos puros. Chupa la posición (\texttt{inPos}), la normal (\texttt{inNorm}), el color base (\texttt{inColor}), el tamaño del punto (\texttt{inSize}) y los milisegundos de vida que le quedan (\texttt{inActiveTTL}). Con el descriptor atado, metemos la estructura \texttt{TransformInfo} junto a la matriz \texttt{MVP}. Al terminar, escupimos el color final (\texttt{outColor}) y el ángulo para rotar la imagen (\texttt{outAngle}) hacia la siguiente etapa del pipeline.
+A nivel de código interno, el shader lee los atributos . Usa la posición (\texttt{inPos}), la normal (\texttt{inNorm}), el color base (\texttt{inColor}), el tamaño del punto (\texttt{inSize}) y los milisegundos de vida que le quedan (\texttt{inActiveTTL}). Con el descriptor atado, metemos la estructura \texttt{TransformInfo} junto a la matriz \texttt{MVP}. Al terminar, trasladamos el color final (\texttt{outColor}) y el ángulo para rotar la imagen (\texttt{outAngle}) hacia la siguiente etapa del pipeline.
 
-Hay un detalle importante. El fuego o el humo necesitan girar sobre sí mismos. Si los dejas estáticos, pierden realismo. Como la API de Vulkan no ofrece un generador de azar integrado en la gráfica, buscamos otras alternativas. Programamos una función hash basada en algoritmos de senos rápidos~(\ref{eq:hash_rotacion}):
+Hay un detalle importante. El fuego o el humo necesitan girar sobre sí mismos. Si los dejas estáticos, pierden realismo. Como la API de Vulkan no ofrece un generador de azar integrado en la gráfica, buscamos otras alternativas. Programamos una función hash basada en algoritmos de senos~(\ref{eq:hash_rotacion}):
 \begin{equation}
     \label{eq:hash_rotacion}
     \theta = \text{frac}\Big(\sin\big(\text{gl\_VertexIndex}\big) \times 43758.5453\Big) \times 2\pi
 \end{equation}
-Cogemos el índice de la partícula (\texttt{gl\_VertexIndex}) y lo metemos como semilla. Pillamos la fracción de una curva altísima. El resultado final lo multiplicamos de $0$ a $2\pi$ radianes y lo mandamos por \texttt{outAngle}. Lo que resuelve el problema de inmediato.
+Cogemos el índice de la partícula (\texttt{gl\_VertexIndex}) y lo metemos como semilla. Pillamos la fracción de una curva altísima. El resultado final lo multiplicamos de $0$ a $2\pi$ radianes y lo mandamos por \texttt{outAngle}. Esto resuelve el problema de azar.
 
 Si resulta que la vida de la partícula (\texttt{inActiveTTL}) baja a cero, significa que está muerta. En lugar de borrarla de memoria, simplemente falseamos su posición en pantalla (\texttt{gl\_Position}). La disparamos lejísimos, al infinito: \texttt{vec4(-2.0, -2.0, -2.0, 1.0)}. De esta forma, el rasterizador de la GPU la ignora de inmediato. Nos ahorramos repintar cosas inútiles.
 
-Por último, si el punto sigue coleando, multiplicamos sus coordenadas por la cámara (\texttt{Transform.MVP}). Para que no quede como un juego 2D antiguo, escalamos el tamaño final de la textura según la distancia~(\ref{eq:perspective_scaling}):
+Por último, si la partícula sigue activa, multiplicamos sus coordenadas por la cámara (\texttt{Transform.MVP}). Para que no quede como un juego 2D antiguo, escalamos el tamaño final de la textura según la distancia~(\ref{eq:perspective_scaling}):
 \begin{equation}
     \label{eq:perspective_scaling}
     \text{gl\_PointSize} = \text{inSize} \times \left( \frac{1000.0}{\text{gl\_Position.w}} \right)

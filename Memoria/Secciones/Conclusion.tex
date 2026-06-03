@@ -2,26 +2,22 @@
 \chapter{Conclusión}
 \label{cap:conclusiones}
 
-Este capítulo presenta un balance crítico del proyecto. Evaluamos el cumplimiento de los objetivos fijados y analizamos los resultados visuales de cada sistema de partículas. Por último, planteamos varias líneas de desarrollo futuro para expandir las capacidades del motor gráfico.
+Este último apartado sirve más que nada para echar la vista atrás y ver si el esfuerzo ha merecido la pena. Interesaba sobre todo ver si el motor iba bien de velocidad y si la parte visual daba la talla. También he querido apuntar un par de cosas por si alguien decide coger este código el día de mañana.
 
-Diseñar un software robusto, estable y mantenible guió cada paso del desarrollo. Como Vulkan trabaja a muy bajo nivel, carece de abstracciones nativas para cargar geometría, gestionar memoria o pintar interfaces de usuario. Tuvimos que integrar varias librerías adicionales. Esta decisión responde a criterios estrictos de ingeniería de software:
-
-\begin{itemize}
-    \item \textbf{Migración a punteros inteligentes (\texttt{std::unique\_ptr} y \texttt{std::shared\_ptr}):} En renderizado en tiempo real, cualquier fuga de memoria (\textit{memory leak}) satura la RAM y la VRAM rápidamente. Usar punteros crudos tradicionales de C era inviable en una arquitectura modular. Por ello, adoptamos punteros inteligentes bajo el paradigma RAII. Esto asegura la liberación automática de recursos, elimina la gestión manual de memoria y aporta estabilidad al sistema.
-    \item \textbf{Librería TinyObjLoader:} Programar un analizador (\textit{parser}) propio de mallas 3D nos habría desviado del objetivo central: la simulación en GPU. Elegimos \texttt{tinyobjloader} por ser una opción ligera, eficiente y libre de dependencias externas. Su integración facilitó la carga directa de coordenadas, normales y texturas de archivos OBJ complejos a los búferes de Vulkan.
-    \item \textbf{Dear ImGui y control de comandos:} Necesitábamos una interfaz gráfica para vigilar el rendimiento y dar informacion sobre los controles. Escogimos ImGui por su bajísimo impacto y su paradigma de modo inmediato. Su integración impulsó una mejora clave de diseño. Nos obligó a dividir la función monolítica \texttt{fillCommandBuffer} en métodos especializados. Gracias a esto, el flujo de renderizado quedó mucho más desacoplado y flexible.
-    \item \textbf{Gestor de paquetes Vcpkg:} Configurar y enlazar librerías de terceros a mano en C++ suele traer problemas de compatibilidad multiplataforma. Usar \textit{vcpkg} resolvió esta dificultad al automatizar la gestión de GLFW, GLM, ImGui y TinyObjLoader. De esta forma, conseguimos un entorno limpio y reproducible en cualquier ordenador sin pelear con variables de entorno complejas.
-\end{itemize}
+Cualquiera que se haya pegado con Vulkan sabe que no te regalan nada. Tienes que pelearte tú solo con la memoria de la tarjeta, y eso da bastantes dolores de cabeza. Usar punteros de los que se limpian solos  quitá un peso enorme de encima. A esto se le añadio elementos que hacían falta para cargar los modelos 3D y montar las ventanas del menú. También se busco una forma de que compilar todo no fuera una pesadilla constante. Dejar esta base lista permitió poder ir al grano con el tema de las partículas.
 
 \section{Consecución de objetivos}
 
-El objetivo central de este Trabajo de Fin de Grado era diseñar un motor de partículas masivo y de alto rendimiento con Vulkan. Queríamos mover todo el ciclo de vida de las partículas a la GPU mediante \textit{Compute Shaders}. Al finalizar el proyecto, constatamos que hemos cumplido los objetivos principales con éxito.
+La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. La idea de pasarle todo el trabajo bruto a la tarjeta de vídeo pintaba bien sobre el papel, y al final ha sido la clave. Ahora son esos pequeños trozos de código en la GPU los que se encargan de darle vida a cada punto, moverlo de sitio y borrarlo cuando toca.
 
-La arquitectura modular que hemos diseñado demuestra que es viable generar efectos atmosféricos complejos sin saturar el canal de comunicación entre CPU y VRAM. Esto solía ser el principal obstáculo en APIs gráficas más antiguas. Actualmente, el motor simula con fluidez y de forma simultánea agua, fuego y humo.
+Con esto se ha conseguido que el procesador del PC se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco ahí en medio, el rendimiento es bastante bueno. Da igual si pones fuego, humo o agua; la pantalla no da tirones en ningún momento.
 
 \section{Resultados del sistema}
 
-Más allá del rendimiento bruto, el interés de esta evaluación se centra en el apartado estético y procedimental. Queríamos comprobar cómo fórmulas matemáticas y cinemáticas sencillas, ejecutadas en paralelo, pueden simular fluidos y gases con gran fidelidad y un coste computacional mínimo.
+Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matematicas basicas que se usan dan unos resultados bastante buenos.
+
+El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos sigen un par de normas de lo más simples. Tu ojo hace el resto del trabajo y se lo cree por completo. Queda visual, bonito y no satura el equipo.
+
 
 \begin{figure}[ht] 
     \centering
@@ -30,17 +26,16 @@ Más allá del rendimiento bruto, el interés de esta evaluación se centra en e
     \label{fig:resultadoTodo}
 \end{figure}
 
-A lo largo de las pruebas, comprobamos que los efectos obtenidos resultan sumamente convincentes (Ver Figura~\ref{fig:resultadoTodo}). La recreación visual de los fenómenos físicos se ha logrado con éxito y gran realismo.
 
 \section{Trabajo futuro}
 
-El motor gráfico cumple los objetivos de rendimiento y aspecto visual. Aun así, la flexibilidad de la arquitectura de Vulkan nos permite plantear interesantes mejoras a medio y largo plazo:
+Como posibles mejoras a futuro, se le podrian aladur alguna de estas funciones:
 
 \begin{itemize}
-    \item \textbf{Campos de fuerza dinámicos (Campos de vectores):} Proponemos integrar ecuaciones de ruido procedural 3D (como Perlin o Simplex) en el \textit{compute shader}. Esto creará corrientes de viento o turbulencias dinámicas que afecten al humo y al fuego en tiempo real, evitando movimientos lineales.
-    \item \textbf{Colisiones básicas en GPU:} Queremos programar colisiones analíticas sencillas (usando planos o \textit{bounding spheres}) directamente en la tarjeta gráfica. Así, las gotas de agua podrán rebotar y desviarse al tocar la base de la fuente o el suelo.
-    \item \textbf{Sombras:} Una buena mejora sería implementar mapas de sombras específicos para partículas (\textit{shadow maps}). Al conseguir que el humo proyecte sombras sobre sí mismo y sobre el escenario, la sensación de profundidad espacial aumentará de forma notable.
-    \item \textbf{Editor visual de partículas:} Sería muy útil crear un editor de curvas y nodos dentro de la interfaz de ImGui. De este modo, un diseñador o artista técnico ajustaría los colores, escalas y tiempos de vida de forma visual e interactiva. No haría falta tocar los parámetros numéricos directamente en el código fuente de C++.
+    \item Añadir fórmulas de ruido en el espacio para simular corrientes de viento. Así el fuego no iría tan recto y se harían remolinos bastante vistosos.
+    \item Otra cosa que le daría mucha vida sería que el agua chocara de verdad contra el piso del nivel.
+    \item El tema de las sombras también le daría un buen empujón a toda la escena, porque ahora mismo se nota que le falta un poco de profundidad.
+    \item Agregar una pequeña ventana para ir cambiando los parametros sin tener que compilar el código. Ayudando a ver variaciones de los efectos en tiempo real.
 \end{itemize}
 
 
