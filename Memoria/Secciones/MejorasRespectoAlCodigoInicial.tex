@@ -8,7 +8,6 @@ Las mejoras las vamos a comentar a continuación.
 Refactorizamos el motor a fondo. Eliminamos los viejos punteros crudos (\textit{raw pointers}) y los cambiamos por punteros inteligentes (\textit{smart pointers}). 
 Esta estrategia afecta prácticamente a todas las clases. Buscamos asegurar la gestión de la memoria. 
 Queremos evitar a toda costa las fugas de recursos (\textit{memory leaks}).
-
 Para lograrlo, usamos dos herramientas clave:
 \begin{itemize}
     \item \textbf{Uso de \texttt{std::unique\_ptr}:} Indica propiedad exclusiva. Las piezas geométricas (\texttt{GEPiece}) de un objeto 3D pertenecen solo a ese objeto. Si destruimos la entidad padre, el puntero inteligente libera su memoria en el acto. Seguimos el paradigma RAII.
@@ -23,7 +22,7 @@ Esta capa nos ayuda a detectar errores en nuestro código, o incompatibilidades 
 Como muestra la Figura~\ref{fig:codigoValidacion}, inyectamos la capa de Khronos al arrancar la instancia. 
 El entorno revisa la sincronización y los parámetros en directo, avisando ante cualquier fallo \parencite{vulkan_validation}.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
 \begin{carbonbox}
 const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
@@ -40,18 +39,56 @@ Queríamos montar escenas más enriquecedoras. Por eso, integramos la librería 
 Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. 
 La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
 
-<.h de GEObject y de GEModel>
  
 \subsection{Adaptación estructural: \texttt{GEObject} y \texttt{GEModel}}
-El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject}.
-Además, creamos \texttt{GEModel}, cuya arquitectura modular simplifica futuras ampliaciones del motor,
+El soporte de mallas complejas nos obligó a cambiar la estructura. Modificamos la clase base \texttt{GEObject} (véase la Figura~\ref{fig:geobject_code}).
+Además, creamos la clase heredada \texttt{GEModel}, cuya arquitectura modular simplifica futuras ampliaciones del motor,
  como el cálculo de volúmenes de envoltura esféricos (\textit{bounding spheres}) para la detección rápida de colisiones~\parencite{ericson2004real}.
 
+\begin{figure}[H]
+    \centering
+\begin{carbonbox}
+class GEObject
+{
+protected:
+    std::vector<GEMaterial> materials;
+    std::vector<std::shared_ptr<GETexture>> textures;
+    std::vector<std::unique_ptr<GEPiece>> pieces;
+    glm::mat4 model = glm::mat4(1.0f);
+
+public:
+    void destroy(GEGraphicsContext* gc);
+    void addCommands(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, int index);
+    void update(GEGraphicsContext* gc, uint32_t index, glm::mat4 view, glm::mat4 projection);
+    void resetLocation();
+    void setLocation(glm::mat4 m);
+    void translate(glm::vec3 t);
+    void rotate(float angle, glm::vec3 axis);
+    void setLight(GELight l);
+    void setTexture(std::shared_ptr<GETexture> tex);
+};
+\end{carbonbox}
+    \caption{Código fuente del archivo \texttt{GEObject.h}.}
+    \label{fig:geobject_code}
+\end{figure}
 
 La clase \texttt{GEObject} se convierte en un contenedor genérico. Las texturas y piezas se almacenan ahora con punteros inteligentes. 
-Gracias a esta clase tenemos toda la lógica de dibujo en un único sitio. 
+Gracias a esta clase tenemos toda la lógica de dibujo en un único sitio. A partir de ella programamos la clase de carga de modelos \texttt{GEModel} (véase la Figura~\ref{fig:gemodel_code}).
 
-A partir de ahí programamos \texttt{GEModel}. Esta clase hereda de \texttt{GEObject} y aprovecha las funciones de \texttt{tinyobjloader}. 
+\begin{figure}[H]
+    \centering
+\begin{carbonbox}
+class GEModel : public GEObject {
+public:
+    GEModel(GEGraphicsContext* gc, const std::string& path, float scale = 1.0f);
+    void initialize(GEGraphicsContext* gc, GERenderingContext* rc); 
+};
+\end{carbonbox}
+    \caption{Código fuente del archivo \texttt{GEModel.h}.}
+    \label{fig:gemodel_code}
+\end{figure}
+
+La clase \texttt{GEModel} aprovecha las funciones de la librería \texttt{tinyobjloader} para la importación y procesamiento de mallas.                                               
 El proceso de carga tiene cuatro pasos:
 \begin{enumerate}
     \item \textbf{Lectura del archivo:} Con \texttt{tinyobj::LoadObj} leemos los ficheros \texttt{.obj} y \texttt{.mtl}. El motor busca las rutas de las imágenes en el disco de forma dinámica.
@@ -64,7 +101,6 @@ El proceso de carga tiene cuatro pasos:
 
 Para poder navegar mejor por la escena se ha rediseñado la cámara. Añadimos dos modos nuevos (FPS y orbital) al modo libre que ya venía en el código base. 
 Los cálculos internos usan matrices de proyección y rotación estándar \parencite{lengyel2011mathematics}.
-
 Implementamos estas tres opciones:
 \begin{itemize}
     \item \textbf{Modo Libre:} Permite volar por la escena sin límites.
@@ -78,7 +114,7 @@ Trabaja bajo el paradigma de modo inmediato o \textit{Immediate Mode GUI}, reesc
 Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), número de partículas, tipo de cámara y controles. 
 
 
-\begin{figure}[ht]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1\textwidth]{Media/MejorasRespectoAlCodigoBase_1.png}
     \caption{Interfaz de la aplicación.}
@@ -102,7 +138,7 @@ El ciclo de vida y la grabación de comandos de la interfaz en el motor se estru
 \begin{enumerate}
     \item \textbf{Reserva de espacio e inicialización:} Como se detalla en la Figura~\ref{fig:imgui_init}, se reserva un pool de descriptores (\texttt{VkDescriptorPool}). Siendo este exclusivo para los muestreadores (\textit{samplers}) de ImGui. Posteriormente, se inicializa el sistema.
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
 \begin{carbonbox}
 void GEApplication::inicializarImGui() {
@@ -110,7 +146,6 @@ void GEApplication::inicializarImGui() {
     VkDescriptorPoolCreateInfo pool_info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT, .maxSets = 1000, .poolSizeCount = 1, .pPoolSizes = pool_sizes};
     vkCreateDescriptorPool(gc->device, &pool_info, nullptr, &this->imguiPool);
     ImGui_ImplGlfw_InitForVulkan(this->window.get(), true);
-    // ... Configurar init_info con Device, Queue, RenderPass e ImageCount ...
     ImGui_ImplVulkan_Init(&init_info);
 }
 \end{carbonbox}
@@ -120,7 +155,7 @@ void GEApplication::inicializarImGui() {
 
     \item \textbf{Puesta al día (\textit{New Frame}) y Maquetación:} En cada iteración del bucle principal (método \texttt{draw}), se capturan los eventos de periféricos y actualizan los temporizadores internos. Si el usuario interactúa haciendo clic sobre el panel, los eventos del ratón se detienen de forma prioritaria en la UI, impidiendo que la cámara rote por error. En esta etapa se definen los elementos que se pintarán en la barra superior flotante y se invoca la lógica de las ventanas secundarias (Figura~\ref{fig:imgui_draw}).
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
 \begin{carbonbox}
 void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double frameTime) {
@@ -138,7 +173,7 @@ void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double 
 
     \item \textbf{Lectura de datos y renderizado dinámico:} El objetivo es aislar la lógica interna del motor de la interfaz gráfica. Para lograrlo se crearon métodos como \texttt{ControlsGUI} (Figura~\ref{fig:imgui_controles}). El panel evalúa el estado del objeto \texttt{GECamera}. Además, modifica los textos informativos, sirviendo de guía contextual para el usuario.                           
 
-\begin{figure}[ht]
+\begin{figure}[H]
     \centering
 \begin{carbonbox}
 void GEApplication::ControlsGUI(GECamera* cam) {

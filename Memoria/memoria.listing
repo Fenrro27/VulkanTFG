@@ -1,10 +1,21 @@
-void GEApplication::ControlsGUI(GECamera* cam) {
-    ImGui::Begin("Controles de Camara", nullptr, flags);
-    if (mostrarControles) {
-        if (cam->getCurrentMode() == GECamera::CameraMode::FREE) {
-            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "LIBRE (Normal)");
-            ImGui::Text("M: Cambiar modo | Flechas: Rotar...");
-        }
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if (index >= 100000) return;
+    Particle p = particlesIn[index];
+    p.currentTtl -= params.deltaTime;
+    if (p.currentTtl <= 0.0) {
+        p.currentTtl = max(p.ttl, 0.1);
+        p.pos = params.emitterPos.xyz;
+        // [Se aplica la dispersion inicial en abanico 3D a la velocidad p.norm]
+        p.color = params.startColor;
+        p.size = params.startSize;
+    } else {
+        p.norm += params.force.xyz * params.deltaTime;
+        p.pos += p.norm * params.deltaTime;
+        // [Se aplica la perturbacion de la brisa tipo remolino (Ec. (*\ref{eq:remolino_humo}*)) sobre p.pos.xz]
+        float lifeFactor = 1.0 - (p.currentTtl / max(p.ttl, 0.001));
+        p.color = mix(params.startColor, params.endColor, lifeFactor);
+        p.size = mix(params.startSize, params.endSize, lifeFactor);
     }
-    ImGui::End();
+    particlesOut[index] = p;
 }

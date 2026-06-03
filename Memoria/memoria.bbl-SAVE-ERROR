@@ -21,8 +21,8 @@
   \datalist[entry]{apa/apasortcite//global/global/global}
     \entry{akenine2018real}{book}{}{}
       \name{author}{3}{}{%
-        {{un=0,uniquepart=base,hash=f6061b73d9bdb8fceb556ed41cd144a6}{%
-           family={Akenine-Möller},
+        {{un=0,uniquepart=base,hash=b7295891440d12518dc8a5a972f249c7}{%
+           family={Akenine-Moller},
            familyi={A\bibinithyphendelim M\bibinitperiod},
            given={Tomas},
            giveni={T\bibinitperiod},
@@ -40,17 +40,20 @@
            giveni={N\bibinitperiod},
            givenun=0}}%
       }
-      \list{publisher}{1}{%
-        {A K Peters/CRC Press}%
+      \list{location}{1}{%
+        {London, England}%
       }
-      \strng{namehash}{6af483c98f5e495047f6b57fcbd95609}
-      \strng{fullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{fullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{bibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authorbibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authornamehash}{6af483c98f5e495047f6b57fcbd95609}
-      \strng{authorfullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authorfullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \list{publisher}{1}{%
+        {CRC Press}%
+      }
+      \strng{namehash}{e5b75827dacdde52ef84024f8e02d5c1}
+      \strng{fullhash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{fullhashraw}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{bibnamehash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authorbibnamehash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authornamehash}{e5b75827dacdde52ef84024f8e02d5c1}
+      \strng{authorfullhash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authorfullhashraw}{f608cd02479e020c4fbdbb83db46b211}
       \field{sortinit}{A}
       \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
       \field{extradatescope}{labelyear}
@@ -58,9 +61,10 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{edition}{4th}
+      \field{edition}{4}
       \field{isbn}{978-1138627000}
-      \field{title}{Real-Time Rendering}
+      \field{month}{8}
+      \field{title}{Real-time rendering, fourth edition}
       \field{year}{2018}
     \endentry
     \entry{dearimgui}{misc}{}{}
@@ -97,6 +101,109 @@
       \endverb
       \verb{url}
       \verb https://github.com/ocornut/imgui
+      \endverb
+    \endentry
+    \entry{ericson2004real}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=ce4108d000f2ab3383891dc12c16ae76}{%
+           family={Ericson},
+           familyi={E\bibinitperiod},
+           given={Christer},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {CRC Press}%
+      }
+      \strng{namehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{fullhash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{fullhashraw}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{bibnamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorbibnamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authornamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorfullhash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorfullhashraw}{ce4108d000f2ab3383891dc12c16ae76}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0080474144}
+      \field{title}{Real-time collision detection}
+      \field{year}{2004}
+    \endentry
+    \entry{fenrro27_vulkan_vs_opengl}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{extraname}{1}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Accedido: 26 de mayo de 2026}
+      \field{title}{vulkan-vs-opengl}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/vulkan-vs-opengl
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/vulkan-vs-opengl
+      \endverb
+    \endentry
+    \entry{fenrro27_vulkan_tfg}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{extraname}{2}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Disponible en GitHub}
+      \field{title}{{VulkanTFG}: Repositorio de código fuente}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/VulkanTFG
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/VulkanTFG
       \endverb
     \endentry
     \entry{9655285}{article}{}{}
@@ -189,23 +296,20 @@
     \endentry
     \entry{vulkan_spec}{online}{}{}
       \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=638160ae56a17712d83fafc12a740c80}{%
-           family={Group},
-           familyi={G\bibinitperiod},
-           given={Khronos},
-           giveni={K\bibinitperiod},
-           givenun=0}}%
+        {{un=0,uniquepart=base,hash=364378d45b69f33fd50d5d62ae518626}{%
+           family={{Khronos Group}},
+           familyi={K\bibinitperiod}}}%
       }
-      \strng{namehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{fullhash}{638160ae56a17712d83fafc12a740c80}
-      \strng{fullhashraw}{638160ae56a17712d83fafc12a740c80}
-      \strng{bibnamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorbibnamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authornamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorfullhash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorfullhashraw}{638160ae56a17712d83fafc12a740c80}
-      \field{sortinit}{G}
-      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \strng{namehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{fullhash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{fullhashraw}{364378d45b69f33fd50d5d62ae518626}
+      \strng{bibnamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorbibnamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authornamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorfullhash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorfullhashraw}{364378d45b69f33fd50d5d62ae518626}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
       \true{uniqueprimaryauthor}
@@ -276,8 +380,11 @@
            giveni={E\bibinitperiod},
            givenun=0}}%
       }
+      \list{location}{1}{%
+        {Florence, AL}%
+      }
       \list{publisher}{1}{%
-        {Course Technology PTR}%
+        {Delmar Cengage Learning}%
       }
       \strng{namehash}{79e4bd53885ca536f77af64ad5895836}
       \strng{fullhash}{79e4bd53885ca536f77af64ad5895836}
@@ -294,9 +401,9 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{edition}{3rd}
       \field{isbn}{978-1435458864}
-      \field{title}{Mathematics for 3D Game Programming and Computer Graphics}
+      \field{month}{6}
+      \field{title}{Mathematics for {3D} game programming and computer graphics}
       \field{year}{2011}
     \endentry
     \entry{8685588}{article}{}{}
@@ -424,32 +531,109 @@
       \verb https://www.uhu.es/francisco.moreno/gii_ao/
       \endverb
     \endentry
+    \entry{perlin1985an}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d909d34e62b8c30430690affc20c3ebc}{%
+           family={Perlin},
+           familyi={P\bibinitperiod},
+           given={Ken},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery (ACM)}%
+      }
+      \strng{namehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{bibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorbibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authornamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \field{extraname}{1}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM SIGGRAPH Computer Graphics}
+      \field{title}{An image synthesizer}
+      \field{year}{1985}
+      \field{pages}{287\bibrangedash 296}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1145/325165.325247
+      \endverb
+    \endentry
+    \entry{perlin2002improving}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d909d34e62b8c30430690affc20c3ebc}{%
+           family={Perlin},
+           familyi={P\bibinitperiod},
+           given={Ken},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery (ACM)}%
+      }
+      \strng{namehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{bibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorbibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authornamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \field{extraname}{2}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM Transactions on Graphics}
+      \field{title}{Improving noise}
+      \field{year}{2002}
+      \field{pages}{681\bibrangedash 682}
+      \range{pages}{2}
+      \verb{doi}
+      \verb 10.1145/566654.566636
+      \endverb
+    \endentry
     \entry{Sellers_Kessenich_2017a}{book}{}{}
       \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
+        {{un=0,uniquepart=base,hash=3c7488b201e593f848dbb1fb7ac8230e}{%
            family={Sellers},
            familyi={S\bibinitperiod},
-           given={Graham},
-           giveni={G\bibinitperiod},
+           given={Graham\bibnamedelima M},
+           giveni={G\bibinitperiod\bibinitdelim M\bibinitperiod},
            givenun=0}}%
         {{un=0,uniquepart=base,hash=400011330a3a76a45b4a3d2b68d920be}{%
            family={Kessenich},
            familyi={K\bibinitperiod},
-           given={John\bibnamedelima M.},
+           given={John\bibnamedelima M},
            giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
            givenun=0}}%
       }
-      \list{publisher}{1}{%
-        {OpenGL}%
+      \list{location}{1}{%
+        {Boston, MA}%
       }
-      \strng{namehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{fullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{fullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{bibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorbibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authornamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorfullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorfullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \list{publisher}{1}{%
+        {Addison-Wesley Educational}%
+      }
+      \strng{namehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{fullhash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{fullhashraw}{6d448ef15f141db0651dc714acbc911c}
+      \strng{bibnamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorbibnamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authornamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorfullhash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorfullhashraw}{6d448ef15f141db0651dc714acbc911c}
       \field{sortinit}{S}
       \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
       \field{extradatescope}{labelyear}
@@ -457,8 +641,78 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{title}{Vulkan Programming Guide: The Official Guide to Learning Vulkan}
-      \field{year}{2017}
+      \field{isbn}{978-0134464541}
+      \field{month}{10}
+      \field{title}{Vulkan programming guide}
+      \field{year}{2016}
+    \endentry
+    \entry{stam1999stable}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=989eb4efa3f78c25c89fbf848445d952}{%
+           family={Stam},
+           familyi={S\bibinitperiod},
+           given={Jos},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {ACM Press/Addison-Wesley Publishing Co.}%
+      }
+      \strng{namehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{fullhash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{fullhashraw}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{bibnamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorbibnamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authornamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorfullhash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorfullhashraw}{989eb4efa3f78c25c89fbf848445d952}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the 26th Annual Conference on Computer Graphics and Interactive Techniques}
+      \field{title}{Stable fluids}
+      \field{year}{1999}
+      \field{pages}{121\bibrangedash 128}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1145/311535.311548
+      \endverb
+    \endentry
+    \entry{stroustrup2013cpp}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4975813514faee20fb6fcdb39a08af6f}{%
+           family={Stroustrup},
+           familyi={S\bibinitperiod},
+           given={Bjarne},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley Professional}%
+      }
+      \strng{namehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{fullhash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{fullhashraw}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{bibnamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorbibnamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authornamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorfullhash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorfullhashraw}{4975813514faee20fb6fcdb39a08af6f}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{4th}
+      \field{isbn}{978-0321563842}
+      \field{title}{The C++ Programming Language}
+      \field{year}{2013}
     \endentry
     \entry{vulkan_spec_shaders}{online}{}{}
       \name{author}{1}{}{%
@@ -484,7 +738,6 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{langid}{english}
       \field{title}{Vulkan Documentation: Shaders}
       \field{year}{2024}
       \verb{urlraw}
@@ -597,8 +850,8 @@
   \datalist[entry]{apa/global//global/global/global}
     \entry{akenine2018real}{book}{}{}
       \name{author}{3}{}{%
-        {{un=0,uniquepart=base,hash=f6061b73d9bdb8fceb556ed41cd144a6}{%
-           family={Akenine-Möller},
+        {{un=0,uniquepart=base,hash=b7295891440d12518dc8a5a972f249c7}{%
+           family={Akenine-Moller},
            familyi={A\bibinithyphendelim M\bibinitperiod},
            given={Tomas},
            giveni={T\bibinitperiod},
@@ -616,17 +869,20 @@
            giveni={N\bibinitperiod},
            givenun=0}}%
       }
-      \list{publisher}{1}{%
-        {A K Peters/CRC Press}%
+      \list{location}{1}{%
+        {London, England}%
       }
-      \strng{namehash}{6af483c98f5e495047f6b57fcbd95609}
-      \strng{fullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{fullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{bibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authorbibnamehash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authornamehash}{6af483c98f5e495047f6b57fcbd95609}
-      \strng{authorfullhash}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
-      \strng{authorfullhashraw}{dbfd5d60176b95f4ab27b0c00a1ff6fd}
+      \list{publisher}{1}{%
+        {CRC Press}%
+      }
+      \strng{namehash}{e5b75827dacdde52ef84024f8e02d5c1}
+      \strng{fullhash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{fullhashraw}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{bibnamehash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authorbibnamehash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authornamehash}{e5b75827dacdde52ef84024f8e02d5c1}
+      \strng{authorfullhash}{f608cd02479e020c4fbdbb83db46b211}
+      \strng{authorfullhashraw}{f608cd02479e020c4fbdbb83db46b211}
       \field{sortinit}{A}
       \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
       \field{extradatescope}{labelyear}
@@ -634,9 +890,10 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{edition}{4th}
+      \field{edition}{4}
       \field{isbn}{978-1138627000}
-      \field{title}{Real-Time Rendering}
+      \field{month}{8}
+      \field{title}{Real-time rendering, fourth edition}
       \field{year}{2018}
     \endentry
     \entry{dearimgui}{misc}{}{}
@@ -673,6 +930,109 @@
       \endverb
       \verb{url}
       \verb https://github.com/ocornut/imgui
+      \endverb
+    \endentry
+    \entry{ericson2004real}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=ce4108d000f2ab3383891dc12c16ae76}{%
+           family={Ericson},
+           familyi={E\bibinitperiod},
+           given={Christer},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {CRC Press}%
+      }
+      \strng{namehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{fullhash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{fullhashraw}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{bibnamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorbibnamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authornamehash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorfullhash}{ce4108d000f2ab3383891dc12c16ae76}
+      \strng{authorfullhashraw}{ce4108d000f2ab3383891dc12c16ae76}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0080474144}
+      \field{title}{Real-time collision detection}
+      \field{year}{2004}
+    \endentry
+    \entry{fenrro27_vulkan_vs_opengl}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{extraname}{1}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradate}{1}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Accedido: 26 de mayo de 2026}
+      \field{title}{vulkan-vs-opengl}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/vulkan-vs-opengl
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/vulkan-vs-opengl
+      \endverb
+    \endentry
+    \entry{fenrro27_vulkan_tfg}{misc}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=8be0364859740fe0f31110d7e060dda5}{%
+           family={Fenrro27},
+           familyi={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {GitHub}%
+      }
+      \strng{namehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{fullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \strng{bibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorbibnamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authornamehash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhash}{8be0364859740fe0f31110d7e060dda5}
+      \strng{authorfullhashraw}{8be0364859740fe0f31110d7e060dda5}
+      \field{extraname}{2}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{extradate}{2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Disponible en GitHub}
+      \field{title}{{VulkanTFG}: Repositorio de código fuente}
+      \field{year}{2026}
+      \verb{urlraw}
+      \verb https://github.com/Fenrro27/VulkanTFG
+      \endverb
+      \verb{url}
+      \verb https://github.com/Fenrro27/VulkanTFG
       \endverb
     \endentry
     \entry{9655285}{article}{}{}
@@ -765,23 +1125,20 @@
     \endentry
     \entry{vulkan_spec}{online}{}{}
       \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=638160ae56a17712d83fafc12a740c80}{%
-           family={Group},
-           familyi={G\bibinitperiod},
-           given={Khronos},
-           giveni={K\bibinitperiod},
-           givenun=0}}%
+        {{un=0,uniquepart=base,hash=364378d45b69f33fd50d5d62ae518626}{%
+           family={{Khronos Group}},
+           familyi={K\bibinitperiod}}}%
       }
-      \strng{namehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{fullhash}{638160ae56a17712d83fafc12a740c80}
-      \strng{fullhashraw}{638160ae56a17712d83fafc12a740c80}
-      \strng{bibnamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorbibnamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authornamehash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorfullhash}{638160ae56a17712d83fafc12a740c80}
-      \strng{authorfullhashraw}{638160ae56a17712d83fafc12a740c80}
-      \field{sortinit}{G}
-      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \strng{namehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{fullhash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{fullhashraw}{364378d45b69f33fd50d5d62ae518626}
+      \strng{bibnamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorbibnamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authornamehash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorfullhash}{364378d45b69f33fd50d5d62ae518626}
+      \strng{authorfullhashraw}{364378d45b69f33fd50d5d62ae518626}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
       \field{extradatescope}{labelyear}
       \field{labeldatesource}{}
       \true{uniqueprimaryauthor}
@@ -852,8 +1209,11 @@
            giveni={E\bibinitperiod},
            givenun=0}}%
       }
+      \list{location}{1}{%
+        {Florence, AL}%
+      }
       \list{publisher}{1}{%
-        {Course Technology PTR}%
+        {Delmar Cengage Learning}%
       }
       \strng{namehash}{79e4bd53885ca536f77af64ad5895836}
       \strng{fullhash}{79e4bd53885ca536f77af64ad5895836}
@@ -870,9 +1230,9 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{edition}{3rd}
       \field{isbn}{978-1435458864}
-      \field{title}{Mathematics for 3D Game Programming and Computer Graphics}
+      \field{month}{6}
+      \field{title}{Mathematics for {3D} game programming and computer graphics}
       \field{year}{2011}
     \endentry
     \entry{8685588}{article}{}{}
@@ -1000,32 +1360,109 @@
       \verb https://www.uhu.es/francisco.moreno/gii_ao/
       \endverb
     \endentry
+    \entry{perlin1985an}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d909d34e62b8c30430690affc20c3ebc}{%
+           family={Perlin},
+           familyi={P\bibinitperiod},
+           given={Ken},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery (ACM)}%
+      }
+      \strng{namehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{bibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorbibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authornamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \field{extraname}{1}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM SIGGRAPH Computer Graphics}
+      \field{title}{An image synthesizer}
+      \field{year}{1985}
+      \field{pages}{287\bibrangedash 296}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1145/325165.325247
+      \endverb
+    \endentry
+    \entry{perlin2002improving}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=d909d34e62b8c30430690affc20c3ebc}{%
+           family={Perlin},
+           familyi={P\bibinitperiod},
+           given={Ken},
+           giveni={K\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computing Machinery (ACM)}%
+      }
+      \strng{namehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{fullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{bibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorbibnamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authornamehash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhash}{d909d34e62b8c30430690affc20c3ebc}
+      \strng{authorfullhashraw}{d909d34e62b8c30430690affc20c3ebc}
+      \field{extraname}{2}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM Transactions on Graphics}
+      \field{title}{Improving noise}
+      \field{year}{2002}
+      \field{pages}{681\bibrangedash 682}
+      \range{pages}{2}
+      \verb{doi}
+      \verb 10.1145/566654.566636
+      \endverb
+    \endentry
     \entry{Sellers_Kessenich_2017a}{book}{}{}
       \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=8c05d03fa819867f583968eff08d2c78}{%
+        {{un=0,uniquepart=base,hash=3c7488b201e593f848dbb1fb7ac8230e}{%
            family={Sellers},
            familyi={S\bibinitperiod},
-           given={Graham},
-           giveni={G\bibinitperiod},
+           given={Graham\bibnamedelima M},
+           giveni={G\bibinitperiod\bibinitdelim M\bibinitperiod},
            givenun=0}}%
         {{un=0,uniquepart=base,hash=400011330a3a76a45b4a3d2b68d920be}{%
            family={Kessenich},
            familyi={K\bibinitperiod},
-           given={John\bibnamedelima M.},
+           given={John\bibnamedelima M},
            giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod},
            givenun=0}}%
       }
-      \list{publisher}{1}{%
-        {OpenGL}%
+      \list{location}{1}{%
+        {Boston, MA}%
       }
-      \strng{namehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{fullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{fullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{bibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorbibnamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authornamehash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorfullhash}{4d50a01e552855616f6e0c7fa3cd26fc}
-      \strng{authorfullhashraw}{4d50a01e552855616f6e0c7fa3cd26fc}
+      \list{publisher}{1}{%
+        {Addison-Wesley Educational}%
+      }
+      \strng{namehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{fullhash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{fullhashraw}{6d448ef15f141db0651dc714acbc911c}
+      \strng{bibnamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorbibnamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authornamehash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorfullhash}{6d448ef15f141db0651dc714acbc911c}
+      \strng{authorfullhashraw}{6d448ef15f141db0651dc714acbc911c}
       \field{sortinit}{S}
       \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
       \field{extradatescope}{labelyear}
@@ -1033,8 +1470,78 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{title}{Vulkan Programming Guide: The Official Guide to Learning Vulkan}
-      \field{year}{2017}
+      \field{isbn}{978-0134464541}
+      \field{month}{10}
+      \field{title}{Vulkan programming guide}
+      \field{year}{2016}
+    \endentry
+    \entry{stam1999stable}{article}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=989eb4efa3f78c25c89fbf848445d952}{%
+           family={Stam},
+           familyi={S\bibinitperiod},
+           given={Jos},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {ACM Press/Addison-Wesley Publishing Co.}%
+      }
+      \strng{namehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{fullhash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{fullhashraw}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{bibnamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorbibnamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authornamehash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorfullhash}{989eb4efa3f78c25c89fbf848445d952}
+      \strng{authorfullhashraw}{989eb4efa3f78c25c89fbf848445d952}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the 26th Annual Conference on Computer Graphics and Interactive Techniques}
+      \field{title}{Stable fluids}
+      \field{year}{1999}
+      \field{pages}{121\bibrangedash 128}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1145/311535.311548
+      \endverb
+    \endentry
+    \entry{stroustrup2013cpp}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=4975813514faee20fb6fcdb39a08af6f}{%
+           family={Stroustrup},
+           familyi={S\bibinitperiod},
+           given={Bjarne},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley Professional}%
+      }
+      \strng{namehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{fullhash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{fullhashraw}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{bibnamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorbibnamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authornamehash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorfullhash}{4975813514faee20fb6fcdb39a08af6f}
+      \strng{authorfullhashraw}{4975813514faee20fb6fcdb39a08af6f}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \true{uniqueprimaryauthor}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{4th}
+      \field{isbn}{978-0321563842}
+      \field{title}{The C++ Programming Language}
+      \field{year}{2013}
     \endentry
     \entry{vulkan_spec_shaders}{online}{}{}
       \name{author}{1}{}{%
@@ -1060,7 +1567,6 @@
       \true{uniqueprimaryauthor}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{langid}{english}
       \field{title}{Vulkan Documentation: Shaders}
       \field{year}{2024}
       \verb{urlraw}
