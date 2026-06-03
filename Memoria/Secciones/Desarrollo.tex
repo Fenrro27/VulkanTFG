@@ -8,7 +8,7 @@ En las siguientes páginas veremos la compilación de shaders en GLSL y cómo co
 
 Queríamos simular dinámicas físicas complejas. Hablamos de mover millones de elementos a la vez en la pantalla. Para montar algo así nos tocó diseñar una arquitectura paralela desde cero (\textit{Compute Pipeline}) apoyándonos en la API Vulkan. Su función es procesar datos matemáticos dentro de la GPU. Para conseguir esto usamos los \textit{Compute Shaders}.
 
-Todo este bloque de código lo controla la clase \texttt{GEComputeShader}. Se ocupa de instanciar la pipeline, vigilar los recursos y liberar la memoria al salir mediante destructores automáticos bajo el patrón de diseño RAII (véase Anexo~\ref{anexo:raii}). Por otro lado, delegamos la física real en \texttt{GEParticleSystem}. Este componente reserva el espacio en la tarjeta de vídeo. Un segundo después, lanza los hilos de ejecución de golpe (\textit{dispatch}).
+Todo este bloque de código lo controla la clase \texttt{GEComputeShader}. Se ocupa de instanciar la pipeline, vigilar los recursos y liberar la memoria al salir mediante destructores automáticos bajo el patrón de diseño RAII (\textit{Resource Acquisition Is Initialization})~\parencite{stroustrup2013cpp}. Por otro lado, delegamos la física real en \texttt{GEParticleSystem}. Este componente reserva el espacio en la tarjeta de vídeo. Un segundo después, lanza los hilos de ejecución de golpe (\textit{dispatch}).
 
 \subsection{Integración con la pipeline de renderizado global}
 
@@ -16,7 +16,7 @@ Tuvimos que acoplar esta maquinaria dentro del bucle de vida del motor. Para ell
 
 El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le mete los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables traga el \textit{Vertex Shader}. Enlazamos de forma directa cosas como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
 
-Anteriormente, \texttt{GECommandContext} solo almacenaba órdenes de dibujado simples. Ahora también encola llamadas de cómputo (Ver codigo a continuacion). 
+Anteriormente, \texttt{GECommandContext} solo almacenaba órdenes de dibujado simples. Ahora también encola llamadas de cómputo (Ver código a continuación).                                          
 Todos estos comandos se despachan antes de pintar la escena. Gracias a esto, la gráfica actualiza las físicas y muestra la imagen.
 
 % -----------------------------------------
@@ -32,11 +32,11 @@ Los recursos los enlazamos de la siguiente forma:
 \begin{itemize}
     \item \textbf{Carga del programa y \textit{pipeline}:} Primero, leemos los \textit{compute shaders} precompilados en formato SPIR-V. Luego, usamos la estructura \texttt{VkComputePipelineCreateInfo}, la cual nos permite apuntar directamente al punto de entrada (\texttt{"main"}) del \textit{shader}.
     
-    \item \textbf{Organización de la memoria (\textit{Layout}):} Montamos un \textit{layout} (utilizando \texttt{VkDescriptorSetLayout}) para definir de forma segura qué datos y estructuras le vamos a pasar al \textit{shader}.
+    \item \textbf{Organización de la memoria (\textit{Layout}):} Usamos \texttt{VkDescriptorSetLayout} para definir de forma segura qué datos y estructuras pasamos al \textit{shader}.                                                                             
     
     \item \textbf{Vinculación de recursos:} La clase \texttt{GEDescriptorSet} une los dos bloques de memoria que son el corazón de la simulación:
     \begin{itemize}
-        \item \textbf{Búferes de almacenamiento (SSBO):} Usamos dos de ellos (\texttt{particlesIn} y \texttt{particlesOut}), aplicando la técnica de doble búfer (véase Anexo~\ref{anexo:ping_pong}). El de entrada solo lee cómo estaba el mundo en el fotograma pasado. Mientras que el de salida toma el relevo y escribe las físicas recién horneadas.
+        \item \textbf{Búferes de almacenamiento (SSBO):} Usamos dos, \texttt{particlesIn} y \texttt{particlesOut}, con la técnica de doble búfer\footnote{Técnica también conocida como \textit{Ping-Pong Buffer}, consistente en el uso de dos búferes alternativos para evitar condiciones de carrera: mientras uno actúa como origen de datos de lectura, el otro almacena los resultados de escritura en cada fotograma.}. El de entrada lee el estado del fotograma anterior, mientras que el de salida escribe las físicas recién calculadas.
         
         \item \textbf{Búfer uniforme (UBO):} Funciona a nivel global y lo llamamos \texttt{params}. Su función es inyectar a la tarjeta gráfica los datos cambiantes del motor. Por ejemplo, el (\texttt{deltaTime}), la posición del emisor, la fuerza de gravedad, etc.
     \end{itemize}
@@ -115,7 +115,7 @@ escena divide su flujo de trabajo en varias fases importantes:
 \begin{itemize}
     \item \textbf{Gestión de actualizaciones lógicas e físicas:} La escena separa la actualización visual, que maneja los eventos de entrada y las matrices de la cámara, de la actualización física, que introduce un paso de tiempo fijo (fixed delta time) a los sistemas de partículas para asegurar un determinismo matemático.
 
-    \item \textbf{Sincronización mediante barreras de memoria:} La GPU opera asincrónicamente, por lo que el flujo para integrar la información implica la sincronización de las diferentes fases de cálculo e interpolación. Durante la fase de grabación de comandos (\texttt{recordComputeCommands}), la escena inserta barreras de memoria (\texttt{VkBufferMemoryBarrier}). Estas barreras aseguran que las operaciones de lectura y escritura entre los varios pasos del modelo sean coherentes y mantienen que el \textit{Vertex Shader} no consume los datos espaciales antes de que el \textit{Compute Shader} haya completado su escritura completa de los datos al espacio.
+    \item \textbf{Sincronización mediante barreras de memoria:} La GPU opera asíncronamente, por lo que integrar la información implica sincronizar las fases de cálculo e interpolación. Al grabar comandos con \texttt{recordComputeCommands}, la escena inserta barreras de memoria (\texttt{VkBufferMemoryBarrier}). Estas barreras aseguran que las operaciones de lectura y escritura sean coherentes, evitando que el \textit{Vertex Shader} consuma datos espaciales antes de que el \textit{Compute Shader} haya finalizado su escritura en memoria.             
 
     \item \textbf{Orquestación del renderizado:} En la última etapa del dibujo (drawGraphicsObjects), la
 escena pasa suavemente de una pipeline a otra. Define claramente el orden de visión:
@@ -206,7 +206,7 @@ La lógica física interna la vamos a ir detallando en cada sistema propio a par
     \label{fig:modFuente}
 \end{figure}
 
-El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Metimos un modelo 3D de una fuente de piedra (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. No queríamos volvernos locos con físicas de fluidos complejas basadas en Navier-Stokes (véase Anexo~\ref{anexo:navier_stokes}) o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos usando muchísimos menos recursos de los que pensábamos.
+El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Metimos un modelo 3D de una fuente de piedra (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. No queríamos volvernos locos con físicas de fluidos complejas basadas en las ecuaciones de Navier-Stokes y simulaciones GPU~\parencite{stam1999stable, akenine2018real} o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos usando muchísimos menos recursos de los que pensábamos.
 
 Para que el chorro no se viera pobre, había que engañar al ojo. En vez de usar puntitos sueltos, cargamos un sprite de alta resolución que ya traía el dibujo de una salpicadura rica (Figura \ref{fig:texAgua}). Con esto ganamos muchísimo rendimiento. Un solo plano de textura se traga visualmente el equivalente a cientos de microgotas calculadas a mano. 
 
@@ -324,7 +324,7 @@ Para anclar la simulación, decidimos poner una locomotora antigua (Figura \ref{
     \label{fig:modTren}
 \end{figure}
 
-La textura clave aquí era vital. Cualquier borde o pixelazo se notaría enseguida al agrandar la escala, así que optamos por una mancha grisácea sumamente difuminada y sin bordes duros (Figura \ref{fig:texHumo}). Al mezclar varias de estas encima de la chimenea, los fallos geométricos de los polígonos desaparecen. Queda un humo muy suave y esponjoso con poquísimos puntos.
+La textura clave aquí era vital. Cualquier borde o pixelación se notaría enseguida al agrandar la escala, así que optamos por una mancha grisácea sumamente difuminada y sin bordes duros (Figura \ref{fig:texHumo}). Al mezclar varias de estas encima de la chimenea, los fallos geométricos de los polígonos desaparecen. Queda un humo muy suave y esponjoso con poquísimos puntos.                                   
 
 \begin{figure}[ht]
     \centering
@@ -335,7 +335,7 @@ La textura clave aquí era vital. Cualquier borde o pixelazo se notaría ensegui
 
 El código de físicas del tren está metido en \texttt{smoke.comp}. Cuando los puntos mueren, la chimenea los escupe todos hacia arriba de golpe, pero no en un punto perfecto. Hacemos que nazcan ligeramente desperdigados aplicando tres valores aleatorios sobre los ejes que nos dan una salida en abanico muy natural.
 
-Una vez que están en el aire flotando, aplicamos una fuerza de empuje para que el humo suba sin parar. Lo difícil aquí era simular la brisa de fondo sin fundir la gráfica a base de complejos cálculos de túnel de viento o de ruido de Perlin/Simplex tridimensional (descritos en el Anexo~\ref{anexo:ruido_procedimental}). Así que atacamos la posición directamente metiendo un remolino trigonométrico con senos y cosenos. Cambiando la frecuencia del ruido en el eje $X$ ($2.0$) y en el $Z$ ($1.5$), forzamos que las partículas dibujen círculos deformes al subir, como marca la ecuación~(\ref{eq:remolino_humo}):
+Una vez que están en el aire flotando, aplicamos una fuerza de empuje para que el humo suba sin parar. Lo difícil aquí era simular la brisa de fondo sin fundir la gráfica a base de complejos cálculos de túnel de viento o de ruido procedimental de Perlin o Simplex tridimensional~\parencite{perlin1985an, perlin2002improving}. Así que atacamos la posición directamente metiendo un remolino trigonométrico con senos y cosenos. Cambiando la frecuencia del ruido en el eje $X$ ($2.0$) y en el $Z$ ($1.5$), forzamos que las partículas dibujen círculos deformes al subir, como marca la ecuación~(\ref{eq:remolino_humo}):
 
 \begin{equation}
     \label{eq:remolino_humo}
@@ -345,7 +345,7 @@ Una vez que están en el aire flotando, aplicamos una fuerza de empuje para que 
     \end{aligned}
 \end{equation}
 
-El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño bajito de $1.5$ y se hinchan de forma colosal, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. Al sumarle a esto un ciclo de vida eterno (entre 2.0 y 6.0 segundos) y un color que arranca en gris cerrado para morir en una transparencia negra absoluta, el resultado es justo lo que buscábamos. 
+El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño reducido de $1.5$ y se hinchan de forma colosal, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. Al sumarle a esto un ciclo de vida eterno (entre 2.0 y 6.0 segundos) y un color que arranca en gris cerrado para morir en una transparencia negra absoluta, el resultado es justo lo que buscábamos.                            
 
 La locomotora expulsa una columna negra gigantesca que se va disipando según choca contra la atmósfera, como puedes ver reflejado en la toma de la Figura~\ref{fig:resultadoHumo}. El efecto está plenamente conseguido tirando de pura ilusión matemática.
 

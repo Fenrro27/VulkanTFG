@@ -4,7 +4,7 @@
 
 Este último apartado sirve más que nada para echar la vista atrás y ver si el esfuerzo ha merecido la pena. Interesaba sobre todo ver si el motor iba bien de velocidad y si la parte visual daba la talla. También he querido apuntar un par de cosas por si alguien decide coger este código el día de mañana.
 
-Cualquiera que se haya pegado con Vulkan sabe que no te regalan nada. Tienes que pelearte tú solo con la memoria de la tarjeta, y eso da bastantes dolores de cabeza. Usar punteros de los que se limpian solos  quitá un peso enorme de encima. A esto se le añadio elementos que hacían falta para cargar los modelos 3D y montar las ventanas del menú. También se busco una forma de que compilar todo no fuera una pesadilla constante. Dejar esta base lista permitió poder ir al grano con el tema de las partículas.
+Cualquiera que se haya pegado con Vulkan sabe que no te regalan nada. Tienes que pelearte tú solo con la memoria de la tarjeta, y eso da bastantes dolores de cabeza. Usar punteros de los que se limpian solos quita un peso enorme de encima. A esto se le añadió elementos que hacían falta para cargar los modelos 3D y montar las ventanas del menú. También se buscó una forma de que compilar todo no fuera una pesadilla constante. Dejar esta base lista permitió poder ir al grano con el tema de las partículas.                                       
 
 \section{Consecución de objetivos}
 
@@ -14,9 +14,9 @@ Con esto se ha conseguido que el procesador del PC se relaje bastante. Ya no tie
 
 \section{Resultados del sistema}
 
-Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matematicas basicas que se usan dan unos resultados bastante buenos.
+Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matemáticas básicas que se usan dan unos resultados bastante buenos.
 
-El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos sigen un par de normas de lo más simples. Tu ojo hace el resto del trabajo y se lo cree por completo. Queda visual, bonito y no satura el equipo.
+El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos siguen un par de normas de lo más simples. Tu ojo hace el resto del trabajo y se lo cree por completo. Queda visual, bonito y no satura el equipo.                                    
 
 
 \begin{figure}[ht] 
@@ -29,13 +29,13 @@ El humo crece como te esperas que lo haga, el fuego se mueve de una forma natura
 
 \section{Trabajo futuro}
 
-Como posibles mejoras a futuro, se le podrian aladur alguna de estas funciones:
+Como posibles mejoras a futuro, se le podrían añadir algunas de estas funciones:
 
 \begin{itemize}
     \item Añadir fórmulas de ruido en el espacio para simular corrientes de viento. Así el fuego no iría tan recto y se harían remolinos bastante vistosos.
     \item Otra cosa que le daría mucha vida sería que el agua chocara de verdad contra el piso del nivel.
     \item El tema de las sombras también le daría un buen empujón a toda la escena, porque ahora mismo se nota que le falta un poco de profundidad.
-    \item Agregar una pequeña ventana para ir cambiando los parametros sin tener que compilar el código. Ayudando a ver variaciones de los efectos en tiempo real.
+    \item Agregar una pequeña ventana para ir cambiando los parámetros sin tener que compilar el código. Ayudando a ver variaciones de los efectos en tiempo real.                                      
 \end{itemize}
 
 

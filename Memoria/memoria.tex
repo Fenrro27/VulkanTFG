@@ -27,7 +27,6 @@
 }
 \usepackage{amsmath,amssymb}   % Matemáticas avanzadas
 \usepackage{setspace}          % Interlineado
-\usepackage[hidelinks]{hyperref}          % Enlaces y marcadores PDF
 \usepackage[style=apa, backend=biber]{biblatex}
 \addbibresource{bibliografia.bib}
 \usepackage{eso-pic}           % Para imagen de fondo en portada
@@ -119,6 +118,7 @@
 % Añadir color para resaltar el mejor rendimiento
 \usepackage{colortbl}
 
+\usepackage[hidelinks,hypertexnames=false]{hyperref}          % Enlaces y marcadores PDF (cargado al final con hypertexnames=false para evitar duplicaciones)
 
 % --- Inicio del Documento ---
 \begin{document}
@@ -176,13 +176,13 @@
 \printbibliography[title={Referencias}]
 
 % --- ANEXOS ---
-\appendix
-\clearpage
-\pagenumbering{Roman} 
-\setcounter{page}{1}
-\setcounter{chapter}{0}
-\renewcommand{\chaptername}{Anexo}
-\renewcommand{\thechapter}{\arabic{chapter}}
-\input{Secciones/Anexo.tex}
+%\appendix
+%\clearpage
+%\pagenumbering{Roman} 
+%\setcounter{page}{1}
+%\setcounter{chapter}{0}
+%\renewcommand{\chaptername}{Anexo}
+%\renewcommand{\thechapter}{\arabic{chapter}}
+%\input{Secciones/Anexo.tex}
 
 \end{document} 

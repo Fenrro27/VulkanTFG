@@ -2,7 +2,7 @@
 \chapter{Metodología} 
 \label{sec:metodologia}
 
-Para alcanzar el objetivo necesitamos dar un salto hacia un sistema en paralelo que aproveche la GPU. A continuacion, se explica las bases teoricas que nos permiten  dar vida al motor.
+Para alcanzar el objetivo necesitamos dar un salto hacia un sistema en paralelo que aproveche la GPU. A continuación, se explican las bases teóricas que nos permiten dar vida al motor.                                                       
 
 
 \section{Definición de Partícula}
@@ -18,21 +18,21 @@ Como no tienen una malla de triángulos compleja, nos basta con almacenar un pu�
 
 
 \section{Sistemas de Partículas en CPU vs GPU}
-Hay un gran reto para simular particulas, poder realizar millones de operaciones matemáticas por segundo.
+Hay un gran reto para simular partículas: poder realizar millones de operaciones matemáticas por segundo.
 
 El \textbf{enfoque clásico en CPU} trabaja de forma secuencial. El procesador calcula el estado de la partícula uno a uno. 
 Al terminar, copia todo ese bloque de datos hacia la memoria de vídeo (VRAM) usando el bus PCI-Express. 
 Este viaje constante satura el canal de comunicación. Se genera un cuello de botella crítico. 
 Por este motivo, la CPU colapsa si intentamos mover nubes masivas de elementos sin perder fluidez~\parencite{latta2004massively}.
 
-Por el contrario, el enfoque basado en GPU (GPGPU) actualiza todo en paralelo. Basicamente aloja la información en la memoria gráfica. 
-Y programa la física en lo ejecuta en los compute Shaders~\parencite{akenine2018real}.
+Por el contrario, el enfoque basado en GPU (GPGPU) actualiza todo en paralelo. Básicamente aloja la información en la memoria gráfica 
+y ejecuta la física en los \textit{Compute Shaders}~\parencite{akenine2018real}.
 
 Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. La tasa de fotogramas sube de forma drástica.
 
 
 \section{Fundamentos de Computación en GPU}
-Primero debemos ver como usar la tarjeta gráfica para calculos de proposito general.
+Primero debemos ver cómo usar la tarjeta gráfica para cálculos de propósito general.
 
 \subsection{El Compute Shader}
 \label{subsection:ElComputeShader}
@@ -44,13 +44,13 @@ Es la herramienta idónea para nuestro motor. Cada hilo se encarga de evaluar y 
 
 
 \subsection{El Pipeline de Computación}
-El pipeline gráfico se encarga de transformar geometria en pixeles. 
-Esto difiere de la pipeline de computacion, ya que este es un fujo logico mas simple que solo procesa datos.
+El pipeline gráfico se encarga de transformar geometría en píxeles. 
+Esto difiere del pipeline de computación, ya que este es un flujo lógico más simple que solo procesa datos.
 Destaca por ser muy independiente. La GPU modifica millones de posiciones sin pedir ayuda a las etapas de dibujado. El proceso sigue tres pasos:
 \begin{enumerate}
     \item \textbf{Despacho (\textit{Dispatch}):} Se definen cuántos grupos de hilos hacen falta para cubrir todas las partículas.
     \item \textbf{Cómputo en paralelo:} Los hilos ejecutan sus fórmulas organizados en bloques. Así aprovechan al máximo la memoria compartida local. 
-    \item \textbf{Sincronización:} Para pintar los resultados en pantalla esperamos a terminar los calculos. Para ello hacemos uso de barreras.
+    \item \textbf{Sincronización:} Para pintar los resultados en pantalla esperamos a terminar los cálculos. Para ello hacemos uso de barreras.
 \end{enumerate}
 
 
@@ -78,7 +78,7 @@ Cuando las barreras de sincronización aseguran que la GPU ha terminado el traba
 La etapa gráfica entra entonces al búfer recién actualizado, lee las posiciones y dibuja los puntos en la pantalla. Separamos las físicas del renderizado real.
 
 
-\subsection{Simulaciones Procedurales}
+\subsection{Simulaciones Procedimentales}
 
 Recrear fluidos reales con las ecuaciones matemáticas de Navier-Stokes en tiempo real es inviable~\parencite{akenine2018real}. 
 El coste en cómputo es demasiado alto. Por eso, en gráficos por ordenador preferimos usar simulaciones procedimentales. 
@@ -100,6 +100,6 @@ Con esto, cada unidad de cálculo genera sus propios desfases de manera autónom
 
 Al aplicar pequeños valores de tiempo (\textit{offsets}), creamos turbulencias asíncronas en las tres dimensiones. 
 De esta manera rompemos cualquier simetría visual.  
-Se calcula todo dentro de las unidades aritméticas (\textit{ALUs}) de la GPU. Asi obtenemos un consumo de recursos minimo.
+Se calcula todo dentro de las unidades aritméticas (\textit{ALUs}) de la GPU. Así obtenemos un consumo de recursos mínimo.
 Esto nos permite mantener los fotogramas altos mientras simulamos nubes de puntos caóticas, vivas y muy naturales.
 
