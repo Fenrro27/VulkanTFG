@@ -1,20 +1,20 @@
 % Finalizado 
 \chapter{Desarrollo}
-A continuación, nos centraremos en el código del motor. Explicaremos cómo añadimos cada módulo de simulación dentro de la arquitectura global.  El objetivo era que la GPU tuviera todo el ciclo de vida de los puntos. Con esto nos libramos de mover datos de un lado a otro entre el procesador principal y la memoria de vídeo (VRAM). La mejora de rendimiento es alta, por lo que el motor va mucho mejor.
+A continuación, se explicará el código del motor. Se detallará cómo se ha añadido cada módulo de simulación dentro de la arquitectura global. El objetivo es que la GPU tenga todo el ciclo de vida de los puntos. Con esto se evita el excesivo intercambio de datos entre el procesador principal y la memoria de vídeo (VRAM). El resultado es una mejora en el rendimiento del motor gráfico.
 
-En las siguientes páginas veremos la compilación de shaders en GLSL y cómo configuramos las pipelines gráficas. También enseñaremos cómo rompimos el viejo flujo monolítico que tenía el código base. Usando comandos asíncronos. Una opción mucho más limpia. Por último, explicaremos las matemáticas detrás del agua, el fuego y el humo. 
+En las siguientes páginas se detallará la compilación de shaders en GLSL y la configuración de las pipelines gráficas. Asimismo, se describirá el proceso de reestructuración del flujo monolítico heredado del código base, optando por el uso de comandos asíncronos para lograr un diseño más robusto. Finalmente, se expondrán los fundamentos matemáticos subyacentes a la simulación de agua, fuego y humo.
 
 \section{Creación de la pipeline de Computación}
 
-Queríamos simular dinámicas físicas complejas. Hablamos de mover millones de elementos a la vez en la pantalla. Para montar algo así nos tocó diseñar una arquitectura paralela desde cero (\textit{Compute Pipeline}) apoyándonos en la API Vulkan. Su función es procesar datos matemáticos dentro de la GPU. Para conseguir esto usamos los \textit{Compute Shaders}.
+El propósito principal es simular dinámicas físicas complejas, lo que implica procesar millones de elementos simultáneamente en pantalla. Para conseguir este propósito fue necesario diseñar una arquitectura paralela desde cero (\textit{Compute Pipeline}) basada en la API Vulkan. Su función es procesar operaciones matemáticas directamente en la GPU, utilizando para ello los \textit{Compute Shaders}.
 
-Todo este bloque de código lo controla la clase \texttt{GEComputeShader}. Se ocupa de instanciar la pipeline, vigilar los recursos y liberar la memoria al salir mediante destructores automáticos bajo el patrón de diseño RAII~\parencite{stroustrup2013cpp}. Por otro lado, delegamos la física real en \texttt{GEParticleSystem}. Este componente reserva el espacio en la tarjeta de vídeo. Un segundo después, lanza los hilos de ejecución de golpe (\textit{dispatch}).
+La gestión de este bloque de ejecución recae sobre la clase \texttt{GEComputeShader}, responsable de instanciar la pipeline, monitorizar los recursos y liberar la memoria al término de su ciclo de vida mediante destructores automáticos basados en el patrón de diseño RAII~\parencite{stroustrup2013cpp}. Por otro lado, el cálculo de la física recae sobre la clase \texttt{GEParticleSystem}. Este componente reserva la memoria en la tarjeta gráfica y despacha (\textit{dispatch}) los hilos de ejecución concurrentes.
 
 \subsection{Integración con la pipeline de renderizado global}
 
-Tuvimos que acoplar esta maquinaria dentro del bucle de vida del motor. Para ello usamos tres clases que ya teníamos: \texttt{GERenderingContext}, \texttt{GECommandContext} y \texttt{GEScene}. El verdadero rompecabezas fue sincronizar la memoria compartida sin causar bloqueos. El truco es el orden. La GPU calcula primero dónde va cada punto. Justo al terminar, la pipeline gráfica entra y lee la memoria. Así pinta el frame en 3D. El proceso interno funciona así:
+Fue necesario acoplar esta estructura de procesamiento dentro del ciclo de vida del motor. Para ello se emplearon tres clases preexistentes: \texttt{GERenderingContext}, \texttt{GECommandContext} y \texttt{GEScene}. El desafío principal radicó en la sincronización de la memoria compartida evitando condiciones de carrera o bloqueos. La clave reside en el orden de ejecución: la GPU calcula inicialmente la nueva posición de cada partícula; posteriormente, la pipeline gráfica lee estos datos de memoria para efectuar el renderizado tridimensional. El flujo interno se describe a continuación:
 
-El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le mete los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables traga el \textit{Vertex Shader}. Enlazamos de forma directa cosas como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
+El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le proporciona los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables procesa el \textit{Vertex Shader}. Enlazamos de forma directa cosas como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
 
 Anteriormente, \texttt{GECommandContext} solo almacenaba órdenes de dibujado simples. Ahora también encola llamadas de cómputo.                                           
 Todos estos comandos se despachan antes de pintar la escena. Gracias a esto, la gráfica actualiza las físicas y muestra la imagen.
@@ -22,7 +22,7 @@ Todos estos comandos se despachan antes de pintar la escena. Gracias a esto, la 
 % -----------------------------------------
 \subsection{Carga de los shaders de computación}
 
-Arrancar la \textit{pipeline} exigió trabajar a fondo con \texttt{GEGraphicsContext}. 
+Arrancar la \textit{pipeline} requirió un trabajo exhaustivo con \texttt{GEGraphicsContext}. 
 El reparto de recursos se lleva a cabo mediante la clase \texttt{GEDescriptorSet}. 
 Además, reservamos la memoria de la tarjeta usando la clase \texttt{GEParticleBuffer} (véase la Figura~\ref{fig:geparticlebuffer_code}). 
 Este componente maneja tanto \textit{Uniform Buffers} como \textit{Storage Buffers}.
@@ -39,29 +39,29 @@ public:
     void destroy(GEGraphicsContext* gc);
 };
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEParticleBuffer.h}.}
+    \caption{Código fuente del archivo \texttt{GEParticleBuffer.h}.}
     \label{fig:geparticlebuffer_code}
 \end{figure}
 
-\noindent Los recursos los enlazamos de la siguiente forma:
+\noindent Los recursos se vinculan del siguiente modo:
 
 \begin{itemize}
-    \item \textbf{Carga del programa y \textit{pipeline}:} Primero, leemos los \textit{compute shaders} precompilados en formato SPIR-V. Luego, usamos la estructura \texttt{VkComputePipelineCreateInfo}, la cual nos permite apuntar directamente al punto de entrada (\texttt{"main"}) del \textit{shader}.
+    \item \textbf{Carga del programa y \textit{pipeline}:} Inicialmente, se cargan los \textit{compute shaders} precompilados en formato SPIR-V. A continuación, se emplea la estructura \texttt{VkComputePipelineCreateInfo}, la cual permite referenciar directamente el punto de entrada (\texttt{"main"}) del \textit{shader}.
     
-    \item \textbf{Organización de la memoria (\textit{Layout}):} Usamos \texttt{VkDescriptorSetLayout} para definir de forma segura qué datos y estructuras pasamos al \textit{shader}.                                                                             
+    \item \textbf{Organización de la memoria (\textit{Layout}):} Se utiliza \texttt{VkDescriptorSetLayout} para definir la interfaz de datos y las estructuras que recibe el \textit{shader}.
     
-    \item \textbf{Vinculación de recursos:} La clase \texttt{GEDescriptorSet} une los dos bloques de memoria que son el corazón de la simulación:
+    \item \textbf{Vinculación de recursos:} La clase \texttt{GEDescriptorSet} vincula los bloques de memoria centrales de la simulación:
     \begin{itemize}
-        \item \textbf{Búferes de almacenamiento (SSBO):} Usamos dos, \texttt{particlesIn} y \texttt{particlesOut}, con la técnica de doble búfer\footnote{Técnica también conocida como \textit{Ping-Pong Buffer}, consistente en el uso de dos búferes alternativos para evitar condiciones de carrera: mientras uno actúa como origen de datos de lectura, el otro almacena los resultados de escritura en cada fotograma.}. El de entrada lee el estado del fotograma anterior, mientras que el de salida escribe las físicas recién calculadas.
+        \item \textbf{Búferes de almacenamiento (SSBO):} Se emplean dos búferes, \texttt{particlesIn} y \texttt{particlesOut}, implementando una estrategia de doble búfer\footnote{Técnica también conocida como \textit{Ping-Pong Buffer}, consistente en el uso de dos búferes alternativos para evitar condiciones de carrera: mientras uno actúa como origen de datos de lectura, el otro almacena los resultados de escritura en cada fotograma.}. El búfer de entrada suministra el estado del fotograma anterior, mientras que en el de salida se escriben los resultados del nuevo cálculo físico.
         
-        \item \textbf{Búfer uniforme (UBO):} Funciona a nivel global y lo llamamos \texttt{params}. Su función es inyectar a la tarjeta gráfica los datos cambiantes del motor. Por ejemplo, el (\texttt{deltaTime}), la posición del emisor, la fuerza de gravedad, etc.
+        \item \textbf{Búfer uniforme (UBO):} Actúa a nivel global bajo el identificador \texttt{params}. Su función es suministrar a la tarjeta gráfica las variables de entorno dependientes del tiempo, tales como el diferencial de tiempo (\texttt{deltaTime}), la posición del emisor o la aceleración gravitatoria.
     \end{itemize}
 \end{itemize}
 
 
 \subsection{Flujo de integración}
 
-Como vemos en el esquema de bloques de la Figura \ref{fig:jerarquia_ejecucion}, la ejecución del motor sigue un orden secuencial. 
+Tal como se ilustra en el esquema de bloques de la Figura \ref{fig:jerarquia_ejecucion}, la ejecución del motor sigue un orden secuencial. 
 De esta forma, la aplicación cede la administración de dichos procesos a la escena.  
 La escena se encarga de controlar el ejecutado y el ciclo de sus \textit{pipelines}. 
 
@@ -121,7 +121,7 @@ La escena se encarga de controlar el ejecutado y el ciclo de sus \textit{pipelin
     \draw [dashed_arrow] (sys.east) -- (geom.west) node[midway, above, font=\scriptsize\sffamily, align=center] {Lectura de\\búferes (SSBO)};
     
 \end{tikzpicture}
-\caption{Elaboración propia. Diagrama de bloques de la jerarquía de ejecución del motor gráfico.}
+\caption{Diagrama de bloques de la jerarquía de ejecución del motor gráfico.}
 \label{fig:jerarquia_ejecucion}
 \end{figure}
 
@@ -143,7 +143,7 @@ descriptor y buffers generados durante el paso de procesamiento para ilustrar la
 
 \subsection{Cambios en la estructura del motor}
 
-Dar soporte al cálculo matemático en la GPU nos obligó a reescribir partes del código base. Usamos varias extensiones oficiales de Vulkan para conseguirlo. Para que quede claro, resumimos los cortes en la Tabla~\ref{tab:modificaciones}:
+La provisión de soporte para el cálculo matemático en la GPU hizo necesaria la reescritura de ciertas secciones del código base, empleando para ello diversas extensiones oficiales de Vulkan. A modo de clarificación, se resumen los cambios en la Tabla~\ref{tab:modificaciones}:
 
 \begin{table}[h!]
 \centering
@@ -156,7 +156,7 @@ Dar soporte al cálculo matemático en la GPU nos obligó a reescribir partes de
 \texttt{GECommandContext} & Solo grababa comandos para \texttt{VK\_PIPELINE\_BIND\_POINT\_GRAPHICS}. & Extendida para soportar la grabación de comandos \textit{Compute} mediante el método \texttt{recordCommands}. \\ \hline
 \texttt{GEScene} \newline \texttt{GEApplication} & Controlaban únicamente figuras geométricas estáticas u objetos indexados (\texttt{GEPiece}). & Añaden la gestión del ciclo \texttt{update} de simulaciones físicas en la GPU. \\ \hline
 \end{tabular}
-\caption{Elaboración propia. Comparativa de modificaciones estructurales en el motor gráfico.}
+\caption{Comparativa de modificaciones estructurales en el motor gráfico.}
 \label{tab:modificaciones}
 \end{table}
 
@@ -205,7 +205,7 @@ public:
     void updatePhysics(GEGraphicsContext* gc, uint32_t index, float fixedDeltaTime);
 };
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEParticlesSystem.h}.}
+    \caption{Código fuente del archivo \texttt{GEParticlesSystem.h}.}
     \label{fig:geparticlessystem_code}
 \end{figure}
 
@@ -224,7 +224,7 @@ typedef struct alignas(16)
     float currentTtl;     
 } GEParticle;
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEParticle.h}.}
+    \caption{Código fuente del archivo \texttt{GEParticle.h}.}
     \label{fig:geparticle_code}
 \end{figure}
 
@@ -255,7 +255,7 @@ private:
     VkShaderModule createShaderModule(GEGraphicsContext* gc, const std::vector<char>& code);
 };
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEComputeShader.h}.}
+    \caption{Código fuente del archivo \texttt{GEComputeShader.h}.}
     \label{fig:gecomputeshader_code}
 \end{figure}
 
@@ -267,7 +267,7 @@ Encargados de procesar y proyectar la simulación.
 
 \subsubsection{Vertex Shader de Partículas}
 
-El vertex shader de partículas (véase la Figura~\ref{fig:particles_shader_vert}) atrapa las partículas una por una leyendo de los búferes. Su rol principal es proyectarlas a las coordenadas de la pantalla aplicando la matriz de cámara (vista y proyección). Aparte de eso, decide el tamaño visual y elimina los elementos inactivos. Lo que nos permite aumentar rendimiento en la gráfica sin gastar más memoria.
+El vertex shader (véase la Figura~\ref{fig:particles_shader_vert}) procesa individualmente las partículas a partir de los datos almacenados en memoria. Su función principal consiste en proyectar estas entidades al espacio de pantalla aplicando las matrices de cámara (vista y proyección). Asimismo, determina el tamaño visual en pantalla y descarta los elementos inactivos, optimizando el rendimiento de rasterización sin requerir asignaciones de memoria adicionales.
 
 \begin{figure}[!htbp]
     \centering
@@ -292,27 +292,27 @@ void main() {
     }
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del sombreador \texttt{particles\_shader.vert}.}
+    \caption{Código fuente del sombreador \texttt{particles\_shader.vert}.}
     \label{fig:particles_shader_vert}
 \end{figure}
 
-A nivel de código interno, el shader lee los atributos . Usa la posición (\texttt{inPos}), la normal (\texttt{inNorm}), el color base (\texttt{inColor}), el tamaño del punto (\texttt{inSize}) y los milisegundos de vida que le quedan (\texttt{inActiveTTL}). Con el descriptor atado, metemos la estructura \texttt{TransformInfo} junto a la matriz \texttt{MVP}. Al terminar, trasladamos el color final (\texttt{outColor}) y el ángulo para rotar la imagen (\texttt{outAngle}) hacia la siguiente etapa del pipeline.
+A nivel de código interno, el shader lee los atributos . Usa la posición (\texttt{inPos}), la normal (\texttt{inNorm}), el color base (\texttt{inColor}), el tamaño del punto (\texttt{inSize}) y los milisegundos de vida que le quedan (\texttt{inActiveTTL}). Una vez vinculado el descriptor, se introduce la estructura \texttt{TransformInfo} junto a la matriz \texttt{MVP}. Finalizado este proceso, se traslada el color (\texttt{outColor}) y el ángulo de rotación (\texttt{outAngle}) a la etapa posterior del pipeline.
 
-Hay un detalle importante. El fuego o el humo necesitan girar sobre sí mismos. Si los dejas estáticos, pierden realismo. Como la API de Vulkan no ofrece un generador de azar integrado en la gráfica, buscamos otras alternativas. Programamos una función hash basada en algoritmos de senos~(\ref{eq:hash_rotacion}):
+Cabe destacar un requerimiento visual importante: las particulas precisan de rotación sobre su propio eje para preservar el realismo. Dado que la API Vulkan carece de un generador de números aleatorios nativo en los shaders, se ha implementado una función hash apoyada en transformaciones trigonométricas~(\ref{eq:hash_rotacion}):
 \begin{equation}
     \label{eq:hash_rotacion}
     \theta = \text{frac}\Big(\sin\big(\text{gl\_VertexIndex}\big) \times 43758.5453\Big) \times 2\pi
 \end{equation}
-Cogemos el índice de la partícula (\texttt{gl\_VertexIndex}) y lo metemos como semilla. Pillamos la fracción de una curva altísima. El resultado final lo multiplicamos de $0$ a $2\pi$ radianes y lo mandamos por \texttt{outAngle}. Esto resuelve el problema de azar.
+Se toma el índice de la partícula (\texttt{gl\_VertexIndex}) y se utiliza como semilla. Se obtiene la parte fraccionaria de una curva de alta frecuencia. El resultado final se multiplica por un valor entre $0$ y $2\pi$ radianes y se envía a través de \texttt{outAngle}. Esto resuelve el problema de azar.
 
-Si resulta que la vida de la partícula (\texttt{inActiveTTL}) baja a cero, significa que está muerta. En lugar de borrarla de memoria, simplemente falseamos su posición en pantalla (\texttt{gl\_Position}). La disparamos lejísimos, al infinito: \texttt{vec4(-2.0, -2.0, -2.0, 1.0)}. De esta forma, el rasterizador de la GPU la ignora de inmediato. Nos ahorramos repintar cosas inútiles.
+Cuando el ciclo de vida de la partícula (\texttt{inActiveTTL}) desciende a cero, esta se considera inactiva. En lugar de deasignar memoria, se manipula su posición en el espacio (\texttt{gl\_Position}), asignándole unas coordenadas fuera del area de visión: \texttt{vec4(-2.0, -2.0, -2.0, 1.0)}. De esta forma, el rasterizador descarta el fragmento automáticamente, eludiendo la carga gráfica de elementos invisibles.
 
-Por último, si la partícula sigue activa, multiplicamos sus coordenadas por la cámara (\texttt{Transform.MVP}). Para que no quede como un juego 2D antiguo, escalamos el tamaño final de la textura según la distancia~(\ref{eq:perspective_scaling}):
+Para las partículas activas, se aplica la matriz de transformación de la cámara (\texttt{Transform.MVP}). Con el objetivo de proyectar una sensación de volumen y profundidad, se ajusta la escala del \textit{sprite} en función de su distancia focal~(\ref{eq:perspective_scaling}):
 \begin{equation}
     \label{eq:perspective_scaling}
     \text{gl\_PointSize} = \text{inSize} \times \left( \frac{1000.0}{\text{gl\_Position.w}} \right)
 \end{equation}
-Dividimos la escala original usando la profundidad focal (\texttt{gl\_Position.w}). Las chispas que pasan cerca de la cámara se ven gigantes y se encogen al volar lejos. Suma muchísimos enteros al realismo final.
+Dividimos la escala original usando la profundidad focal (\texttt{gl\_Position.w}). Las chispas que pasan cerca de la cámara se ven gigantes y se encogen al volar lejos. Esto incrementa significativamente el realismo final.
 
 
 \subsubsection{Fragment Shader de Partículas}
@@ -339,38 +339,37 @@ void main() {
     if (outColor.a < 0.001) discard;
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del sombreador \texttt{particles\_shader.frag}.}
+    \caption{Código fuente del sombreador \texttt{particles\_shader.frag}.}
     \label{fig:particles_shader_frag}
 \end{figure}
 
-Este último programa mancha los píxeles de color puro (\texttt{GL\_POINTS}). Busca el centro del punto, aplica el giro sobre los tres ejes, suaviza las texturas y mezcla los canales alfa.
+Este fragment shader procesa primitivas puntuales (\texttt{GL\_POINTS}). Calcula las coordenadas relativas al centro del punto, aplica la transformación de rotación, renderiza la textura y efectúa la interpolación del canal de opacidad (alfa).
 
-Las entradas y salidas funcionan de forma sencilla. Conectamos la textura cargada (\texttt{particleTexture}) por un descriptor de Vulkan. El shader pilla el color (\texttt{inColor}) y los grados de giro (\texttt{inAngle}) que calculamos hace un momento. Al acabar, inyecta la mezcla (\texttt{outColor}) directo al marco de la pantalla (\textit{framebuffer}).
+Las entradas y salidas funcionan de forma sencilla. Conectamos la textura cargada (\texttt{particleTexture}) por un descriptor de Vulkan. El sombreador extrae el color (\texttt{inColor}) y los grados de giro (\texttt{inAngle}) que calculamos hace un momento. Al acabar, inyecta la mezcla (\texttt{outColor}) directo al marco de la pantalla (\textit{framebuffer}).
 
 \vspace{4\baselineskip}
 
-Para fingir 3D usamos un truco con las variables nativas UV entre $0$ y $1$ que nos da \texttt{gl\_PointCoord}. Primero centramos todo quitándole \texttt{0.5} al espacio. Sobre este plano nuevo, simulamos que el plano rota en vertical sobre el eje $Y$ con la ecuación~(\ref{eq:rotacion_y}):
+Para generar la ilusión tridimensional se manipulan las coordenadas de textura nativas (UV) proporcionadas por \texttt{gl\_PointCoord}, las cuales operan en el rango $[0, 1]$. Inicialmente se reajusta el sistema de referencia restando $0.5$. Sobre este nuevo espacio de coordenadas, se simula una rotación vertical sobre el eje $Y$ aplicando la ecuación~(\ref{eq:rotacion_y}):
 \begin{equation}
     \label{eq:rotacion_y}
     \text{uv.x} = \frac{\text{uv.x}}{\cos(\theta_Y)}
 \end{equation}
-Al dividir el ancho entre un coseno, comprimimos la imagen lateralmente. El ojo cree que el punto 2D está girando en profundidad. Un coste computacional casi nulo.
+La división de la componente horizontal por un valor coseno induce una compresión lateral de la imagen, simulando efectivamente una rotación en profundidad con un coste computacional ínfimo.
 
-Aparte, para romper el patrón cuadrado del sprite, rotamos el propio dibujo en 2D. Usamos la matriz clásica de trigonometría de la ecuación~(\ref{eq:matriz_rotacion_z}):
+Adicionalmente, se aplica una rotación para disimular la naturaleza rigida del \textit{sprite}. Se utiliza la matriz de rotación estándar~(\ref{eq:matriz_rotacion_z}):
 \begin{equation}
     \label{eq:matriz_rotacion_z}
     \begin{pmatrix} u' \\ v' \end{pmatrix} = \begin{pmatrix} \cos(\theta) & -\sin(\theta) \\ \sin(\theta) & \cos(\theta) \end{pmatrix} \begin{pmatrix} u \\ v \end{pmatrix}
 \end{equation}
-Para aplicar esta transformación, multiplicamos el vector de coordenadas por la matriz de rotación. Después, simplemente le sumamos 0.5 para devolver el origen a su sitio. Así nos aseguramos de que el vector vuelva a encajar en el rango normal de la textura [0, 1].
+Para efectuar esta transformación, se multiplica el vector de coordenadas por la matriz de rotación y, posteriormente, se suma el factor de compensación $0.5$ para retornar las coordenadas al rango original de la textura $[0, 1]$.
 
-Si con tanto giro los bordes del dibujo se salen del cuadro $[0,1]$, eliminamos el fragmento llamando a un simple \texttt{discard}. 
+En caso de que las coordenadas de textura transformadas excedan el rango acotado $[0, 1]$, el fragmento se descarta mediante la instrucción \texttt{discard}.
 
-Para rematar el pintado, leemos la textura y le multiplicamos el color base calculado antes (\texttt{texColor.rgb * inColor.rgb}). Como la mezcla alfa transparente (\textit{blending}) consume muchos recursos de vídeo, hacemos una optimización. Si vemos que la opacidad del punto cae a menos de $0.001$, matamos el píxel por completo (\texttt{discard}). Liberamos a la GPU de sumar canales invisibles.
+Finalmente, se muestrea la textura y se modula con el color base precalculado (\texttt{texColor.rgb * inColor.rgb}). Dado que las operaciones de \textit{blending} conllevan un coste considerable en la GPU, se implementa una optimización: si la opacidad del fragmento es menor a $0.001$, el fragmento se descarta por completo (\texttt{discard}), reduciendo así el procesamiento de información translúcida imperceptible.
 
 
 \subsubsection{Compute Shader}
-La lógica física interna la vamos a ir detallando en cada sistema propio a partir de ahora, ya que la base teórica la explicamos antes (véase \textbf{Subsección \ref{subsection:ElComputeShader}}).
-
+La lógica de simulación interna se especificará en los apartados correspondientes a cada sistema, complementando la base teórica general establecida previamente (véase \textbf{Subsección \ref{subsection:ElComputeShader}}).
 \section{Agua}
 
 
@@ -381,9 +380,9 @@ La lógica física interna la vamos a ir detallando en cada sistema propio a par
     \label{fig:modFuente}
 \end{figure}
 
-El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Metimos un modelo 3D de una fuente de piedra~\parencite{owenp88_fountain_2023} (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. Como el objetivo era simplemente dar un resultado visual, se decidio no tratar con físicas de fluidos complejas como las basadas en las ecuaciones de Navier-Stokes y simulaciones GPU~\parencite{stam1999stable, akenine2018real} o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos usando muchísimos menos recursos de los que pensábamos.
+El primer sistema que diseñamos fue la simulación de una fuente. La idea inicial era montar un entorno de pruebas sencillo para medir cómo se comportaban las trayectorias bajo fuerzas básicas. Se introdujo un modelo 3D de una fuente de piedra~\parencite{owenp88_fountain_2023} (Figura \ref{fig:modFuente}) y configuramos la lógica base en el archivo \texttt{GEAgua.cpp}. Como el objetivo era simplemente dar un resultado visual, se decidio no tratar con físicas de fluidos complejas como las basadas en las ecuaciones de Navier-Stokes y simulaciones GPU~\parencite{stam1999stable, akenine2018real} o colisiones detalladas con la piedra. Nos interesaba que el agua brotara con un impulso ascendente y la gravedad hiciera caer los puntos dibujando parábolas perfectas. Al final, lo logramos utilizando una cantidad de recursos notablemente inferior a la estimada inicialmente.
 
-Para dar la sensacion de muchas gotas de agua sin lanzar muchisimas mas partículas había que engañar al ojo. En vez de usar puntitos sueltos, cargamos un sprite de alta resolución que ya traía el dibujo de una salpicadura rica~\parencite{pngwing_imagen_bnrwi} (Figura \ref{fig:texAgua}). Con esto ganamos muchísimo rendimiento. Un solo plano de textura se traga visualmente el equivalente a cientos de microgotas calculadas a mano. 
+Para dar la sensacion de muchas gotas de agua sin lanzar muchisimas mas partículas había que engañar al ojo. En vez de usar puntitos sueltos, cargamos un sprite de alta resolución que ya traía el dibujo de una salpicadura rica~\parencite{pngwing_imagen_bnrwi} (Figura \ref{fig:texAgua}). Con esto ganamos muchísimo rendimiento. Un solo plano de textura representa visualmente el equivalente a cientos de microgotas calculadas individualmente. 
 
 \begin{figure}[!htbp]
     \centering
@@ -416,13 +415,13 @@ void main() {
     particlesOut[index] = p;
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del sombreador \texttt{water.comp}.}
+    \caption{Código fuente del sombreador \texttt{water.comp}.}
     \label{fig:water_comp}
 \end{figure}
 
-Todo el control matemático ocurre dentro de la GPU a través del shader de cómputo \texttt{water.comp} (véase la Figura~\ref{fig:water_comp}). Aquí la GPU lee el estado anterior de la partícula desde el búfer \texttt{particlesIn} y guarda los números nuevos en \texttt{particlesOut}. Organizamos la carga de trabajo de la gráfica en bloques de 256 hilos mediante \texttt{layout(local\_size\_x = 256)}. Cada hilo se ocupa de su propia gota. Como necesitábamos meter ruido al sistema para que los chorros no fueran idénticos, y en GLSL no hay funciones para tirar dados, improvisamos un algoritmo Hash a base de operaciones binarias XOR. Así conseguimos valores aleatorios súper rápidos sin depender en nada del procesador del ordenador.           
+Todo el control matemático ocurre dentro de la GPU a través del shader de cómputo \texttt{water.comp} (véase la Figura~\ref{fig:water_comp}). Aquí la GPU lee el estado anterior de la partícula desde el búfer \texttt{particlesIn} y guarda los números nuevos en \texttt{particlesOut}. Organizamos la carga de trabajo de la gráfica en bloques de 256 hilos mediante \texttt{layout(local\_size\_x = 256)}. Cada hilo se ocupa de su propia gota. Como necesitábamos meter ruido al sistema para que los chorros no fueran idénticos, y en GLSL no hay funciones para tirar dados, improvisamos un algoritmo Hash a base de operaciones binarias XOR. Así conseguimos valores aleatorios de forma muy eficiente sin depender en nada del procesador del ordenador.           
 
-El cálculo corre en paralelo. Primero restamos el \texttt{deltaTime} de la app al ciclo de vida del punto (\texttt{currentTtl}). Si vemos que la gota ha muerto (\texttt{currentTtl} $\le 0.0$), la hacemos nacer otra vez abajo. Repartimos los puntos nuevos usando matemáticas esféricas para crear ocho direcciones fijas que van rotando con el tiempo, según este sistema~(\ref{eq:emision_agua}):
+El proceso matemático se evalúa de manera concurrente. En primera instancia, se sustrae el diferencial de tiempo (\texttt{deltaTime}) al ciclo de vida de la partícula (\texttt{currentTtl}). Si el elemento ha finalizado su ciclo vital (\texttt{currentTtl} $\le 0.0$), se reubica en la base del emisor. La dispersión direccional inicial se obtiene empleando coordenadas esféricas para generar ocho vectores fijos que rotan en función del tiempo, siguiendo el sistema expuesto en~(\ref{eq:emision_agua}):
 
 \begin{equation}
     \label{eq:emision_agua}
@@ -435,7 +434,7 @@ El cálculo corre en paralelo. Primero restamos el \texttt{deltaTime} de la app 
     \end{aligned}
 \end{equation}
 
-Si el punto sigue vivo y flotando, le aplicamos gravedad tirando del valor estándar ($g = 9.8$). Además, frenamos su avance hacia los lados aplicando un coeficiente de rozamiento ($R = 0.5$) para evitar que la fuente se desborde. Todo se integra directo con la ecuación~(\ref{eq:integracion_agua}):
+Si el punto sigue vivo y flotando, se le aplica la gravedad utilizando el valor estándar ($g = 9.8$). Además, frenamos su avance hacia los lados aplicando un coeficiente de rozamiento ($R = 0.5$) para evitar que la fuente se desborde. Todo se integra directo con la ecuación~(\ref{eq:integracion_agua}):
 
 \begin{equation}
     \label{eq:integracion_agua}
@@ -446,9 +445,9 @@ Si el punto sigue vivo y flotando, le aplicamos gravedad tirando del valor está
     \end{aligned}
 \end{equation}
 
-Toda esta parte de shaders está apoyada por la clase \texttt{GEAgua} en C++. El arranque aquí es súper limpio. Definimos que cada partícula dure entre 2.0 y 3.5 segundos flotando, todo sacado de un motor \texttt{std::mt19937} inicializado como \texttt{static} para no perder ciclos de reloj tontos. A nivel estético, la gota pasa de azul eléctrico a transparente conforme pierde fuerza, y su tamaño se achica hasta desaparecer del todo.
+Toda esta parte de shaders está apoyada por la clase \texttt{GEAgua} en C++. El arranque aquí es muy estructurado. Definimos que cada partícula dure entre 2.0 y 3.5 segundos flotando, todo sacado de un motor \texttt{std::mt19937} inicializado como \texttt{static} para no perder ciclos de reloj tontos. A nivel estético, la gota pasa de azul eléctrico a transparente conforme pierde fuerza, y su tamaño se achica hasta desaparecer del todo.
 
-El resultado salta a la vista. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra quedan clavadas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido sin sobrecargar la tarjeta gráfica.
+El resultado salta a la vista. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra resultan muy precisas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido sin sobrecargar la tarjeta gráfica.
 
 \begin{figure}[!htbp]
     \centering
@@ -459,7 +458,7 @@ El resultado salta a la vista. Las parábolas de agua que dibuja el sistema sobr
 
 \section{Fuego}
 
-Teniendo el agua, pasamos a algo completamente distinto: el fuego. Lo curioso de este efecto es que la física opera al revés. No caen, sino que suben empujadas por la flotabilidad térmica. Para este escenario anclamos la simulación a un modelo tridimensional de troncos apilados~\parencite{hexmirelive_campfire_2026} (Figura \ref{fig:modHoguera}). Tampoco metimos termodinámica pesada, el efecto lo conseguimos engañando a los ojos. Las llamas nacen anchas abajo y cortamos su tiempo de vida rápido para que se extingan antes de subir demasiado.
+Teniendo el agua, pasamos a algo completamente distinto: el fuego. Lo curioso de este efecto es que la física opera al revés. No caen, sino que suben empujadas por la flotabilidad térmica. Para este escenario anclamos la simulación a un modelo tridimensional de troncos apilados~\parencite{hexmirelive_campfire_2026} (Figura \ref{fig:modHoguera}). Tampoco se implementaron cálculos termodinámicos complejos, el efecto lo conseguimos engañando a los ojos. Las llamas nacen anchas abajo y cortamos su tiempo de vida rápido para que se extingan antes de subir demasiado.
 
 \begin{figure}[!htbp]
     \centering
@@ -468,7 +467,7 @@ Teniendo el agua, pasamos a algo completamente distinto: el fuego. Lo curioso de
     \label{fig:modHoguera}
 \end{figure}
 
-Visualmente queríamos dar una sensación cálida muy fuerte, así que descartamos texturas con bordes nítidos. Cargamos una llama suavizada y difusa~\parencite{moreno_gii_ao} (Figura \ref{fig:texFuego}). Como configuramos Vulkan con mezcla aditiva (\textit{additive blending}), las partículas suman su color cuando se superponen. Nos dio un núcleo de fuego amarillo brillante que ilumina el centro de los leños de forma muy convincente, ahorrándonos tener que meter luces y cálculos de sombras carísimos en la escena 3D.
+Con el propósito de lograr una alta temperatura cromática, se descartaron \textit{sprites} de contornos nítidos y se empleó una textura difuminada~\parencite{Wolff_2013} (Figura \ref{fig:texFuego}). Gracias a la mezcla aditiva (\textit{additive blending}) configurada en la pipeline gráfica, las partículas superpuestas acumulan luminancia. Esto resulta en un núcleo incandescente de alta intensidad lumínica sobre los leños, evadiendo el alto coste computacional asociado a emisores de luz dinámicos y sombras en la escena tridimensional.
 
 \begin{figure}[!htbp]
     \centering
@@ -502,12 +501,12 @@ void main() {
     particlesOut[index] = p;
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del sombreador \texttt{fire.comp}.}
+    \caption{Código fuente del sombreador \texttt{fire.comp}.}
     \label{fig:fire_comp}
 \end{figure}
 
 
-Todo el control de temperatura simulada se cuece en el shader de computación \texttt{fire.comp} (véase la Figura~\ref{fig:fire_comp}). Cuando las partículas de la base agotan su vida, las hacemos nacer de nuevo en el suelo, pero con un matiz clave. El fuego no puede salir de un solo punto fino, así que repartimos su origen de forma circular en el plano horizontal $XZ$. Para que no salieran todas amontonadas en el medio, forzamos una distribución metiendo la raíz cuadrada al calcular el radio, según esta fórmula~(\ref{eq:distribucion_circulo_fuego}):
+Todo el control de temperatura simulada se gestiona en el shader de computación \texttt{fire.comp} (véase la Figura~\ref{fig:fire_comp}). Cuando las partículas de la base agotan su vida, se regeneran en la base, pero con un matiz clave. El fuego no puede salir de un solo punto fino, así que se distribuye su origen de forma circular en el plano horizontal $XZ$. Para evitar su concentración en el centro, se fuerza una distribución aplicando la raíz cuadrada al calcular el radio, según esta fórmula~(\ref{eq:distribucion_circulo_fuego}):
 
 \begin{equation}
     \label{eq:distribucion_circulo_fuego}
@@ -517,22 +516,22 @@ Todo el control de temperatura simulada se cuece en el shader de computación \t
     \end{aligned}
 \end{equation}
 
-A las que están vivas y subiendo les inyectamos tres fuerzas diferentes. Primero una fuerza térmica que las tira hacia arriba. A la vez, como el fuego de verdad se estrecha en la punta por culpa del aire frío de fuera, empujamos levemente los puntos de vuelta hacia el centro de la fogata. Y para rematar, sumamos el característico baile caótico de una llama. Eso lo logramos de una manera muy barata, aplicando senos y cosenos sobre los ejes $X$ y $Z$. Metimos variables de tiempo y semilla aleatoria por hilo para romper cualquier patrón geométrico que el ojo pudiera detectar.
+A las partículas activas en ascenso se les aplican tres fuerzas diferentes. En primer lugar, una fuerza térmica que las desplaza verticalmente. Simultáneamente, dado que las llamas reales se estrechan en la punta debido a la convección térmica, se empujan levemente las partículas hacia el centro de la fogata. Como añadido final, se suma la característica turbulencia de una llama. Esto se consigue de forma eficiente, aplicando funciones seno y coseno sobre los ejes $X$ y $Z$. Se introducen variables de tiempo y semilla aleatoria por hilo para romper cualquier patrón geométrico discernible.
 
-Como añadido estético que viste mucho, configuramos que una de cada quince partículas (usando la operación \texttt{index \% 15 == 0}) mutase en una chispa voladora. Estos puntos enanos desobedecen al grupo. Les quitamos el estrechamiento hacia el centro para que salgan volando por los lados, y les añadimos trayectorias elípticas frenéticas. Simulan perfectamente como si fueran trozos de carbón ardiendo.
-
-
+Como añadido estético que aporta gran riqueza visual, se configuró que una de cada quince partículas (usando la operación \texttt{index \% 15 == 0}) se transforme en una chispa voladora. Estos elementos menores no siguen la dinámica de grupo. Se elimina su tendencia hacia el centro para permitir su dispersión lateral, y se les añaden trayectorias elípticas caóticas. Simulan con fidelidad fragmentos incandescentes.
 
 
 
-Para que el efecto quemado quede natural, el color viaja del amarillo neón al rojo transparente. El tamaño no se apaga poco a poco. Hicimos que la llama se mantenga grande casi todo el tiempo y que se encoja de forma brusca justo antes de desaparecer usando una función matemática polinómica rápida~(\ref{eq:atenuacion_tamano_fuego}):
+
+
+Para que el efecto de quemado resulte natural, el color transita del amarillo intenso al rojo con alta transparencia. El tamaño no disminuye progresivamente. Se ha diseñado la simulación para que la llama mantenga su volumen durante la mayor parte de su ciclo y se reduzca de forma drástica justo antes de desaparecer, empleando para ello una función matemática polinomial eficiente~(\ref{eq:atenuacion_tamano_fuego}):
 
 \begin{equation}
     \label{eq:atenuacion_tamano_fuego}
     \text{factorTama\~no} = 1.0 - (\text{lifeFactor})^2
 \end{equation}
 
-En la parte de control de la CPU usamos la clase \texttt{GEFuego}. Para que el arranque sea explosivo, desde aquí lanzamos los puntos directamente con un vector vertical recto~(\ref{eq:normal_fuego_cpp}):
+En la capa de control de la CPU se utiliza la clase \texttt{GEFuego}. Para conseguir un arranque explosivo, se emiten las partículas directamente con un vector de dirección vertical~(\ref{eq:normal_fuego_cpp}):
 
 \begin{equation}
     \label{eq:normal_fuego_cpp}
@@ -558,7 +557,7 @@ El empuje ascendente base se establece mediante una fuerza constante de $2.0$. E
 \end{figure}
 
 
-El humo fue el último en llegar, y trajo sus propias reglas de la física. A diferencia de la fuerza bruta del fuego, las nubes de humo crecen lento y duran mucho tiempo dando vueltas en pantalla. Usamos la clásica técnica de \textit{alpha blending} para la transparencia. Con esto, las partículas grises se montan unas sobre otras y borran con mucha suavidad el fondo del escenario. Se ven como columnas densas con mucho peso. 
+La simulación del humo fue la última en implementarse, requiriendo sus propias reglas físicas. A diferencia de la fuerza bruta del fuego, las nubes de humo crecen lento y duran mucho tiempo dando vueltas en pantalla. Usamos la clásica técnica de \textit{alpha blending} para la transparencia. Con esto, las partículas grises se montan unas sobre otras y borran con mucha suavidad el fondo del escenario. Se ven como columnas densas con mucho peso. 
 
 Para anclar la simulación, decidimos poner una locomotora antigua~\parencite{planeharmony389_dolgoch_2026} (Figura \ref{fig:modTren}). Su chimenea era el agujero perfecto para probar chorros direccionados de humo grueso y ver cómo el volumen ganaba escala al subir hacia el cielo.
 
@@ -572,10 +571,10 @@ Para anclar la simulación, decidimos poner una locomotora antigua~\parencite{pl
 \end{figure}
 
 
-La textura clave aquí era vital. Cualquier borde o pixelación se notaría enseguida al agrandar la escala, así que optamos por una mancha grisácea sumamente difuminada y sin bordes duros~\parencite{moreno_gii_ao} (Figura \ref{fig:texHumo}). Al mezclar varias de estas encima de la chimenea, los fallos geométricos de los polígonos desaparecen. Queda un humo muy suave y esponjoso con poquísimos puntos.                                   
+La elección de la textura del humo resultó fundamental. Dada su escalabilidad progresiva, cualquier imperfección o delineado provocaría anomalias visuales, motivo por el que se utilizó una distribución gaussiana opaca carente de contornos definidos~\parencite{Wolff_2013} (Figura \ref{fig:texHumo}). La superposición volumétrica de estas texturas enmascara la geometría plana de las primitivas, originando una representación gaseosa y suave empleando un mínimo número de partículas.
 
 
-El código de físicas del humo está implementado en el shader de cómputo \texttt{smoke.comp} (véase la Figura~\ref{fig:smoke_comp}). Cuando los puntos mueren, la chimenea los expulsa todos hacia arriba de golpe, pero no en un punto perfecto. Hacemos que nazcan ligeramente dispersados aplicando tres valores aleatorios sobre los ejes que nos dan una salida en abanico muy natural.
+El algoritmo de control dinámico se encuentra en el shader \texttt{smoke.comp} (véase la Figura~\ref{fig:smoke_comp}). Al resetear el ciclo de vida de los puntos, la chimenea los emite con una componente de aceleración vertical y una leve dispersión horizontal tridimensional aleatoria, generando una emisión cónica realista.
 
 \begin{figure}[!htbp]
     \centering
@@ -602,11 +601,11 @@ void main() {
     particlesOut[index] = p;
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del sombreador \texttt{smoke.comp}.}
+    \caption{Código fuente del sombreador \texttt{smoke.comp}.}
     \label{fig:smoke_comp}
 \end{figure}
 
-Una vez que están en el aire flotando, aplicamos una fuerza de empuje para que el humo suba sin parar. Lo difícil aquí era simular la brisa de fondo sin fundir la gráfica a base de complejos cálculos de túnel de viento o de ruido procedimental de Perlin o Simplex tridimensional~\parencite{perlin1985an, perlin2002improving}. Así que atacamos la posición directamente metiendo un remolino trigonométrico con senos y cosenos. Cambiando la frecuencia del ruido en el eje $X$ ($2.0$) y en el $Z$ ($1.5$), forzamos que las partículas dibujen círculos deformes al subir, como marca la ecuación~(\ref{eq:remolino_humo}):
+A lo largo de su ascensión, las partículas están sujetas a una fuerza de sustentación constante. Para modelar turbulencias atmosféricas sutiles se descartó el uso de mapas de ruido procedimental tridimensional tipo Perlin o Simplex~\parencite{perlin1985an, perlin2002improving} debido a su carga sobre la GPU. En contrapartida, se optó por perturbar la posición horizontal empleando funciones armónicas. Alterando la frecuencia de oscilación en los ejes $X$ ($2.0$) y $Z$ ($1.5$), se fuerza a las partículas a describir trayectorias helicoidales y elípticas en su desplazamiento, según se modela en la ecuación~(\ref{eq:remolino_humo}):
 
 \begin{equation}
     \label{eq:remolino_humo}
@@ -616,9 +615,9 @@ Una vez que están en el aire flotando, aplicamos una fuerza de empuje para que 
     \end{aligned}
 \end{equation}
 
-El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño reducido de $1.5$ y se hinchan de forma colosal, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. Al sumarle a esto un ciclo de vida eterno (entre 2.0 y 6.0 segundos) y un color que arranca en gris cerrado para morir en una transparencia negra absoluta, el resultado es justo lo que buscábamos.                            
+El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño reducido de $1.5$ y se expanden considerablemente, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. Al sumarle a esto un ciclo de vida prolongado (entre 2.0 y 6.0 segundos) y un color que arranca en gris cerrado para morir en una transparencia negra absoluta, el resultado es justo lo que buscábamos.                            
 
-La locomotora expulsa una columna negra gigantesca que se va disipando según choca contra la atmósfera, como puedes ver reflejado en la toma de la Figura~\ref{fig:resultadoHumo}. El efecto está plenamente conseguido tirando de pura ilusión matemática.
+La locomotora expulsa una columna negra gigantesca que se va disipando según choca contra la atmósfera, como se observa en la Figura~\ref{fig:resultadoHumo}. El efecto está plenamente conseguido apoyándose exclusivamente en modelos matemáticos.
 
 \begin{figure}[!htbp]
     \centering

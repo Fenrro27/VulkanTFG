@@ -10,16 +10,16 @@ Sentar esta infraestructura de base permitió centrar los esfuerzos directamente
 
 \section{Consecución de objetivos}
 
-La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. La idea de pasarle todo el trabajo bruto a la tarjeta de vídeo pintaba bien sobre el papel, y al final ha sido la clave. Ahora son esos pequeños trozos de código en la GPU los que se encargan de darle vida a cada punto, moverlo de sitio y borrarlo cuando toca.
+La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. La idea de pasarle todo el trabajo bruto a la tarjeta de vídeo parecía prometedora en la fase de diseño, y al final ha sido la clave. Ahora son esos pequeños trozos de código en la GPU los que se encargan de darle vida a cada punto, moverlo de sitio y borrarlo cuando toca.                      
 
-Con esto se ha conseguido que el procesador se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco, el rendimiento es bastante bueno. No importal si pones fuego, humo o agua; la pantalla no da tirones en ningún momento.
+Con esto se ha conseguido que el procesador se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco, el rendimiento es bastante bueno. No importal si pones fuego, humo o agua; la representación gráfica no sufre caídas de fotogramas en ningún momento.
 
-\section{Resultados del sistema}
+\section{Resultados del sistema} 
 
 Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matemáticas básicas que se usan dan unos resultados bastante buenos.
 El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. 
 
-Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos siguen un par de normas de lo más simples. Por eso hemos tenido que jugar con una ilusión optica. Queda visual, bonito y no satura el equipo.                                    
+Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Únicamente se simulan partículas puntuales que obedecen un conjunto reducido de reglas básicas. Por eso hemos tenido que jugar con una ilusión optica. Queda visual, bonito y no satura el equipo.                                    
 
 
 \begin{figure}[ht] 
@@ -32,13 +32,13 @@ Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer alg
 
 \section{Trabajo futuro}
 
-\noindent Como posibles mejoras a futuro, se le podrían añadir algunas de estas funciones:
+\noindent Como posibles trabajo futuro, se plantean las siguientes propuestas de mejora:
 
 \begin{itemize}
-    \item Añadir fórmulas de ruido en el espacio para simular corrientes de viento. Así el fuego no iría tan recto y se harían remolinos bastante vistosos.
-    \item Otra cosa que le daría mucha vida sería que el agua chocara de verdad contra el piso del nivel.
-    \item El tema de las sombras también le daría un buen empujón a toda la escena, porque ahora mismo se nota que le falta un poco de profundidad.
-    \item Agregar una pequeña ventana para ir cambiando los parámetros sin tener que compilar el código. Ayudando a ver variaciones de los efectos en tiempo real.                                      
+    \item Incorporar algoritmos de ruido espacial para simular corrientes de viento. Esto aportaría mayor dinamismo al fuego, rompiendo su direccionalidad vertical y generando vórtices realistas.
+    \item Implementar la detección de colisiones contra la geometría del escenario (como el suelo), lo que aumentaría la inmersión del entorno.
+    \item Añadir cálculo de sombras dinámicas para mejorar la percepción de profundidad e iluminación global de la escena.
+    \item Desarrollar un panel de control interactivo que permita ajustar los parámetros de simulación en tiempo real, evitando la necesidad de recompilar el código tras cada modificación.                                      
 \end{itemize}
 
 

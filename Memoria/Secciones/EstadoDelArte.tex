@@ -2,8 +2,7 @@
 \chapter{Estado del arte}
 \label{chap:estado_del_arte}
 
-Para entender de lo que hablábamos en la motivación es necesario comparar OpenGL (véase Figura \ref{fig:logo_opengl}) con Vulkan. 
-Siendo Vulkan el sucesor de bajo nivel de OpenGL \parencite{Sellers_Kessenich_2017a}.
+Para comprender los fundamentos expuestos en la motivación, resulta pertinente comparar OpenGL (véase la Figura \ref{fig:logo_opengl}) con Vulkan, siendo este último el sucesor de bajo nivel del primero \parencite{Sellers_Kessenich_2017a}.
 
 \begin{figure}[ht]
     \centering
@@ -46,7 +45,7 @@ Vulkan puede crear búferes de comandos en paralelo sin atascos.
             GPUTime=\gputime
         }{\escenario & \api & \avgfps & \lowfps & \frametime & \cputime & \gputime}%
     }
-    \caption{Elaboración propia. Rendimiento de Vulkan vs. OpenGL (NVIDIA RTX 2060 Max-Q).} 
+    \caption{Rendimiento de Vulkan vs. OpenGL (NVIDIA RTX 2060 Max-Q).} 
     \label{tab:comparativa_vulkan_opengl} 
 \end{table}
 
@@ -62,13 +61,13 @@ Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl},
 \end{enumerate}
 
 
-Como podemos apreciar, en el test sin instanciación, OpenGL colapsa. No es capaz de procesar las sucesivas llamadas de dibujado. Mientras que Vulkan las procesa sin problema lo que mejora los FPS. 
-Cuando la instanciación se activa mejora el rendimiento en ambas APIs. No obstante, Vulkan sigue siendo superior. La estabilidad de Vulkan la vemos en los valores de \textit{1\% Low FPS}.                                   
+Como se puede observar, en el escenario sin instanciación OpenGL sufre una severa caída de rendimiento al no poder procesar eficientemente las sucesivas llamadas de dibujado, mientras que Vulkan las gestiona adecuadamente mejorando la tasa de fotogramas.
+Al activar la instanciación, el rendimiento mejora en ambas APIs; no obstante, Vulkan mantiene su superioridad. Su estabilidad se evidencia especialmente en los valores de \textit{1\% Low FPS}.                                   
 Esta ventaja se mantiene incluso al duplicar los objetos de 15k a 30k.
 
 
 En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan baja los tiempos en CPU y en GPU a la vez mientras OpenGL da peor resultado. 
-Al activar las sombras, OpenGL se cae por completo. Vulkan absorbe la carga sin problemas y mantiene el tipo.
+Al activar las sombras, OpenGL se cae por completo. Vulkan absorbe la carga sin problemas y mantiene un rendimiento estable.
 
 En resumen, Vulkan es superior a OpenGL en todos los aspectos. Ofrece menos latencia, fotogramas estables y aguanta mejor las cargas pesadas en la GPU.
 
@@ -87,8 +86,8 @@ Esto baja las temperaturas y  alarga la batería en portátiles. Pasa lo mismo c
 
 \section{Código de Partida}
 
-Para montar nuestro sistema de partículas nos hemos basado en un motor preexistente \parencite{moreno_gii_ao}. El cual nos da las herramientas básicas para hablar con Vulkan.
-De esta forma, aprovechamos el motor funcional de bajo nivel y nos centramos directamente en la creación de partículas.
+La implementación del sistema de partículas se fundamenta en un motor gráfico preexistente \parencite{moreno_gii_ao}, el cual provee las herramientas básicas de integración con la API Vulkan.
+Esta decisión ha permitido aprovechar una capa funcional de bajo nivel y concentrar los esfuerzos en el diseño y cálculo de partículas.
 
 
 
@@ -105,7 +104,7 @@ De esta forma, aprovechamos el motor funcional de bajo nivel y nos centramos dir
 
 \subsection{Estructura del motor base}
 
-El motor está formado por distintas clases de C++. Las cuales facilitan mover datos entre CPU y GPU. 
+El motor está formado por distintas clases de C++ que facilitan mover datos entre CPU y GPU. 
 Separamos los componentes según su papel en el pipeline gráfico:
 
 
@@ -113,7 +112,7 @@ Separamos los componentes según su papel en el pipeline gráfico:
 
 \begin{itemize}
 \item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Busca la tarjeta gráfica adecuada, crea el dispositivo lógico y abre las colas de trabajo.
-\item \textbf{\texttt{GERenderingContext}}: Se asegura de que todo esté en orden y listo antes de pintar un fotograma.
+\item \textbf{\texttt{GERenderingContext}}: Contiene las referencias al programa gráfico a ejecutar (RenderPass y Pipeline) y a la estructura en la que se genera la imagen (Framebuffer).
 \item \textbf{\texttt{GEDrawingContext}}: Gestiona la \textit{Swapchain}. Además, gestiona los pases de render y los \textit{Framebuffers}.                                        
 \item \textbf{\texttt{GECommandContext}}: Graba las instrucciones de dibujo en los \textit{Command Pools} y \textit{Command Buffers}. Luego las manda a la GPU.
 \item \textbf{\texttt{GEPipelineConfig}}: Configura los estados fijos de la tubería. Controla el rasterizador, el ensamblado y la mezcla de color (\textit{blending}).
@@ -150,7 +149,7 @@ Separamos los componentes según su papel en el pipeline gráfico:
 \item \textbf{\texttt{GEObject}}: Clase abstracta que representa un objeto formado por varias piezas
 \item \textbf{\texttt{GEFigure}}: Genera formas matemáticas a partir de vértices. 
 \item \textbf{\texttt{GEPiece}}: Clase que describe una pieza de un objeto
-\item \textbf{\texttt{GESkybox}}: Se encarga de pintar el fondo. Crea la ilusión de un horizonte infinito proyectando un \textit{cubemap}. Básicamente, envuelve la cámara en un cubo que copia hacia dónde miramos, pero ignora si avanzamos o retrocedemos. Para montar toda esta estructura se apoya en \textbf{\texttt{GESkyboxVertex}} y \textbf{\texttt{GESkyboxTransform}}.
+\item \textbf{\texttt{GESkybox}}: Se encarga de renderizar el entorno. Genera la ilusión de un horizonte infinito mediante la proyección de un \textit{cubemap}. Técnicamente, envuelve la cámara en una estructura cúbica que sigue la rotación de la misma, ignorando los desplazamientos espaciales. Para montar toda esta estructura se apoya en \textbf{\texttt{GESkyboxVertex}} y \textbf{\texttt{GESkyboxTransform}}.
 \end{itemize}
 
 

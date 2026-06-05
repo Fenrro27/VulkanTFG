@@ -1,14 +1,13 @@
 % Finalizado
 \chapter{Mejoras respecto al código inicial}
 
-A lo largo del desarrollo han ido surgiendo nuevas necesidades. Esto nos ha hecho mejorar el código original haciendo una aplicación más sólida. 
-Las mejoras las vamos a comentar a continuación.
+A lo largo del desarrollo han surgido nuevos requerimientos que han motivado mejoras sobre el código base, consolidando la robustez de la aplicación. 
+Dichas mejoras se detallan a continuación.
 
 \section{Punteros inteligentes}
-Refactorizamos el motor a fondo. Eliminamos los viejos punteros crudos (\textit{raw pointers}) y los cambiamos por punteros inteligentes (\textit{smart pointers}). 
-Esta estrategia afecta prácticamente a todas las clases. Buscamos asegurar la gestión de la memoria. 
-Queremos evitar a toda costa las fugas de recursos (\textit{memory leaks}).
-Para lograrlo, usamos dos herramientas clave:
+Se ha llevado a cabo una profunda refactorización del motor, sustituyendo los punteros convencionales (\textit{raw pointers}) por punteros inteligentes (\textit{smart pointers}). 
+Esta estrategia afecta prácticamente a todas las clases. El objetivo primordial es garantizar una correcta gestión de memoria y prevenir posibles fugas de recursos (\textit{memory leaks}).
+Para ello, se han empleado las siguientes herramientas:
 \begin{itemize}
     \item \textbf{Uso de \texttt{std::unique\_ptr}:} Indica propiedad exclusiva. Las piezas geométricas (\texttt{GEPiece}) de un objeto 3D pertenecen solo a ese objeto. Si destruimos la entidad padre, el puntero inteligente libera su memoria en el acto. Seguimos el paradigma RAII (\textit{Resource Acquisition Is Initialization})~\parencite{stroustrup2013cpp}.
     \item \textbf{Uso de \texttt{std::shared\_ptr}:} Lo reservamos para recursos compartidos. Es el caso de las texturas (\texttt{GETexture}). Así, decenas de modelos distintos apuntan a la misma textura en VRAM de forma segura. El recurso solo se borra cuando nadie más lo usa. El contador llega a cero y se libera.
@@ -30,7 +29,7 @@ const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 createInfo.enabledLayerCount = 1;
 createInfo.ppEnabledLayerNames = validationLayers;
 \end{carbonbox}
-    \caption{Elaboración propia. Activación de la capa de validación de Khronos en la creación de la instancia.}
+    \caption{Activación de la capa de validación de Khronos en la creación de la instancia.}
     \label{fig:codigoValidacion}
 \end{figure}
 
@@ -66,7 +65,7 @@ public:
     void setTexture(std::shared_ptr<GETexture> tex);
 };
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEObject.h}.}
+    \caption{Código fuente del archivo \texttt{GEObject.h}.}
     \label{fig:geobject_code}
 \end{figure}
 
@@ -87,7 +86,7 @@ public:
     void initialize(GEGraphicsContext* gc, GERenderingContext* rc); 
 };
 \end{carbonbox}
-    \caption{Elaboración propia. Código fuente del archivo \texttt{GEModel.h}.}
+    \caption{Código fuente del archivo \texttt{GEModel.h}.}
     \label{fig:gemodel_code}
 \end{figure}
 
@@ -95,20 +94,20 @@ La clase \texttt{GEModel} aprovecha las funciones de la librería \texttt{tinyob
 El proceso de carga tiene cuatro pasos:
 \begin{enumerate}
     \item \textbf{Lectura del archivo:} Con \texttt{tinyobj::LoadObj} leemos los ficheros \texttt{.obj} y \texttt{.mtl}. El motor busca las rutas de las imágenes en el disco de forma dinámica.
-    \item \textbf{Control de fallos:} Cargamos los archivos en la VRAM. Para evitar cuelgues (\textit{crashes}) si falta un archivo, usamos un bloque \texttt{try-catch}. Si algo falla, el motor asigna una textura por defecto y la ejecución sigue.
+    \item \textbf{Control de fallos:} Cargamos los archivos en la VRAM. Para evitar fallos críticos de ejecución (\textit{crashes}) si falta un archivo, usamos un bloque \texttt{try-catch}. Si algo falla, el motor asigna una textura por defecto y la ejecución sigue.
     \item \textbf{Limpieza de duplicados:} Los archivos OBJ repiten vértices para armar las caras del objeto. Para no tirar memoria en la GPU, creamos una tabla hash (\texttt{std::unordered\_map}) a medida para \texttt{GEVertex}. Cruzamos posiciones, normales y UVs para borrar repetidos y optimizar el búfer de índices.
     \item \textbf{Montaje:} Creamos un \texttt{GEPiece} por cada sub-malla (\textit{shape}). Le metemos los búferes optimizados y su textura. Al final, transferimos la propiedad de las piezas al modelo (\texttt{std::move}). Así evitamos copias innecesarias.
 \end{enumerate}
 
 \section{Modos de cámara}
 
-Para poder navegar mejor por la escena se ha rediseñado la cámara. Añadimos dos modos nuevos (FPS y orbital) al modo libre que ya venía en el código base. 
+Con el fin de facilitar la navegación por la escena, se ha rediseñado la cámara, incorporando dos nuevos modos (FPS y Orbital) al modo libre existente en el código original. 
 Los cálculos internos usan matrices de proyección y rotación estándar \parencite{lengyel2011mathematics}.
-Implementamos estas tres opciones:
+Se dispone de las siguientes tres opciones de control:
 \begin{itemize}
-    \item \textbf{Modo Libre:} Permite volar por la escena sin límites.
-    \item \textbf{Modo FPS:} Se mueve de forma similar a un juego en primera persona.
-    \item \textbf{Modo Orbital:} Bloquea el objetivo en el centro del emisor que elijas. Puedes girar alrededor, hacer zoom y saltar de un sistema a otro de forma suave.
+    \item \textbf{Modo Libre:} Permite navegar por la escena con libertad de movimiento en todos los ejes.
+    \item \textbf{Modo FPS:} El movimiento se restringe simulando la navegación en primera persona.
+    \item \textbf{Modo Orbital:} Fija el objetivo en el centro del objeto de interés. Permite orbitar a su alrededor, ajustar el factor de zoom y alternar suavemente el foco entre diferentes elementos.
 \end{itemize}
 
 \section{ImGui}
@@ -125,13 +124,13 @@ Se ha añadido la interfaz \textit{Dear ImGui} \parencite{dearimgui}. Con ella v
 Trabaja bajo el paradigma de modo inmediato o \textit{Immediate Mode GUI}, reescribiendo la interfaz gráfica y evaluando la interacción en cada fotograma.
 Dibujamos un panel transparente (\textit{overlay}) que muestra datos vitales: fotogramas por segundo (FPS), número de partículas, tipo de cámara y controles. 
 
-Buscamos un diseño limpio, como se ve en la Figura~\ref{fig:ImGui}. 
-Arriba del panel va la telemetría general: fotogramas, milisegundos por frame y total de partículas en ejecución. 
-Abajo a la izquierda dejamos una lista con los atajos de teclado de la cámara activa.
+Se ha buscado un diseño claro, tal como se ilustra en la Figura~\ref{fig:ImGui}. 
+En la sección superior del panel se muestra la telemetría general: fotogramas, milisegundos por frame y total de partículas activas. 
+En la sección inferior izquierda se facilita una lista de controles de teclado específicos para la cámara actual.
 
 
 \subsection{Adaptación estructural e integración en Vulkan}
-Para poder pintar la interfaz es necesario sincronizar los recursos óptimamente. De lo contrario, el rendimiento caerá en picado.
+Para poder pintar la interfaz es necesario sincronizar los recursos óptimamente. De lo contrario, el rendimiento se verá gravemente afectado.
 Esto modificó el diseño arquitectónico inicial del motor.
 
 Originalmente, la función \texttt{fillCommandBuffer} grababa las instrucciones de renderizado. Esto lo hacía de forma monolítica.
@@ -154,7 +153,7 @@ void GEApplication::inicializarImGui() {
     ImGui_ImplVulkan_Init(&init_info);
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Inicialización del contexto de Dear ImGui y configuración del Descriptor Pool en Vulkan.}
+    \caption{Inicialización del contexto de Dear ImGui y configuración del Descriptor Pool en Vulkan.}
     \label{fig:imgui_init}
 \end{figure}
 
@@ -172,7 +171,7 @@ void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double 
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb);
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Ciclo de actualización, maquetación e inserción de comandos de la interfaz gráfica por fotograma.}
+    \caption{Ciclo de actualización, maquetación e inserción de comandos de la interfaz gráfica por fotograma.}
     \label{fig:imgui_draw}
 \end{figure}
 
@@ -192,7 +191,7 @@ void GEApplication::ControlsGUI(GECamera* cam) {
     ImGui::End();
 }
 \end{carbonbox}
-    \caption{Elaboración propia. Maquetación condicional del menú de controles en función del estado de la cámara del motor.}
+    \caption{Maquetación condicional del menú de controles en función del estado de la cámara del motor.}
     \label{fig:imgui_controles}
 \end{figure}
     \bigskip
