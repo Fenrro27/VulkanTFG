@@ -18,7 +18,7 @@ OpenGL se diferencia de Vulkan en cuanto al manejo del acceso concurrente a la z
 En nuestro motor, los vértices experimentan una dependencia entre leer datos recientemente escritos (Read-After-Write, RAW) en los buffers compartidos (GEParticleBuffer). Cuando el Shader de Cálculo escribe las nuevas coordenadas, el Vertex Shader las lee inmediatamente para dibujarlas.
 
 Sin sincronización, la GPU aplica el shader con datos en procesamiento todavía incompletos, causando cambios repentinos de color de los vértices o incluso fallos visuales (flickering). 
-Para atender esto, empleamos una barrera de pipeline (vkCmdPipelineBarrier) como se muestra en la Figura 19. Esta barrera hace lo siguiente:
+Para atender esto, empleamos una barrera de pipeline (vkCmdPipelineBarrier) como se muestra en la Figura~\ref{fig:anexo_barrera}. Esta barrera hace lo siguiente:
 
 \begin{enumerate}
     \item Congelar la operación para los vértices hasta que se complete el cálculo realizado por el Shader de Cálculo (COMPUTE\_SHADER $\rightarrow$ VERTEX\_SHADER).
@@ -68,7 +68,7 @@ $$\frac{\partial \vec{u}}{\partial t} + (\vec{u} \cdot \nabla)\vec{u} = -\frac{1
 
 $$\nabla \cdot \vec{u} = 0$$
 
-Aquí $\rho$ es la densidad y $\nu$ es la viscosidad. El factor $\vec{f}$ agrupa fuerzas externas como la gravedad. 
+\noindent Aquí $\rho$ es la densidad y $\nu$ es la viscosidad. El factor $\vec{f}$ agrupa fuerzas externas como la gravedad. 
 
 Resolver esto de forma tradicional es lentísimo. Por eso aplicamos un atajo numérico llamado \textit{Stable Fluids}. Lo calculamos en la GPU dividiendo el trabajo en tres fases por fotograma:
 \begin{enumerate}

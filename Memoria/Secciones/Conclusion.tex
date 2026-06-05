@@ -2,34 +2,37 @@
 \chapter{Conclusión}
 \label{cap:conclusiones}
 
-Este último apartado sirve más que nada para echar la vista atrás y ver si el esfuerzo ha merecido la pena. Interesaba sobre todo ver si el motor iba bien de velocidad y si la parte visual daba la talla. También he querido apuntar un par de cosas por si alguien decide coger este código el día de mañana.
+Como conclusión de este trabajo, se ha verificado tanto la viabilidad en el rendimiento del motor gráfico mediante la API Vulkan como la calidad visual de las simulaciones. 
 
-Cualquiera que se haya pegado con Vulkan sabe que no te regalan nada. Tienes que pelearte tú solo con la memoria de la tarjeta, y eso da bastantes dolores de cabeza. Usar punteros de los que se limpian solos quita un peso enorme de encima. A esto se le añadió elementos que hacían falta para cargar los modelos 3D y montar las ventanas del menú. También se buscó una forma de que compilar todo no fuera una pesadilla constante. Dejar esta base lista permitió poder ir al grano con el tema de las partículas.                                       
+Previamente al desarrollo del sistema de partículas, se realizaron diversas mejoras estructurales sobre el código base original (incluyendo la gestión de memoria mediante punteros inteligentes, el soporte para la carga de modelos tridimensionales, la interfaz de usuario y la optimización del proceso de compilación). 
+
+Sentar esta infraestructura de base permitió centrar los esfuerzos directamente en la implementación del cálculo físico y renderizado de partículas en la GPU.
 
 \section{Consecución de objetivos}
 
 La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. La idea de pasarle todo el trabajo bruto a la tarjeta de vídeo pintaba bien sobre el papel, y al final ha sido la clave. Ahora son esos pequeños trozos de código en la GPU los que se encargan de darle vida a cada punto, moverlo de sitio y borrarlo cuando toca.
 
-Con esto se ha conseguido que el procesador del PC se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco ahí en medio, el rendimiento es bastante bueno. Da igual si pones fuego, humo o agua; la pantalla no da tirones en ningún momento.
+Con esto se ha conseguido que el procesador se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco, el rendimiento es bastante bueno. No importal si pones fuego, humo o agua; la pantalla no da tirones en ningún momento.
 
 \section{Resultados del sistema}
 
 Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matemáticas básicas que se usan dan unos resultados bastante buenos.
+El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. 
 
-El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos siguen un par de normas de lo más simples. Tu ojo hace el resto del trabajo y se lo cree por completo. Queda visual, bonito y no satura el equipo.                                    
+Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Simplemente unos puntitos siguen un par de normas de lo más simples. Por eso hemos tenido que jugar con una ilusión optica. Queda visual, bonito y no satura el equipo.                                    
 
 
 \begin{figure}[ht] 
     \centering
     \includegraphics[width=0.85\textwidth]{Media/Conclusiones_4.png}
     \caption{Escena completa con los tres sistemas de partículas.}
-    \label{fig:resultadoTodo}
+    \label{fig:resultadoTodo} 
 \end{figure}
 
 
 \section{Trabajo futuro}
 
-Como posibles mejoras a futuro, se le podrían añadir algunas de estas funciones:
+\noindent Como posibles mejoras a futuro, se le podrían añadir algunas de estas funciones:
 
 \begin{itemize}
     \item Añadir fórmulas de ruido en el espacio para simular corrientes de viento. Así el fuego no iría tan recto y se harían remolinos bastante vistosos.

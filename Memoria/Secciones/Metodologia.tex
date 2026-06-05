@@ -32,7 +32,7 @@ Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. L
 
 
 \section{Fundamentos de Computación en GPU}
-Primero debemos ver cómo usar la tarjeta gráfica para cálculos de propósito general.
+\noindent Primero debemos ver cómo usar la tarjeta gráfica para cálculos de propósito general.
 
 \subsection{El Compute Shader}
 \label{subsection:ElComputeShader}
@@ -64,13 +64,14 @@ que un hilo intente leer y escribir en el mismo sitio.
     \renewcommand{\arraystretch}{1.2}
     \begin{tabular}{|l|p{0.7\textwidth}|}
         \hline
+        \multicolumn{2}{|c|}{\textbf{Ping-Pong Buffers}} \\ \hline
         \textbf{Bloque de memoria} & \textbf{Descripción} \\ \hline
         \texttt{particlesIn} & Búfer de entrada que contiene el estado de las partículas del fotograma anterior (posiciones, velocidades y tiempo de vida restante) del cual lee el \textit{Compute Shader}. \\ \hline
         \texttt{particlesOut} & Búfer de salida donde el \textit{Compute Shader} escribe el nuevo estado de las partículas tras calcular las físicas. \\ \hline
     \end{tabular}
-    \caption{Bloques de memoria en la estrategia de doble búfer (\textit{Ping-Pong Buffers}).}
+    \caption{Elaboración propia. Bloques de memoria en la estrategia de doble búfer (\textit{Ping-Pong Buffers}).}
     \label{tab:ping_pong_buffers}
-\end{table}
+\end{table} 
 
 La mecánica es sencilla. El Compute Shader lee el búfer de entrada para revisar el estado anterior del mundo. 
 Resuelve las ecuaciones físicas y escribe el nuevo estado en el búfer de salida. 
@@ -84,7 +85,7 @@ Recrear fluidos reales con las ecuaciones matemáticas de Navier-Stokes en tiemp
 El coste en cómputo es demasiado alto. Por eso, en gráficos por ordenador preferimos usar simulaciones procedimentales. 
 Estas técnicas no buscan el realismo molecular. En su lugar, imitan el aspecto visual con fórmulas rápidas que simulan caos y aleatoriedad controlada.
 
-En programación GPGPU existen dos formas de generar este movimiento:
+\noindent En programación GPGPU existen dos formas de generar este movimiento:
 
 \begin{enumerate}
     \item \textbf{Ruido espacial estructurado (como Perlin o texturas de ruido):} Interpola gradientes pseudoaleatorios en una rejilla. 

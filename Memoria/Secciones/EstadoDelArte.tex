@@ -33,7 +33,7 @@ Vulkan puede crear búferes de comandos en paralelo sin atascos.
             respect all,
             head to column names,
             tabular={|p{4.5cm}|l|r|r|r|r|r|},
-            table head=\hline \textbf{Escenario} & \textbf{API} & \textbf{FPS Promedio} & \textbf{1\% Low FPS} & \textbf{Fotograma (ms)} & \textbf{CPU (ms)} & \textbf{GPU (ms)} \\\hline,
+            table head=\hline \multicolumn{7}{|c|}{\textbf{Rendimiento de Vulkan vs. OpenGL (NVIDIA RTX 2060 Max-Q)}} \\\hline \textbf{Escenario} & \textbf{API} & \textbf{FPS Promedio} & \textbf{1\% Low FPS} & \textbf{Fotograma (ms)} & \textbf{CPU (ms)} & \textbf{GPU (ms)} \\\hline,
             late after line=\\\hline,
             late after last line=\\\hline
         ]{Media/EstadoDelArte_1.csv}{%
@@ -46,14 +46,13 @@ Vulkan puede crear búferes de comandos en paralelo sin atascos.
             GPUTime=\gputime
         }{\escenario & \api & \avgfps & \lowfps & \frametime & \cputime & \gputime}%
     }
-    \caption{Rendimiento de Vulkan vs. OpenGL en una NVIDIA RTX 2060 Max-Q. Elaboración propia a partir de los datos obtenidos del programa de nuestro entorno de pruebas.}
-    \label{tab:comparativa_vulkan_opengl}
+    \caption{Elaboración propia. Rendimiento de Vulkan vs. OpenGL (NVIDIA RTX 2060 Max-Q).} 
+    \label{tab:comparativa_vulkan_opengl} 
 \end{table}
 
 
 Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl}, basados en el código original de \cite{benyoon1_vk_gl}.                                       
-Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios. A continuación, 
-una breve explicación sobre los distintos escenarios:
+Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios evaluados. Los distintos entornos de prueba se definen de la siguiente manera:
 
 \begin{enumerate}
     \item \textbf{Asteroids (Non-Instanced)}: Estrés puro para la CPU. Renderiza miles de asteroides enviando un comando independiente por cada uno. Mide la eficiencia del driver.
@@ -82,7 +81,7 @@ Además, no tiene que revisar errores en cada fotograma. OpenGL sí lo hace en s
  
 Vulkan tiene mejor rendimiento por vatio consumido \parencite{9655285}. 
 Al repartir el trabajo entre los núcleos de la CPU de forma equilibrada, ningún núcleo se satura. 
-Esto baja las temperaturas y estira la batería en portátiles. Pasa lo mismo con los servidores que renderizan más por el mismo coste eléctrico \parencite{8685588}. 
+Esto baja las temperaturas y  alarga la batería en portátiles. Pasa lo mismo con los servidores que renderizan más por el mismo consumo eléctrico \parencite{8685588}. 
 
 
 
@@ -95,7 +94,7 @@ De esta forma, aprovechamos el motor funcional de bajo nivel y nos centramos dir
 
 \subsection{Librerías externas}
 
-El motor usa cuatro librerías externas:
+\noindent El motor usa cuatro librerías externas:
 
 \begin{itemize}
 \item \textbf{Vulkan SDK}: Controla la GPU, la memoria y los búferes de comandos de forma directa.
@@ -110,7 +109,7 @@ El motor está formado por distintas clases de C++. Las cuales facilitan mover d
 Separamos los componentes según su papel en el pipeline gráfico:
 
 
-Las clases de infraestructura y control de renderizado son:
+\noindent Las clases de infraestructura y control de renderizado son:
 
 \begin{itemize}
 \item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Busca la tarjeta gráfica adecuada, crea el dispositivo lógico y abre las colas de trabajo.
@@ -123,7 +122,7 @@ Las clases de infraestructura y control de renderizado son:
 
 
 
-Las clases de gestión de datos y memoria son:
+\noindent Las clases de gestión de datos y memoria son:
 
 \begin{itemize}
 \item \textbf{\texttt{GEVertexBuffer}}: Guarda los vértices de las mallas.
@@ -135,7 +134,7 @@ Las clases de gestión de datos y memoria son:
 \end{itemize}
 
 
-Las clases de cámara, transformaciones e iluminación son:
+\noindent Las clases de cámara, transformaciones e iluminación son:
  
 \begin{itemize}
 \item \textbf{\texttt{GECamera}}: Controla lo que ve el usuario.
@@ -145,7 +144,7 @@ Las clases de cámara, transformaciones e iluminación son:
 \item \textbf{\texttt{GEWindowPosition}}: Corrige el aspecto de la cámara si el usuario cambia el tamaño de la pantalla.
 \end{itemize}
 
-Las clases de entidades y entorno son: 
+\noindent Las clases de entidades y entorno son: 
 
 \begin{itemize}
 \item \textbf{\texttt{GEObject}}: Clase abstracta que representa un objeto formado por varias piezas
@@ -173,4 +172,4 @@ Usamos dos parejas de shaders en el motor:
 \end{itemize}
 \end{itemize}
 
-Esta estructura modular va a facilitarnos la integración de las partículas.
+\noindent Esta estructura modular va a facilitarnos la integración de las partículas.

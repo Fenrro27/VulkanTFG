@@ -31,6 +31,14 @@
 \addbibresource{bibliografia.bib}
 \usepackage{eso-pic}           % Para imagen de fondo en portada
 \usepackage{fancyhdr}          % Cabeceras y pies de página personalizados
+\usepackage[justification=centering]{caption} % Centrar los pies de foto/figura
+\usepackage[section]{placeins} % Mantener flotantes dentro de sus secciones
+
+% --- Configuración de Flotantes (Evita páginas vacías con imágenes/códigos) ---
+\renewcommand{\topfraction}{0.85}      % Máximo espacio para flotantes arriba (por defecto 0.70)
+\renewcommand{\bottomfraction}{0.70}   % Máximo espacio para flotantes abajo (por defecto 0.30)
+\renewcommand{\textfraction}{0.15}     % Mínimo de texto requerido por página (por defecto 0.20)
+\renewcommand{\floatpagefraction}{0.66}% Fracción mínima de página para crear una página de flotantes (por defecto 0.50)
 
 % --- Numeración continua para figuras, tablas y ecuaciones ---
 \usepackage{chngcntr}
@@ -111,7 +119,6 @@
     }
 }
 
-\usepackage[section]{placeins} % Pone una barrera automática en cada \section
 \newcommand{\refanexo}[1]{[\ref{#1}]}
 
 \usepackage{booktabs}
