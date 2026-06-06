@@ -10,16 +10,18 @@ Sentar esta infraestructura de base permitió centrar los esfuerzos directamente
 
 \section{Consecución de objetivos}
 
-La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. La idea de pasarle todo el trabajo bruto a la tarjeta de vídeo parecía prometedora en la fase de diseño, y al final ha sido la clave. Ahora son esos pequeños trozos de código en la GPU los que se encargan de darle vida a cada punto, moverlo de sitio y borrarlo cuando toca.                      
+La meta del proyecto siempre fue la misma: conseguir que el programa fuera muy rápido incluso con mucha carga gráfica. 
+Delegar el trabajo pesado a la tarjeta gráfica ha sido la decisión arquitectónica clave del proyecto. Ahora, los Compute Shaders ejecutados en la GPU administran de forma autónoma el ciclo de vida, el movimiento y la eliminación de cada partícula.
 
-Con esto se ha conseguido que el procesador se relaje bastante. Ya no tiene que estar mandando paquetes enormes de datos todo el rato. Al no tener ese atasco, el rendimiento es bastante bueno. No importal si pones fuego, humo o agua; la representación gráfica no sufre caídas de fotogramas en ningún momento.
+Esta estrategia reduce drásticamente la carga de la CPU, ya que el procesador ya no tiene que transferir flujos masivos de datos en cada fotograma. Al eliminar este cuello de botella, hemos logrado maximizar el rendimiento del sistema.
+Independientemente del sistema volumétrico simulado (fuego, humo o agua); la representación gráfica no sufre caídas de fotogramas en ningún momento.
 
 \section{Resultados del sistema} 
 
 Aparte de ir rápido tenía que verse bien (Ver Figura~\ref{fig:resultadoTodo}). Las matemáticas básicas que se usan dan unos resultados bastante buenos.
 El humo crece como te esperas que lo haga, el fuego se mueve de una forma natural y el agua cae por su propio peso. 
 
-Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Únicamente se simulan partículas puntuales que obedecen un conjunto reducido de reglas básicas. Por eso hemos tenido que jugar con una ilusión optica. Queda visual, bonito y no satura el equipo.                                    
+Evidentemente, no hay un motor de físicas reales por debajo. Intentar hacer algo así hundiría el rendimiento. Únicamente se simulan partículas puntuales que obedecen un conjunto reducido de reglas básicas. Por eso hemos tenido que jugar con una ilusión óptica. El resultado ofrece una alta fidelidad estética sin llegar a saturar los recursos computacionales del hardware.                                    
 
 
 \begin{figure}[ht] 

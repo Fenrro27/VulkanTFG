@@ -14,13 +14,23 @@ Para comprender los fundamentos expuestos en la motivación, resulta pertinente 
 
 \section{Comparativa de Vulkan con OpenGL}
 
-OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. La API facilitaba la programación, pero al ocultar el hardware real limitaba el rendimiento.
-Las llamadas de dibujado (\textit{draw calls}) acumulaban demasiada sobrecarga y el rendimiento sufría. 
+OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. Dicha API simplificaba el desarrollo de software, pero ocultaba el hardware real, lo cual limitaba el rendimiento.
+Las llamadas de dibujado (\textit{draw calls}) generaban una sobrecarga excesiva, por lo que el rendimiento empeoraba considerablemente.  
  
 Por esta razón, Vulkan surge como una alternativa ofreciendo un control total del hardware. 
-Vulkan asimila que el programador sabe lo que hace y da control total sobre la memoria, sincronización, hilos, etc.
-Al quitar las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}), la CPU trabaja mucho menos \parencite{9655285}. 
+Vulkan asimila la responsabilidad del desarrollador en la gestión de recursos, otorgando un control total sobre la memoria, sincronización, hilos, etc.
+Al prescindir de las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}), se reduce significativamente la carga de trabajo de la CPU \parencite{9655285}. 
 Vulkan puede crear búferes de comandos en paralelo sin atascos.
+
+Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl}, basados en el código original de \cite{benyoon1_vk_gl}.                                       
+Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios evaluados. Los distintos entornos de prueba se definen de la siguiente manera:
+
+\begin{enumerate}
+    \item \textbf{Asteroids (Non-Instanced)}: Estrés puro para la CPU. Renderiza miles de asteroides enviando un comando independiente por cada uno. Mide la eficiencia del driver.
+    \item \textbf{Asteroids (Instanced)}: Mismo entorno, pero agrupando la geometría por hardware. Reduce las llamadas de dibujo. Sirve para ver el rendimiento base sin el cuello de botella de la CPU.
+    \item \textbf{Bistro}: Una escena urbana muy pesada. Tiene una carga geométrica enorme. Pasa el esfuerzo a la GPU para ver cómo sufre con muchos materiales distintos.
+    \item \textbf{Shadows On/Off}: Un extra que añade pases para calcular sombras. Exige más ancho de banda y cálculos en general.
+\end{enumerate}
 
 \begin{table}[ht]
     \centering
@@ -50,37 +60,27 @@ Vulkan puede crear búferes de comandos en paralelo sin atascos.
 \end{table}
 
 
-Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl}, basados en el código original de \cite{benyoon1_vk_gl}.                                       
-Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios evaluados. Los distintos entornos de prueba se definen de la siguiente manera:
-
-\begin{enumerate}
-    \item \textbf{Asteroids (Non-Instanced)}: Estrés puro para la CPU. Renderiza miles de asteroides enviando un comando independiente por cada uno. Mide la eficiencia del driver.
-    \item \textbf{Asteroids (Instanced)}: Mismo entorno, pero agrupando la geometría por hardware. Reduce las llamadas de dibujo. Sirve para ver el rendimiento base sin el tapón de la CPU.
-    \item \textbf{Bistro}: Una escena urbana muy pesada. Tiene una carga geométrica enorme. Pasa el esfuerzo a la GPU para ver cómo sufre con muchos materiales distintos.
-    \item \textbf{Shadows On/Off}: Un extra que añade pases para calcular sombras. Exige más ancho de banda y cálculos en general.
-\end{enumerate}
-
 
 Como se puede observar, en el escenario sin instanciación OpenGL sufre una severa caída de rendimiento al no poder procesar eficientemente las sucesivas llamadas de dibujado, mientras que Vulkan las gestiona adecuadamente mejorando la tasa de fotogramas.
 Al activar la instanciación, el rendimiento mejora en ambas APIs; no obstante, Vulkan mantiene su superioridad. Su estabilidad se evidencia especialmente en los valores de \textit{1\% Low FPS}.                                   
 Esta ventaja se mantiene incluso al duplicar los objetos de 15k a 30k.
 
 
-En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan baja los tiempos en CPU y en GPU a la vez mientras OpenGL da peor resultado. 
-Al activar las sombras, OpenGL se cae por completo. Vulkan absorbe la carga sin problemas y mantiene un rendimiento estable.
+En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan disminuye simultáneamente los tiempos en CPU y en GPU mientras, en contraste, OpenGL da peor resultado. 
+Al activar las sombras, OpenGL sufre una degeneración drástica de rendimiento. Vulkan gestiona la carga sin problemas y mantiene un rendimiento estable.
 
 En resumen, Vulkan es superior a OpenGL en todos los aspectos. Ofrece menos latencia, fotogramas estables y aguanta mejor las cargas pesadas en la GPU.
 
 
 \subsection{Eficiencia energética}
 
-En móviles o sistemas empotrados (\textit{Edge GPUs}), el consumo, es un factor crítico. Vulkan gasta menos energía porque quita trabajo inútil a la CPU. 
+En móviles o sistemas empotrados (\textit{Edge GPUs}), el consumo, representa un factor crítico. Vulkan disminuye significativamente el consumo eléctrico al eximir a la CPU de procesar cargas de trabajo innecesarias. 
 Además, no tiene que revisar errores en cada fotograma. OpenGL sí lo hace en su hilo principal.
  
  
 Vulkan tiene mejor rendimiento por vatio consumido \parencite{9655285}. 
 Al repartir el trabajo entre los núcleos de la CPU de forma equilibrada, ningún núcleo se satura. 
-Esto baja las temperaturas y  alarga la batería en portátiles. Pasa lo mismo con los servidores que renderizan más por el mismo consumo eléctrico \parencite{8685588}. 
+Esto baja las temperaturas y  alarga la batería en portátiles. Asimismo, los servidores de alto rendimiento adopta este principio de eficiencia. permitiendo un mayor volumen de procesamiento gráfico sin alterar la demanda energética base \parencite{8685588}. 
 
 
 
@@ -93,25 +93,25 @@ Esta decisión ha permitido aprovechar una capa funcional de bajo nivel y concen
 
 \subsection{Librerías externas}
 
-\noindent El motor usa cuatro librerías externas:
+\noindent El motor se fundamenta en cuatro librerías externas:
 
 \begin{itemize}
 \item \textbf{Vulkan SDK}: Controla la GPU, la memoria y los búferes de comandos de forma directa.
 \item \textbf{GLM}: Se ocupa de los cálculos matemáticos. 
 \item \textbf{stb\_image}: Convierte las imágenes en texturas para Vulkan.
-\item \textbf{glfw}: Abre ventanas y lee el teclado o el ratón.
+\item \textbf{glfw}: Gestiona la creación de ventanas y la captura de eventos periféricos como el teclado o el ratón.
 \end{itemize}
 
 \subsection{Estructura del motor base}
 
 El motor está formado por distintas clases de C++ que facilitan mover datos entre CPU y GPU. 
-Separamos los componentes según su papel en el pipeline gráfico:
+Los componentes se estructuran según su papel en el pipeline gráfico:
 
 
 \noindent Las clases de infraestructura y control de renderizado son:
 
 \begin{itemize}
-\item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Busca la tarjeta gráfica adecuada, crea el dispositivo lógico y abre las colas de trabajo.
+\item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Identifica y selecciona el dispositivo de hardware gráfico adecuado, crea el dispositivo lógico y abre las colas de trabajo.
 \item \textbf{\texttt{GERenderingContext}}: Contiene las referencias al programa gráfico a ejecutar (RenderPass y Pipeline) y a la estructura en la que se genera la imagen (Framebuffer).
 \item \textbf{\texttt{GEDrawingContext}}: Gestiona la \textit{Swapchain}. Además, gestiona los pases de render y los \textit{Framebuffers}.                                        
 \item \textbf{\texttt{GECommandContext}}: Graba las instrucciones de dibujo en los \textit{Command Pools} y \textit{Command Buffers}. Luego las manda a la GPU.
@@ -155,7 +155,7 @@ Separamos los componentes según su papel en el pipeline gráfico:
 
 
 En Vulkan los shaders se ejecutan directamente en el hardware gráfico \parencite{vulkan_spec_shaders}. Se programan en GLSL para posteriormente ser compilados a código SPIR-V.                                
-Usamos dos parejas de shaders en el motor:
+El motor integra dos parejas de shaders:
 
 \begin{itemize}
 \item \textbf{Geometría general (\texttt{shader.vert} / \texttt{shader.frag})}: Pinta los objetos comunes.

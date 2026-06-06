@@ -3,25 +3,25 @@
 \label{sec:justificacion_y_objetivos}
 
 \section{Motivación}
-Efectos como el fuego, el agua o el humo son indispensables para crear escenas 3D realistas. Por desgracia, esto consume muchos recursos debido a la gran cantidad de datos.
-Las APIs más antiguas saturan la CPU con tareas de control (\textit{CPU overhead}). Esto frena el rendimiento general del sistema.
+Los efectos volumétricos como el fuego, el agua o el humo resultan indispensables para la creación de escenas 3D dotadas de fotorrealismo. No obstante, su implementación conlleva un elevado consumo de recursos computacionales debido al procesamiento masivo de datos que requieren.
+Tradicionalmente, las APIs gráficas heredadas incurren en una notable saturación de la CPU derivada de las tareas de validación y control (\textit{CPU overhead}), lo cual merma significativamente el rendimiento global del sistema.
 
-La meta de este proyecto es renderizar nubes de partículas  masivas. Para ello usaremos una API moderna llamada Vulkan. 
-Vulkan nos permite comunicarnos directamente con el hardware sin intermediarios pesados. Esto nos abre las puertas a densidades de elementos muy altas. 
-Para ello necesitamos  aplicar leyes físicas en geometría simple para obtener resultados rápidos. Al final debemos lograr un equilibrio entre resultado y rendimiento.
+El objetivo principal de este proyecto reside en el renderizado eficiente de nubes masivas de partículas mediante la API de nueva generación Vulkan. 
+Dicha interfaz facilita una comunicación directa y de bajo nivel con el hardware, eliminando abstracciones intermedias y posibilitando densidades de elementos computados órdenes de magnitud superiores. 
+Para la consecución de tal fin, es preciso aplicar modelos matemáticos y leyes físicas sobre primitivas geométricas simples, persiguiendo en última instancia un equilibrio óptimo entre precisión perceptual y rendimiento de ejecución.
 
  
 \section{Objetivos}
-El objetivo consiste en crear un motor de partículas rápido y eficiente con Vulkan. Para ello, nos marcamos las siguientes tareas concretas:                                     
+La finalidad del trabajo consiste en desarrollar un motor de partículas de alto rendimiento empleando la API Vulkan. Para lograrlo, se establecen los siguientes objetivos específicos:                                     
 
 \begin{itemize}
-    \item \textbf{Cómputo en GPU:} La tarjeta gráfica asume todo el trabajo real. Programamos \textit{Compute Shaders} para que calculen el ciclo de vida, la posición y el color de cada punto. La CPU ya no interviene aquí.
+    \item \textbf{Cómputo en GPU:} Delegar el procesamiento intensivo en la tarjeta gráfica. Se implementan \textit{Compute Shaders} encargados de computar el ciclo de vida, la matriz de transformación y las propiedades cromáticas de cada entidad, liberando a la CPU de dichas tareas.
 
-    \item \textbf{Fluidos y gases:} Escribir algoritmos de tipo procedimental directos en el hardware gráfico. Con esto imitamos la física real detrás de líquidos o columnas de humo.                               
+    \item \textbf{Fluidos y gases:} Desarrollar algoritmos procedimentales ejecutables directamente sobre el hardware gráfico, con el fin de emular de forma perceptualmente rigurosa la dinámica física de líquidos y gases.                               
 
-    \item \textbf{Efectos con volumen:} Dar sensación de masa y densidad al fuego. Lo haremos sumando técnicas de mezcla de color (\textit{Alpha Blending}) con el uso de \textit{Point Sprites}.
+    \item \textbf{Efectos con volumen:} Generar volumen y densidad aparente en simulaciones como el fuego mediante la combinación iterativa de técnicas de mezcla aditiva (\textit{Alpha Blending}) aplicadas sobre primitivas puntuales (\textit{Point Sprites}).
 
-    \item \textbf{Sincronización:} Configurar barreras de memoria y organizar bien las colas en Vulkan. Esto evita condiciones de carrera (\textit{race conditions}) al procesar la información en paralelo, impidiendo colisiones entre operaciones de lectura y escritura simultáneas.
+    \item \textbf{Sincronización:} Implementar barreras de memoria explícitas y gestionar las dependencias en las colas de ejecución de Vulkan. Esto previene condiciones de carrera (\textit{race conditions}) durante el procesamiento paralelo masivo, garantizando la consistencia y el orden estricto entre operaciones asíncronas de lectura y escritura.
 
-    \item \textbf{Control estético:} Crear materiales sencillos que cambien con el tiempo. El brillo, el color y la opacidad se alteran solos según la edad de la partícula.
+    \item \textbf{Control estético:} Diseñar modelos de materiales dinámicos cuyas propiedades fotométricas —luminancia, matiz y opacidad— evolucionen autónomamente en función de la madurez temporal (\textit{TTL}) de la partícula en simulación.
 \end{itemize}

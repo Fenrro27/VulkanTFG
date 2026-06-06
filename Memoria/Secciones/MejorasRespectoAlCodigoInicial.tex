@@ -15,8 +15,7 @@ Para ello, se han empleado las siguientes herramientas:
 
 \section{Capa de Validación de Vulkan}
 Una característica de Vulkan es que no comprueba si el desarrollador comete errores en tiempo de ejecución.
-Delega todo el control a la memoria. Esto provoca que no tengamos un control de errores real. 
-Para poder ver que falla activamos la capa de validación (\textit{Vulkan Validation Layer}). 
+Delega todo el control a la memoria. Esta condición impide un diagnóstico directo de fallos. Con el propósito de supervisar el comportamiento del motor, se procedió a habilitar la capa de validación (\textit{Vulkan Validation Layer}). 
 Esta capa nos ayuda a detectar errores en nuestro código, o incompatibilidades con el controlador gráfico. 
 Como muestra la Figura~\ref{fig:codigoValidacion}, inyectamos la capa de Khronos al arrancar la instancia. 
 El entorno revisa la sincronización y los parámetros en directo, avisando ante cualquier fallo \parencite{vulkan_validation}.
@@ -34,10 +33,10 @@ createInfo.ppEnabledLayerNames = validationLayers;
 \end{figure}
 
 \section{TinyObjLoader}
-Queríamos montar escenas más enriquecedoras. Por eso, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. 
+Con el objetivo de diseñar entornos tridimensionales de mayor complejidad, integramos la librería externa \texttt{tinyobjloader} \parencite{tinyobjloader}. 
 Es un analizador (\textit{parser}) de C++ muy ligero. Nos sirve para leer archivos 3D en formato Wavefront OBJ. 
-La librería agiliza la lectura de vértices, normales y mapas UV. Así metemos mallas complejas en la GPU sin complicaciones.
-
+La librería agiliza la lectura de vértices, normales y mapas UV. 
+Agilizando la transferencia de datos de forma eficiente a la GPU.
  
 \subsection{Adaptación estructural: \texttt{GEObject} y \texttt{GEModel}}
 
@@ -94,9 +93,10 @@ La clase \texttt{GEModel} aprovecha las funciones de la librería \texttt{tinyob
 El proceso de carga tiene cuatro pasos:
 \begin{enumerate}
     \item \textbf{Lectura del archivo:} Con \texttt{tinyobj::LoadObj} leemos los ficheros \texttt{.obj} y \texttt{.mtl}. El motor busca las rutas de las imágenes en el disco de forma dinámica.
-    \item \textbf{Control de fallos:} Cargamos los archivos en la VRAM. Para evitar fallos críticos de ejecución (\textit{crashes}) si falta un archivo, usamos un bloque \texttt{try-catch}. Si algo falla, el motor asigna una textura por defecto y la ejecución sigue.
-    \item \textbf{Limpieza de duplicados:} Los archivos OBJ repiten vértices para armar las caras del objeto. Para no tirar memoria en la GPU, creamos una tabla hash (\texttt{std::unordered\_map}) a medida para \texttt{GEVertex}. Cruzamos posiciones, normales y UVs para borrar repetidos y optimizar el búfer de índices.
-    \item \textbf{Montaje:} Creamos un \texttt{GEPiece} por cada sub-malla (\textit{shape}). Le metemos los búferes optimizados y su textura. Al final, transferimos la propiedad de las piezas al modelo (\texttt{std::move}). Así evitamos copias innecesarias.
+    \vspace{\baselineskip}
+    \item \textbf{Control de fallos:} Cargamos los archivos en la VRAM. Para evitar fallos críticos de ejecución (\textit{crashes}) si falta un archivo, usamos un bloque \texttt{try-catch}. Si algo falla una textura, el motor asigna una por defecto y la ejecución sigue.
+    \item \textbf{Limpieza de duplicados:} Los archivos OBJ repiten vértices para armar las caras del objeto. Para optimizar la asignación de memoria en la GPU, se empleó una tabla hash (\texttt{std::unordered\_map}) a medida para \texttt{GEVertex}. Se cruzan posiciones, normales y UVs para borrar repetidos y optimizar el búfer de índices.
+    \item \textbf{Montaje:} Creamos un \texttt{GEPiece} por cada sub-malla (\textit{shape}). Se vinculan los búferes optimizados y su textura. Al final, transferimos la propiedad de las piezas al modelo (\texttt{std::move}). Así evitamos copias innecesarias.
 \end{enumerate}
 
 \section{Modos de cámara}

@@ -18,17 +18,17 @@ Dado que carecen de una malla de triángulos compleja, es suficiente con almacen
 
 
 \section{Sistemas de Partículas en CPU vs GPU}
-Hay un gran reto para simular partículas: poder realizar millones de operaciones matemáticas por segundo.
+La simulación de partículas plantea un desafío computacional crítico: la ejecución fluida de millones de operaciones matemáticas por segundo.
 
-El \textbf{enfoque clásico en CPU} trabaja de forma secuencial. El procesador calcula el estado de la partícula uno a uno. 
-Al terminar, copia todo ese bloque de datos hacia la memoria de vídeo (VRAM) usando el bus PCI-Express. 
-Este viaje constante satura el canal de comunicación. Se genera un cuello de botella crítico. 
+El \textbf{enfoque clásico en CPU} trabaja de forma secuencial. El procesador calcula el estado de cada partícula. 
+Una vez obtenidos todos los resultados, se transfiere todo ese bloque de datos hacia la memoria de vídeo (VRAM) usando el bus PCI-Express. 
+Esta transferencia continua satura el canal de comunicación. Se genera un cuello de botella crítico. 
 Por este motivo, el rendimiento del procesador principal decae abruptamente si se intenta actualizar nubes masivas de elementos manteniendo la fluidez~\parencite{latta2004massively}.
 
-Por el contrario, el enfoque basado en GPU (GPGPU) actualiza todo en paralelo. Básicamente aloja la información en la memoria gráfica 
-y ejecuta la física en los \textit{Compute Shaders}~\parencite{akenine2018real}.
+Por el contrario, el enfoque basado en GPU (GPGPU) ejecuta las actualizaciones de forma paralela. Reuniendo y preservando la información en la memoria gráfica 
+y ejecutando la física en los \textit{Compute Shaders}~\parencite{akenine2018real}.
 
-Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. La tasa de fotogramas sube de forma drástica.
+Como los datos ya no viajan por el bus PCI-Express, el rendimiento mejora notablemente. La tasa de fotogramas se ve incrementada de forma drástica.
 
 
 \section{Fundamentos de Computación en GPU}
@@ -39,7 +39,7 @@ Como los datos ya no viajan por el bus PCI-Express, el rendimiento se dispara. L
 
 Esta etapa del pipeline es totalmente programable, lo que permite ejecutar algoritmos generales directamente en la GPU.
 Esto sin interferir en el renderizado normal de otros elementos de la escena. 
-Su fuerte es el cálculo matemático bruto. En lugar de procesar tareas pesadas en cadena, la tarjeta gráfica arranca miles de hilos ligeros a la vez. 
+Su fuerte es el cálculo matemático bruto. En lugar de procesar tareas pesadas en cadena, la tarjeta gráfica despliega miles de hilos ligeros de forma simultánea. 
 Constituye una herramienta idónea para el motor desarrollado. Cada hilo se encarga de evaluar y actualizar una única partícula de forma concurrente e independiente.
 
 
@@ -55,6 +55,7 @@ Destaca por ser muy independiente. La GPU modifica millones de posiciones sin pe
 
 
 \subsection{Técnica de Renderizado}
+\label{sec:tecnica_renderizado}
 Para renderizar y computar simultáneamente sin merma de rendimiento, se emplea una estrategia de doble búfer en la GPU. Esto se conoce como \textit{Ping-Pong Buffers}~\parencite{akenine2018real}. 
 Para ello se requieren dos bloques de memoria (véase la Tabla \ref{tab:ping_pong_buffers}). Este esquema simétrico agiliza el flujo interno y evita 
 que un hilo intente leer y escribir en el mismo sitio.

@@ -1,7 +1,7 @@
 % Finalizado 0
 \chapter{Introducción}
 
-La computación gráfica cambió radicalmente con la llegada de APIs de bajo nivel como Vulkan (véase Figura \ref{fig:introduccion_vulkan}). Estas interfaces ofrecen un control directo e inédito sobre el hardware gráfico. En este marco, diseñamos y construimos un motor de renderizado de alto rendimiento. Nuestro objetivo es simular sistemas de partículas complejos en tiempo real.
+La computación gráfica ha experimentado una transformación radical con el advenimiento de APIs de bajo nivel como Vulkan (véase la Figura \ref{fig:introduccion_vulkan}). Estas interfaces proporcionan un nivel de control explícito sin precedentes sobre el hardware gráfico. En este marco de referencia, se ha diseñado e implementado un motor de renderizado de alto rendimiento, cuyo objetivo principal consiste en la simulación de sistemas de partículas complejos en tiempo real.
 
 \begin{figure}[ht]
     \centering
@@ -10,6 +10,6 @@ La computación gráfica cambió radicalmente con la llegada de APIs de bajo niv
     \label{fig:introduccion_vulkan}
 \end{figure}
 
-En esta memoria analizamos cómo los \textit{Compute Shaders} de la GPU asumen por completo la física de elementos como el fuego, el humo y el agua. Queremos demostrar que gestionar directamente el hardware y diseñar una sincronización avanzada permite superar los límites de la CPU. De este modo, conseguimos una alta fidelidad visual y una gran eficiencia técnica.
+En la presente memoria se analiza la delegación íntegra de la simulación física de elementos como el fuego, el humo y el agua a los \textit{Compute Shaders} de la GPU. El propósito es demostrar que el control directo sobre el hardware, combinado con mecanismos de sincronización explícitos, posibilita la superación de los cuellos de botella computacionales inherentes a la CPU. Por consiguiente, se alcanza un óptimo equilibrio entre alta fidelidad visual y máxima eficiencia técnica.
 
 Con el propósito de garantizar la reproducibilidad de los resultados y facilitar el acceso, la totalidad del código fuente del motor de partículas se encuentra publicado en repositorios públicos de GitHub~\parencite{fenrro27_vulkan_tfg, fenrro27_vulkan_vs_opengl}. Esto abarca las clases del motor, las pipelines, los shaders en GLSL, así como la configuración del entorno y los recursos de pruebas.
