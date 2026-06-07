@@ -2,7 +2,7 @@
 \chapter{Estado del arte}
 \label{chap:estado_del_arte}
 
-Para comprender los fundamentos expuestos en la motivación, resulta pertinente comparar OpenGL (véase la Figura \ref{fig:logo_opengl}) con Vulkan, siendo este último el sucesor de bajo nivel del primero \parencite{Sellers_Kessenich_2017a}.
+Para comprender los fundamentos expuestos en la motivación resulta pertinente comparar OpenGL (véase la Figura \ref{fig:logo_opengl}) con Vulkan, siendo este último el sucesor de bajo nivel del primero \parencite{Sellers_Kessenich_2017a}.
 
 \begin{figure}[ht]
     \centering
@@ -14,15 +14,15 @@ Para comprender los fundamentos expuestos en la motivación, resulta pertinente 
 
 \section{Comparativa de Vulkan con OpenGL}
 
-OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. Dicha API simplificaba el desarrollo de software, pero ocultaba el hardware real, lo cual limitaba el rendimiento.
+OpenGL lideró la industria gráfica durante décadas \parencite{8685588}. Dicha API simplificaba el desarrollo de software pero ocultaba el hardware real, lo cual limitaba el rendimiento.
 Las llamadas de dibujado (\textit{draw calls}) generaban una sobrecarga excesiva, por lo que el rendimiento empeoraba considerablemente.  
  
 Por esta razón, Vulkan surge como una alternativa ofreciendo un control total del hardware. 
 Vulkan asimila la responsabilidad del desarrollador en la gestión de recursos, otorgando un control total sobre la memoria, sincronización, hilos, etc.
-Al prescindir de las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}), se reduce significativamente la carga de trabajo de la CPU \parencite{9655285}. 
+Al prescindir de las validaciones en tiempo de ejecución y ofrecer soporte multihilo nativo (\textit{thread-friendly}) se reduce significativamente la carga de trabajo de la CPU \parencite{9655285}. 
 Vulkan puede crear búferes de comandos en paralelo sin atascos.
 
-Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl}, basados en el código original de \cite{benyoon1_vk_gl}.                                       
+Para poder hacer una comparativa real se han realizado unos tests locales \parencite{fenrro27_vulkan_vs_opengl} basados en el código original de \cite{benyoon1_vk_gl}.                                       
 Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl}, donde se aprecia la superioridad de Vulkan en todos los escenarios evaluados. Los distintos entornos de prueba se definen de la siguiente manera:
 
 \begin{enumerate}
@@ -61,12 +61,12 @@ Los datos obtenidos se muestran en la Tabla \ref{tab:comparativa_vulkan_opengl},
 
 
 
-Como se puede observar, en el escenario sin instanciación OpenGL sufre una severa caída de rendimiento al no poder procesar eficientemente las sucesivas llamadas de dibujado, mientras que Vulkan las gestiona adecuadamente mejorando la tasa de fotogramas.
-Al activar la instanciación, el rendimiento mejora en ambas APIs; no obstante, Vulkan mantiene su superioridad. Su estabilidad se evidencia especialmente en los valores de \textit{1\% Low FPS}.                                   
+Como se puede observar en el escenario sin instanciación OpenGL sufre una severa caída de rendimiento al no poder procesar eficientemente las sucesivas llamadas de dibujado, mientras que Vulkan las gestiona adecuadamente mejorando la tasa de fotogramas.
+Al activar la instanciación, el rendimiento mejora en ambas APIs; no obstante, Vulkan mantiene su superioridad. Su estabilidad se evidencia especialmente en los valores de \textit{1\% Low FPS}\footnote{Métrica que calcula el promedio de fotogramas del 1\% de los instantes más lentos de la prueba, reflejando así la consistencia en el rendimiento y la ausencia de los molestos tirones o \textit{stuttering} repentinos.}.                                   
 Esta ventaja se mantiene incluso al duplicar los objetos de 15k a 30k.
 
 
-En la escena \textit{Bistro}, la tarjeta gráfica es la que limita el rendimiento. Vulkan disminuye simultáneamente los tiempos en CPU y en GPU mientras, en contraste, OpenGL da peor resultado. 
+En la escena \textit{Bistro} la tarjeta gráfica es la que limita el rendimiento. Vulkan disminuye simultáneamente los tiempos en CPU y en GPU mientras, en contraste, OpenGL obtiene peores resultados. 
 Al activar las sombras, OpenGL sufre una degeneración drástica de rendimiento. Vulkan gestiona la carga sin problemas y mantiene un rendimiento estable.
 
 En resumen, Vulkan es superior a OpenGL en todos los aspectos. Ofrece menos latencia, fotogramas estables y aguanta mejor las cargas pesadas en la GPU.
@@ -74,13 +74,13 @@ En resumen, Vulkan es superior a OpenGL en todos los aspectos. Ofrece menos late
 
 \subsection{Eficiencia energética}
 
-En móviles o sistemas empotrados (\textit{Edge GPUs}), el consumo, representa un factor crítico. Vulkan disminuye significativamente el consumo eléctrico al eximir a la CPU de procesar cargas de trabajo innecesarias. 
+En móviles o sistemas empotrados (\textit{Edge GPUs}) el consumo representa un factor crítico. Vulkan disminuye significativamente el consumo eléctrico al eximir a la CPU de procesar cargas de trabajo innecesarias. 
 Además, no tiene que revisar errores en cada fotograma. OpenGL sí lo hace en su hilo principal.
  
  
 Vulkan tiene mejor rendimiento por vatio consumido \parencite{9655285}. 
 Al repartir el trabajo entre los núcleos de la CPU de forma equilibrada, ningún núcleo se satura. 
-Esto baja las temperaturas y  alarga la batería en portátiles. Asimismo, los servidores de alto rendimiento adopta este principio de eficiencia. permitiendo un mayor volumen de procesamiento gráfico sin alterar la demanda energética base \parencite{8685588}. 
+Esto baja las temperaturas y  alarga la batería en portátiles. Asimismo los servidores de alto rendimiento adoptan este principio de eficiencia, permitiendo un mayor volumen de procesamiento gráfico sin alterar la demanda energética base \parencite{8685588}. 
 
 
 
@@ -113,10 +113,10 @@ Los componentes se estructuran según su papel en el pipeline gráfico:
 \begin{itemize}
 \item \textbf{\texttt{GEGraphicsContext}}: Se encarga de arrancar Vulkan. Identifica y selecciona el dispositivo de hardware gráfico adecuado, crea el dispositivo lógico y abre las colas de trabajo.
 \item \textbf{\texttt{GERenderingContext}}: Contiene las referencias al programa gráfico a ejecutar (RenderPass y Pipeline) y a la estructura en la que se genera la imagen (Framebuffer).
-\item \textbf{\texttt{GEDrawingContext}}: Gestiona la \textit{Swapchain}. Además, gestiona los pases de render y los \textit{Framebuffers}.                                        
-\item \textbf{\texttt{GECommandContext}}: Graba las instrucciones de dibujo en los \textit{Command Pools} y \textit{Command Buffers}. Luego las manda a la GPU.
-\item \textbf{\texttt{GEPipelineConfig}}: Configura los estados fijos de la tubería. Controla el rasterizador, el ensamblado y la mezcla de color (\textit{blending}).
-\item \textbf{\texttt{GEDepthBuffer}}: Evita que los objetos se pinten en el orden incorrecto comprobando la profundidad de la escena.
+\item \textbf{\texttt{GEDrawingContext}}: Se encarga de gestionar la \textit{Swapchain} y los mecanismos de sincronización de sus imágenes.                                        
+\item \textbf{\texttt{GECommandContext}}: Graba las instrucciones de dibujo en los \textit{Command Pools} y \textit{Command Buffers}, dejándolos listos para su posterior envío a la GPU.
+\item \textbf{\texttt{GEPipelineConfig}}: Almacena los parámetros de configuración de un programa gráfico.
+\item \textbf{\texttt{GEDepthBuffer}}: Encapsula un búfer de profundidad, es decir, un búfer donde se almacena la profundidad (distancia en el eje Z) de cada píxel dibujado en la imagen.
 \end{itemize}
 
 
@@ -137,16 +137,16 @@ Los componentes se estructuran según su papel en el pipeline gráfico:
  
 \begin{itemize}
 \item \textbf{\texttt{GECamera}}: Controla lo que ve el usuario.
-\item \textbf{\texttt{GETransform}}: Mediante la posición, la rotación y la escala ubica los objetos.
-\item \textbf{\texttt{GELight}}: Define el tipo de luz.
-\item \textbf{\texttt{GEMaterial}}: Define cómo brilla el objeto.
+\item \textbf{\texttt{GETransform}}: Estructura que almacena y transfiere a la GPU las matrices de transformación necesarias para ubicar los objetos en la escena.
+\item \textbf{\texttt{GELight}}: Estructura que almacena las propiedades de la luz.
+\item \textbf{\texttt{GEMaterial}}: Estructura que almacena las propiedades de color y brillo de un material.
 \item \textbf{\texttt{GEWindowPosition}}: Corrige el aspecto de la cámara si el usuario cambia el tamaño de la pantalla.
 \end{itemize}
 
 \noindent Las clases de entidades y entorno son: 
 
 \begin{itemize}
-\item \textbf{\texttt{GEObject}}: Clase abstracta que representa un objeto formado por varias piezas
+\item \textbf{\texttt{GEObject}}: Clase base que actúa como contenedor genérico para representar un objeto formado por varias piezas.
 \item \textbf{\texttt{GEFigure}}: Genera formas matemáticas a partir de vértices. 
 \item \textbf{\texttt{GEPiece}}: Clase que describe una pieza de un objeto
 \item \textbf{\texttt{GESkybox}}: Se encarga de renderizar el entorno. Genera la ilusión de un horizonte infinito mediante la proyección de un \textit{cubemap}. Técnicamente, envuelve la cámara en una estructura cúbica que sigue la rotación de la misma, ignorando los desplazamientos espaciales. Para montar toda esta estructura se apoya en \textbf{\texttt{GESkyboxVertex}} y \textbf{\texttt{GESkyboxTransform}}.
@@ -171,4 +171,4 @@ El motor integra dos parejas de shaders:
 \end{itemize}
 \end{itemize}
 
-\noindent Esta estructura modular va a facilitarnos la integración de las partículas.
+\noindent Esta estructura modular va a facilitarnos la integración de las partículas. 

@@ -25,7 +25,7 @@ Una vez obtenidos todos los resultados, se transfiere todo ese bloque de datos h
 Esta transferencia continua satura el canal de comunicación. Se genera un cuello de botella crítico. 
 Por este motivo, el rendimiento del procesador principal decae abruptamente si se intenta actualizar nubes masivas de elementos manteniendo la fluidez~\parencite{latta2004massively}.
 
-Por el contrario, el enfoque basado en GPU (GPGPU) ejecuta las actualizaciones de forma paralela. Reuniendo y preservando la información en la memoria gráfica 
+Por el contrario, el enfoque basado en GPU (GPGPU) ejecuta las actualizaciones de forma paralela, reuniendo y preservando la información en la memoria gráfica 
 y ejecutando la física en los \textit{Compute Shaders}~\parencite{akenine2018real}.
 
 Como los datos ya no viajan por el bus PCI-Express, el rendimiento mejora notablemente. La tasa de fotogramas se ve incrementada de forma drástica.

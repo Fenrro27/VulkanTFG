@@ -15,10 +15,10 @@ La gestión de este bloque de ejecución recae sobre la clase \texttt{GEComputeS
 
 Fue necesario acoplar esta estructura de procesamiento dentro del ciclo de vida del motor. Para ello se emplearon tres clases preexistentes: \texttt{GERenderingContext}, \texttt{GECommandContext} y \texttt{GEScene}. El desafío principal radicó en la sincronización de la memoria compartida evitando condiciones de carrera o bloqueos. La clave reside en el orden de ejecución: la GPU calcula inicialmente la nueva posición de cada partícula; posteriormente, la pipeline gráfica lee estos datos de memoria para efectuar el renderizado tridimensional. El flujo interno se describe a continuación:
 
-El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le proporciona los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables procesa el \textit{Vertex Shader}. Enlazamos de forma directa cosas como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
+El componente \texttt{GEScene} maneja el arranque. Llama a \texttt{GERenderingContext} y le proporciona los parámetros de los emisores de partículas usando el método \texttt{createParticlePipelineConfig}. Con este paso definimos qué variables procesa el \textit{Vertex Shader}. Enlazamos de forma directa propiedades como la posición, la normal de la superficie, el color, el tamaño y la edad que acaba de calcular la GPU.
 
 Originalmente, la clase \texttt{GECommandContext} gestionaba exclusivamente instrucciones de renderizado básico. En esta implementación, se extendió su funcionalidad para registrar comandos de cómputo asíncronos.                                           
-Dichas instrucciones se ejecutan de forma previa a la etapa gráfica, garantizando que los calculos físicos se hayan procesado antes del renderizado de la escena.
+Dichas instrucciones se ejecutan de forma previa a la etapa gráfica, garantizando que los cálculos físicos se hayan procesado antes del renderizado de la escena.
 % -----------------------------------------
 \subsection{Carga de los shaders de computación}
 
@@ -261,8 +261,7 @@ Por último, para abstraer la carga, compilación en tiempo de ejecución y desp
 
 \subsection{Vertex y Fragment shaders de la pipeline}
 
-En las siguientes secciones se analiza en detalle el funcionamiento interno de los shaders. 
-Encargados de procesar y proyectar la simulación.
+En las siguientes secciones se analiza en detalle el funcionamiento interno de los shaders encargados de procesar y proyectar la simulación.
 
 \subsubsection{Vertex Shader de Partículas}
 
@@ -344,6 +343,7 @@ void main() {
 
 Este fragment shader procesa primitivas puntuales (\texttt{GL\_POINTS}). Calcula las coordenadas relativas al centro del punto, aplica la transformación de rotación, renderiza la textura y efectúa la interpolación del canal de opacidad (alfa).
 
+\vspace{3\baselineskip}
 Las entradas y salidas funcionan de forma sencilla. Conectamos la textura cargada (\texttt{particleTexture}) por un descriptor de Vulkan. El sombreador extrae el color (\texttt{inColor}) y los grados de giro (\texttt{inAngle}) que calculamos hace un momento. Al acabar, inyecta la mezcla (\texttt{outColor}) directo al marco de la pantalla (\textit{framebuffer}).
 
 Para generar la ilusión tridimensional se manipulan las coordenadas de textura nativas (UV) proporcionadas por \texttt{gl\_PointCoord}, las cuales operan en el rango $[0, 1]$. Inicialmente se reajusta el sistema de referencia restando $0.5$. Sobre este nuevo espacio de coordenadas, se simula una rotación vertical sobre el eje $Y$ aplicando la ecuación~(\ref{eq:rotacion_y}):
@@ -389,22 +389,10 @@ Para proyectar la densidad de un flujo líquido continuo sin incrementar la cant
     \label{fig:texAgua}
 \end{figure}
 
+\vspace{4\baselineskip}
+
 Todo el control matemático ocurre dentro de la GPU a través del shader de cómputo \texttt{water.comp} (véase la Figura~\ref{fig:water_comp}). Aquí la GPU lee el estado anterior de la partícula desde el búfer \texttt{particlesIn} y guarda los números nuevos en \texttt{particlesOut}. Organizamos la carga de trabajo de la gráfica en bloques de 256 hilos mediante \texttt{layout(local\_size\_x = 256)}. 
 Cada hilo de ejecución procesa de forma unívoca una partícula. Debido a la necesidad de introducir variabilidad en el sistema para romper la simetría de los flujos, y ante la ausencia de generadores nativos de pseudoaleatoriedad en GLSL, se diseñó una función hash fundamentada en operaciones binarias XOR. Esta aproximación permite obtener valores pseudoaleatorios de alta eficiencia sin requerir ciclos de procesamiento en la CPU.
-
-El proceso matemático se evalúa de manera concurrente. En primera instancia, se sustrae el diferencial de tiempo (\texttt{deltaTime}) al ciclo de vida de la partícula (\texttt{currentTtl}). Si el elemento ha finalizado su ciclo vital (\texttt{currentTtl} $\le 0.0$), se reubica en la base del emisor. La dispersión direccional inicial se obtiene empleando coordenadas esféricas para generar ocho vectores fijos que rotan en función del tiempo, siguiendo el sistema expuesto en~(\ref{eq:emision_agua}):
-
-\begin{equation}
-    \label{eq:emision_agua}
-    \begin{aligned}
-        \theta_{\text{base}} &= \left(45^\circ \cdot (i \bmod 8) \cdot \frac{\pi}{180}\right) + (\text{time} \cdot v_{\text{rot}}) \\
-        \phi &= 0.5236 + (\text{random}(i) - 0.5) \cdot 0.175 \\
-        v_x &= \sin(\phi) \cdot \cos(\theta_{\text{base}}) \\
-        v_y &= \cos(\phi) \\
-        v_z &= \sin(\phi) \cdot \sin(\theta_{\text{base}})
-    \end{aligned}
-\end{equation}
-
 
 \begin{figure}[!htbp]
     \centering
@@ -433,8 +421,20 @@ void main() {
     \label{fig:water_comp}
 \end{figure}
 
+El proceso matemático se evalúa de manera concurrente. En primera instancia, se sustrae el diferencial de tiempo (\texttt{deltaTime}) al ciclo de vida de la partícula (\texttt{currentTtl}). Si el elemento ha finalizado su ciclo vital (\texttt{currentTtl} $\le 0.0$), se reubica en la base del emisor. La dispersión direccional inicial se obtiene empleando coordenadas esféricas para generar ocho vectores fijos que rotan en función del tiempo, siguiendo el sistema expuesto en~(\ref{eq:emision_agua}):
 
-Si el punto sigue vivo y flotando, se le aplica la gravedad utilizando el valor estándar ($g = 9.8$). Además, frenamos su avance hacia los lados aplicando un coeficiente de rozamiento ($R = 0.5$) para evitar que la fuente se desborde. Todo se integra directo con la ecuación~(\ref{eq:integracion_agua}):
+\begin{equation}
+    \label{eq:emision_agua}
+    \begin{aligned}
+        \theta_{\text{base}} &= \left(45^\circ \cdot (i \bmod 8) \cdot \frac{\pi}{180}\right) + (\text{time} \cdot v_{\text{rot}}) \\
+        \phi &= 0.5236 + (\text{random}(i) - 0.5) \cdot 0.175 \\
+        v_x &= \sin(\phi) \cdot \cos(\theta_{\text{base}}) \\
+        v_y &= \cos(\phi) \\
+        v_z &= \sin(\phi) \cdot \sin(\theta_{\text{base}})
+    \end{aligned}
+\end{equation}
+
+Si el punto sigue vivo y flotando, se le aplica la gravedad utilizando el valor estándar ($g = 9.8$). Además, frenamos su avance hacia los lados aplicando un coeficiente de rozamiento ($R = 0.5$) para evitar que la fuente se desborde. Todo se integra directamente con la ecuación~(\ref{eq:integracion_agua}):
 
 \begin{equation}
     \label{eq:integracion_agua}
@@ -447,7 +447,6 @@ Si el punto sigue vivo y flotando, se le aplica la gravedad utilizando el valor 
 
 Toda esta parte de shaders está apoyada por la clase \texttt{GEAgua} en C++. El arranque aquí es muy estructurado. Definimos que cada partícula dure entre 2.0 y 3.5 segundos flotando, todo sacado de un motor \texttt{std::mt19937} inicializado como \texttt{static} con el fin de evitar el consumo innecesario de ciclos de reloj. A nivel estético, la gota pasa de azul eléctrico a transparente conforme pierde fuerza, y su tamaño se achica hasta desaparecer del todo.
 
-Los resultados visuales evidencian la eficacia del método. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra resultan muy precisas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido sin sobrecargar la tarjeta gráfica.
 
 \begin{figure}[!htbp]
     \centering
@@ -455,6 +454,8 @@ Los resultados visuales evidencian la eficacia del método. Las parábolas de ag
     \caption{Resultado visual final de la simulación del sistema de agua sobre la fuente.}
     \label{fig:resultadoAgua}
 \end{figure}
+
+Los resultados visuales evidencian la eficacia del método. Las parábolas de agua que dibuja el sistema sobre el modelo de piedra resultan muy precisas (Figura~\ref{fig:resultadoAgua}). Usar texturas tan detalladas con mezcla aditiva fue un acierto enorme, ya que montamos un volumen líquido sin sobrecargar la tarjeta gráfica.
 
 \section{Fuego}
 
@@ -470,14 +471,15 @@ Tampoco se implementaron cálculos termodinámicos complejos. El comportamiento 
     \label{fig:modHoguera}
 \end{figure}
 
-Con el propósito de lograr una alta temperatura cromática, se descartaron \textit{sprites} de contornos nítidos y se empleó una textura difuminada~\parencite{Wolff_2013} (Figura \ref{fig:texFuego}). Gracias a la mezcla aditiva (\textit{additive blending}) configurada en la pipeline gráfica, las partículas superpuestas acumulan luminancia. Esto resulta en un núcleo incandescente de alta intensidad lumínica sobre los leños, evadiendo el alto coste computacional asociado a emisores de luz dinámicos y sombras en la escena tridimensional.
-
 \begin{figure}[!htbp]
     \centering
     \tikz \node[draw, rounded corners=5pt, inner sep=0pt] {\includegraphics[width=0.4\textwidth]{Media/Desarrollo_2.png}};
     \caption{Textura del fuego.}
     \label{fig:texFuego}
 \end{figure}
+
+\vspace{5\baselineskip}
+Con el propósito de lograr una alta temperatura cromática, se descartaron \textit{sprites} de contornos nítidos y se empleó una textura difuminada~\parencite{Wolff_2013} (Figura \ref{fig:texFuego}). Gracias a la mezcla aditiva (\textit{additive blending}) configurada en la pipeline gráfica, las partículas superpuestas acumulan luminancia. Esto resulta en un núcleo incandescente de alta intensidad lumínica sobre los leños, evadiendo el alto coste computacional asociado a emisores de luz dinámicos y sombras en la escena tridimensional.
 
 
 \begin{figure}[!htbp]
@@ -622,7 +624,7 @@ A lo largo de su ascensión, las partículas están sujetas a una fuerza de sust
     \end{aligned}
 \end{equation}
 
-El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño reducido de $1.5$ y se expanden considerablemente, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. Al sumarle a esto un ciclo de vida prolongado (entre 2.0 y 6.0 segundos) y un color que arranca en gris cerrado para morir en una transparencia negra absoluta, logrando el comportamiento estético proyectado.                            
+El toque final lo da la clase de control principal \texttt{GEHumo}. Para que el efecto sea de nube densa, las partículas empiezan con un tamaño reducido de $1.5$ y se expanden considerablemente, alcanzando una escala de $15.0$ cuando van a desaparecer de pantalla. A esto se le suma un ciclo de vida prolongado (entre 2.0 y 6.0 segundos) y un color que empieza siendo gris oscuro para terminar en una transparencia negra absoluta, logrando así el comportamiento estético proyectado.                            
 
 La locomotora expulsa una columna negra gigantesca que se va disipando según choca contra la atmósfera, como se observa en la Figura~\ref{fig:resultadoHumo}. El efecto está plenamente conseguido apoyándose exclusivamente en modelos matemáticos.
 
