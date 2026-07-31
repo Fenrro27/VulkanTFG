@@ -63,7 +63,7 @@ void GEParticlesSystem::initialize(GEGraphicsContext* gc, GERenderingContext* rc
 {
 	size_t vertexSize = sizeof(GEParticle) * particles.size();
 	pboA = std::make_unique<GEParticleBuffer>(gc, vertexSize, particles.data());
-	pboB = std::make_unique<GEParticleBuffer>(gc, vertexSize, nullptr);
+	pboB = std::make_unique<GEParticleBuffer>(gc, vertexSize, particles.data());
 
 
 	// SOLO crear el IBO si hay ï¿½ndices, compute shader
