@@ -940,6 +940,8 @@ void GETexture::transitionImageLayout(GEGraphicsContext* gc, uint32_t layers, Vk
 
 
 
+	std::lock_guard<std::mutex> lock(gc->graphicsQueueMutex);
+
 	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
 
 	vkQueueWaitIdle(queue);
@@ -1041,6 +1043,8 @@ void GETexture::copyBufferToImage(GEGraphicsContext* gc, uint32_t layers, VkComm
 	submitInfo.pCommandBuffers = &commandBuffer;
 
 
+
+	std::lock_guard<std::mutex> lock(gc->graphicsQueueMutex);
 
 	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
 

@@ -22,6 +22,9 @@
 #include <imgui_impl_vulkan.h>
 #include <imgui_internal.h>
 #include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <exception>
 
 
 //
@@ -58,6 +61,39 @@ void GEApplication::run()
 	}
 	else {
 		std::cout << "[ERROR FATAL] La escena no creo el RenderingContext" << std::endl;
+	}
+
+	// Cargamos los recursos pesados de la escena en un hilo en segundo plano,
+	// mientras el hilo principal muestra una pantalla de carga animada.
+	scene->setLoading(true);
+
+	loaderThread = std::thread([this]() {
+		try {
+			scene->loadAssets(gc.get(), dc.get(), cc.get());
+		}
+		catch (...) {
+			scene->setLoading(false);
+			scene->setLoadError(std::current_exception());
+		}
+	});
+
+	loadingLoop();
+
+	if (loaderThread.joinable()) loaderThread.join();
+
+	// Reaplicamos un resize que haya podido ocurrir durante la carga
+	if (pendingResize) {
+		pendingResize = false;
+		resize();
+	}
+
+	if (scene->hasLoadError()) {
+		std::rethrow_exception(scene->getLoadError());
+	}
+
+	if (glfwWindowShouldClose(window.get())) {
+		cleanup();
+		return;
 	}
 
 	mainLoop();
@@ -150,6 +186,169 @@ void GEApplication::mainLoop()
 
 		draw(fixedDeltaTime, physicsSteps, alpha, frameTime);
 	}
+}
+
+//
+// FUNCION: GEApplication::loadingLoop()
+//
+// PROPOSITO: Bucle que renderiza la pantalla de carga mientras la escena se carga en segundo plano
+//
+/**
+ * @brief Función GEApplication::loadingLoop
+ */
+void GEApplication::loadingLoop()
+{
+	using clock = std::chrono::steady_clock;
+
+	auto lastTime = clock::now();
+	auto startTime = lastTime;
+	const double minLoadingTime = 1.5;
+
+	// Mostramos la pantalla de carga mientras el hilo trabaja y,
+	// como minimo, durante minLoadingTime para que la animacion sea visible.
+	while ((scene->isLoading() || std::chrono::duration<double>(clock::now() - startTime).count() < minLoadingTime)
+		&& !glfwWindowShouldClose(window.get()))
+	{
+		glfwPollEvents();
+
+		auto currentTime = clock::now();
+		double frameTime = std::chrono::duration<double>(currentTime - lastTime).count();
+		lastTime = currentTime;
+
+		if (frameTime > 0.25) frameTime = 0.25;
+
+		drawLoading(frameTime);
+	}
+
+	glfwPollEvents();
+}
+
+//
+// FUNCION: GEApplication::drawLoading(double frameTime)
+//
+// PROPOSITO: Renderiza un frame mostrando unicamente la pantalla de carga
+//
+/**
+ * @brief Función GEApplication::drawLoading
+ */
+void GEApplication::drawLoading(double frameTime)
+{
+	// 1. SINCRONIZACION
+	if (!dc->waitForNextImage(gc.get())) {
+		return;
+	}
+	uint32_t i = dc->getCurrentImage();
+	VkCommandBuffer cb = cc->commandBuffers[i];
+
+	// 2. RESET Y BEGIN
+	vkResetCommandBuffer(cb, 0);
+	VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	if (vkBeginCommandBuffer(cb, &beginInfo) != VK_SUCCESS) return;
+
+	// 3. PREPARAR IMGUI
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// 4. PANTALLA DE CARGA
+	renderLoadingScreen();
+
+	// 5. DIBUJAR IMGUI
+	ImGui::Render();
+
+	auto rc = scene->getRenderingContext();
+	rc->insertBeginCommands(cb, i);
+
+	ImDrawData* drawData = ImGui::GetDrawData();
+	if (drawData) {
+		ImGui_ImplVulkan_RenderDrawData(drawData, cb);
+	}
+
+	// 6. FINALIZAR
+	rc->insertEndCommands(cb);
+	vkEndCommandBuffer(cb);
+
+	dc->submitGraphicsCommands(gc.get(), cc->commandBuffers);
+	dc->submitPresentCommands(gc.get());
+}
+
+//
+// FUNCION: GEApplication::renderLoadingScreen()
+//
+// PROPOSITO: Dibuja la interfaz de la pantalla de carga (titulo, spinner y barra de progreso)
+//
+/**
+ * @brief Función GEApplication::renderLoadingScreen
+ */
+void GEApplication::renderLoadingScreen()
+{
+	ImGuiIO& io = ImGui::GetIO();
+	ImVec2 screen = io.DisplaySize;
+
+	float cx = screen.x * 0.5f;
+	float cy = screen.y * 0.45f;
+
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+	ImGui::SetNextWindowSize(screen);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.05f, 0.05f, 0.09f, 1.0f));
+
+	ImGuiWindowFlags flags =
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings;
+
+	ImGui::Begin("LoadingScreen", nullptr, flags);
+	{
+		// Titulo
+		const char* title = "VULKAN TFG";
+		ImVec2 titleSize = ImGui::CalcTextSize(title);
+		ImGui::SetCursorPos(ImVec2(cx - titleSize.x * 0.5f, cy - 90.0f));
+		ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), title);
+
+		// Spinner animado (puntos orbitando)
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		float t = (float)ImGui::GetTime();
+		const int dots = 8;
+		const float radius = 18.0f;
+		const float PI2 = 6.2831853f;
+		for (int i = 0; i < dots; i++) {
+			float a = t * 2.4f + (float)i * (PI2 / dots);
+			float x = cx + std::cos(a) * radius;
+			float y = cy + std::sin(a) * radius;
+			float fade = 0.25f + 0.75f * (0.5f + 0.5f * std::sin((float)i - t * 5.0f));
+			ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.72f, 0.3f, fade));
+			dl->AddCircleFilled(ImVec2(x, y), 4.0f, col, 16);
+		}
+
+		// Mensaje de carga
+		std::string msg = scene->getLoadMessage();
+		ImVec2 msgSize = ImGui::CalcTextSize(msg.c_str());
+		ImGui::SetCursorPos(ImVec2(cx - msgSize.x * 0.5f, cy + 40.0f));
+		ImGui::TextColored(ImVec4(0.85f, 0.85f, 0.9f, 1.0f), "%s", msg.c_str());
+
+		// Barra de progreso
+		float progress = scene->getLoadProgress();
+		ImVec2 barSize(300.0f, 12.0f);
+		ImGui::SetCursorPos(ImVec2(cx - barSize.x * 0.5f, cy + 70.0f));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0f, 0.72f, 0.3f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.12f, 0.12f, 0.16f, 1.0f));
+		char overlay[32];
+		snprintf(overlay, sizeof(overlay), "%d%%", (int)(progress * 100.0f));
+		ImGui::ProgressBar(progress, barSize, overlay);
+		ImGui::PopStyleColor(2);
+	}
+	ImGui::End();
+
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(2);
 }
 
 //
@@ -323,6 +522,9 @@ void GEApplication::draw(double fixedDt, int physicsSteps, double alpha, double 
  */
 void GEApplication::cleanup()
 {
+	// Si el hilo de carga sigue activo, esperamos a que termine antes de destruir recursos
+	if (loaderThread.joinable()) loaderThread.join();
+
 	if(gc) vkDeviceWaitIdle(gc->device); // ESPERA A LA GPU ANTES DE DESTRUIR NADA
 
 	vkDestroyQueryPool(gc->device, queryPool, nullptr);
@@ -444,6 +646,20 @@ void GEApplication::framebufferResizeCallback(GLFWwindow* window, int width, int
  */
 void GEApplication::resize()
 {
+	// Si la escena se esta cargando en segundo plano, posponemos el resize:
+	// no podemos recrear el contexto de render mientras el hilo de carga lo usa.
+	if (scene && scene->isLoading()) {
+		if (!windowPos.fullScreen)
+		{
+			glfwGetWindowSize(window.get(), &windowPos.width, &windowPos.height);
+			glfwGetWindowPos(window.get(), &windowPos.Xpos, &windowPos.Ypos);
+		}
+		pendingResize = true;
+		return;
+	}
+
+	pendingResize = false;
+
 	// Esperar a que la GPU termine TODO antes de destruir recursos en uso
 	vkDeviceWaitIdle(gc->device);
 	#ifdef _DEBUG

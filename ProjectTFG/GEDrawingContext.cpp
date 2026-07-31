@@ -744,6 +744,8 @@ void GEDrawingContext::submitGraphicsCommands(GEGraphicsContext* gc, std::vector
 
 
 
+	std::lock_guard<std::mutex> lock(gc->graphicsQueueMutex);
+
 	VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
 
 
@@ -807,6 +809,8 @@ void GEDrawingContext::submitPresentCommands(GEGraphicsContext* gc)
 	presentInfo.pImageIndices = &currentImage;
 
 
+
+	std::lock_guard<std::mutex> lock(gc->graphicsQueueMutex);
 
 	VkResult result = vkQueuePresentKHR(presentQueue, &presentInfo);
 

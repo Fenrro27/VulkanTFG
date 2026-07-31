@@ -94,11 +94,45 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 
 	this->camera->setMoveStep(0.0f);
 
+}
+
+//
+
+// FUNCIÓN: GEScene::loadAssets(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc)
+
+//
+
+// PROPÓSITO: Carga los recursos pesados de la escena en segundo plano
+
+//
+
+/**
+
+ * @brief Función GEScene::loadAssets
+
+ */
+
+void GEScene::loadAssets(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *cc)
+
+{
+
+	setLoading(true);
+
+	setLoadProgress(0.0f, "Preparando carga...");
+
+	// Skybox (textura cubemap)
+
+	setLoadProgress(0.03f, "Cargando skybox...");
+
 	rc->setActivePipeline(SKYBOX_PIPELINE);
 
 	this->skybox = std::make_unique<GESkybox>(gc, rc.get());
 
 	rc->setActivePipeline(SCENE_PIPELINE);
+
+	// Texturas de la escena
+
+	setLoadProgress(0.12f, "Cargando texturas...");
 
 	auto texWood = std::make_shared<GETexture>(gc, "textures/wood.jpg");
 
@@ -117,9 +151,14 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 	textures.push_back(texFire);
 
 	auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com (1).png");
+
 	//	auto texWater = std::make_shared<GETexture>(gc, "textures/bluewater.png");
+
 	// auto texWater = std::make_shared<GETexture>(gc, "textures/pngwing.com.png");
+
 	textures.push_back(texWater);
+
+	setLoadProgress(0.25f, "Texturas cargadas");
 
 	GELight light = {};
 
@@ -141,6 +180,10 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 
 	groundMat.Shininess = 16.0f;
 
+	// Suelo
+
+	setLoadProgress(0.32f, "Cargando suelo...");
+
 	std::unique_ptr<GEFigure> ground = std::make_unique<GEGround>(150.0f, 150.0f);
 
 	ground->setTexture(texWood.get()); // Obtiene el puntero crudo del unique_ptr
@@ -155,12 +198,19 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 
 	// Carga de modelos .obj usando tinyobjloader
 
+	setLoadProgress(0.42f, "Cargando modelos 3D...");
+
 	auto fuente = std::make_unique<GEModel>(gc, "models/newFountain/fountain.obj", 0.5f);
 
 	fuente->initialize(gc, rc.get());
+
 	fuente->translate(glm::vec3(25.0f, 0.0f, 0.0f));
+
 	fuente->setLight(light);
+
 	objects.push_back(std::move(fuente));
+
+	setLoadProgress(0.52f, "Cargando modelos 3D...");
 
 	auto hoguera = std::make_unique<GEModel>(gc, "models/campfire/campfire.obj", 0.01f);
 
@@ -174,6 +224,8 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 
 	objects.push_back(std::move(hoguera));
 
+	setLoadProgress(0.62f, "Cargando modelos 3D...");
+
 	auto tren = std::make_unique<GEModel>(gc, "models/train/sketchfabpreview.obj", 0.1f);
 
 	tren->initialize(gc, rc.get());
@@ -186,6 +238,10 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 
 	objects.push_back(std::move(tren));
 
+	// Shaders de computo y sistemas de particulas
+
+	setLoadProgress(0.72f, "Compilando shaders de particulas...");
+
 	rc->setActivePipeline(PARTICLE_PIPELINE);
 
 	// particleCompute = std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_PARTICLES, dc->getImageCount());
@@ -195,6 +251,8 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_FUEGO, dc->getImageCount()));
 
 	computeShaders.push_back(std::make_unique<GEComputeShader>(gc, IDR_COMPUTE_AGUA, dc->getImageCount()));
+
+	setLoadProgress(0.82f, "Inicializando sistemas de particulas...");
 
 	particleSystem.push_back(std::make_unique<GEHumo>(100));
 
@@ -247,6 +305,173 @@ GEScene::GEScene(GEGraphicsContext *gc, GEDrawingContext *dc, GECommandContext *
 	computeShaders[2]->addParticleSystem(gc, dc->getImageCount(), particleSystem[2].get());
 
 	camera->addObservationPoint(particleSystem[2]->getLocation(), "Agua");
+
+	setLoadProgress(1.0f, "Escena lista");
+
+	setLoading(false);
+
+}
+
+//
+
+// FUNCIÓN: GEScene::setLoading(bool loading)
+
+//
+
+// PROPÓSITO: Marca si la escena esta cargando recursos en segundo plano
+
+//
+
+void GEScene::setLoading(bool loading)
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	isLoadingState = loading;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::isLoading()
+
+//
+
+// PROPÓSITO: Devuelve si la escena esta cargando recursos
+
+//
+
+bool GEScene::isLoading() const
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	return isLoadingState;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::setLoadProgress(float progress, const std::string& message)
+
+//
+
+// PROPÓSITO: Actualiza el progreso de carga y el mensaje asociado
+
+//
+
+void GEScene::setLoadProgress(float progress, const std::string& message)
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	loadProgress = progress;
+
+	loadMessage = message;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::getLoadProgress()
+
+//
+
+// PROPÓSITO: Devuelve el progreso de carga (0.0 a 1.0)
+
+//
+
+float GEScene::getLoadProgress() const
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	return loadProgress;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::getLoadMessage()
+
+//
+
+// PROPÓSITO: Devuelve el mensaje de carga actual
+
+//
+
+std::string GEScene::getLoadMessage() const
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	return loadMessage;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::setLoadError(std::exception_ptr error)
+
+//
+
+// PROPÓSITO: Almacena el error producido durante la carga en segundo plano
+
+//
+
+void GEScene::setLoadError(std::exception_ptr error)
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	loadError = error;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::hasLoadError()
+
+//
+
+// PROPÓSITO: Devuelve si hubo un error durante la carga
+
+//
+
+bool GEScene::hasLoadError() const
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	return loadError != nullptr;
+
+}
+
+//
+
+// FUNCIÓN: GEScene::getLoadError()
+
+//
+
+// PROPÓSITO: Devuelve el error producido durante la carga
+
+//
+
+std::exception_ptr GEScene::getLoadError() const
+
+{
+
+	std::lock_guard<std::mutex> lock(loadMutex);
+
+	return loadError;
+
 }
 
 //
@@ -277,7 +502,7 @@ void GEScene::destroy(GEGraphicsContext *gc)
 
 	rc->destroy(gc);
 
-	skybox->destroy(gc);
+	if (skybox) skybox->destroy(gc);
 
 	for (auto &figure : figures)
 
@@ -375,7 +600,7 @@ void GEScene::update(GEGraphicsContext *gc, uint32_t index, float deltaTime)
 
 	glm::mat4 view = camera->getViewMatrix();
 
-	skybox->update(gc, index, view, projection);
+	if (skybox) skybox->update(gc, index, view, projection);
 
 	for (auto &figure : figures)
 
@@ -1055,7 +1280,7 @@ void GEScene::drawGraphicsObjects(VkCommandBuffer cb, uint32_t i)
 
 	vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, rc->getActivePipeline());
 
-	skybox->addCommands(cb, rc->getActivePipelineLayout(), i);
+	if (skybox) skybox->addCommands(cb, rc->getActivePipelineLayout(), i);
 
 	// Objetos de la escena
 

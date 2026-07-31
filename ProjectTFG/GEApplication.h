@@ -12,6 +12,7 @@
 #include "GECommandContext.h"
 #include "GEScene.h"
 
+#include <thread>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
@@ -71,12 +72,30 @@ private:
 
 	VkQueryPool queryPool = VK_NULL_HANDLE;
 
+	// Carga en segundo plano de la escena
+
+	std::thread loaderThread;
+
+	bool pendingResize = false;
+
 	/**
-	 * @brief FunciÃ³n mainLoop
+	 * @brief Función mainLoop
 	 */
 	void mainLoop();
 	/**
-	 * @brief FunciÃ³n draw
+	 * @brief Bucle que renderiza la pantalla de carga mientras la escena carga en segundo plano
+	 */
+	void loadingLoop();
+	/**
+	 * @brief Dibuja la pantalla de carga animada
+	 */
+	void drawLoading(double frameTime);
+	/**
+	 * @brief Dibuja la pantalla de carga (UI de ImGui)
+	 */
+	void renderLoadingScreen();
+	/**
+	 * @brief Función draw
 	 */
 	void draw(double deltaTime, int physicsSteps, double alpha, double frameTime);
 	/**

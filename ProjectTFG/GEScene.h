@@ -14,13 +14,19 @@
 #include "GEFigure.h"
 #include "GEParticlesSystem.h"
 #include "GECamera.h"
-#include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
-#include <vector>
-#include "GEComputeShader.h"
-
-
-
+#include <vulkan/vulkan.h>
+
+#include <glm/glm.hpp>
+
+#include <vector>
+
+#include <string>
+
+#include <mutex>
+
+#include <exception>
+
+#include "GEComputeShader.h"
 enum PipelineType {
 	SKYBOX_PIPELINE = 0,
 	SCENE_PIPELINE = 1,
@@ -58,12 +64,70 @@ private:
 
 	bool isDragging = false;
 	bool firstMouse = true;
-	float lastX = 400.0f; // Mitad de pantalla 800x600
-	float lastY = 300.0f;
-
-
+	float lastX = 400.0f; // Mitad de pantalla 800x600
+
+	float lastY = 300.0f;
+
+	// Estado de carga en segundo plano
+
+	bool isLoadingState = false;
+
+	float loadProgress = 0.0f;
+
+	std::string loadMessage;
+
+	mutable std::mutex loadMutex;
+
+	std::exception_ptr loadError;
+
 public:
-	GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
+	GEScene(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
+
+	/**
+	 * @brief Carga los recursos pesados de la escena en segundo plano
+	 */
+	void loadAssets(GEGraphicsContext* gc, GEDrawingContext* dc, GECommandContext* cc);
+
+	/**
+	 * @brief Marca si la escena esta cargando recursos en segundo plano
+	 */
+	void setLoading(bool loading);
+
+	/**
+	 * @brief Devuelve si la escena esta cargando recursos
+	 */
+	bool isLoading() const;
+
+	/**
+	 * @brief Actualiza el progreso de carga y el mensaje asociado
+	 */
+	void setLoadProgress(float progress, const std::string& message);
+
+	/**
+	 * @brief Devuelve el progreso de carga (0.0 a 1.0)
+	 */
+	float getLoadProgress() const;
+
+	/**
+	 * @brief Devuelve el mensaje de carga actual
+	 */
+	std::string getLoadMessage() const;
+
+	/**
+	 * @brief Almacena el error producido durante la carga en segundo plano
+	 */
+	void setLoadError(std::exception_ptr error);
+
+	/**
+	 * @brief Devuelve si hubo un error durante la carga
+	 */
+	bool hasLoadError() const;
+
+	/**
+	 * @brief Devuelve el error producido durante la carga
+	 */
+	std::exception_ptr getLoadError() const;
+
 	/**
 	 * @brief Función destroy
 	 */

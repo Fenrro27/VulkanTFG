@@ -6,7 +6,10 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.h>
+
+#include <mutex>
+
 
 //
 // CLASE: GEGraphicsContext
@@ -24,10 +27,13 @@ public:
 	VkSurfaceKHR surface;
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
-	uint32_t graphicsQueueFamilyIndex;
-	uint32_t presentQueueFamilyIndex;
-
-
+	uint32_t graphicsQueueFamilyIndex;
+
+	uint32_t presentQueueFamilyIndex;
+
+	// Serializa el acceso a la cola de graficos cuando varios hilos suben trabajo
+	std::mutex graphicsQueueMutex;
+
 private:
 	VkPhysicalDeviceMemoryProperties memProperties;
 
