@@ -307,14 +307,17 @@ void GEApplication::renderLoadingScreen()
 
 	ImGui::Begin("LoadingScreen", nullptr, flags);
 	{
-		// Titulo
+		// Titulo (grande, dibujado con tamano de fuente escalado)
+		ImDrawList* dl = ImGui::GetWindowDrawList();
 		const char* title = "VULKAN TFG";
-		ImVec2 titleSize = ImGui::CalcTextSize(title);
-		ImGui::SetCursorPos(ImVec2(cx - titleSize.x * 0.5f, cy - 90.0f));
-		ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), title);
+		ImFont* titleFont = ImGui::GetFont();
+		float titleScale = 3.2f;
+		float titleFontSize = titleFont->FontSize * titleScale;
+		ImVec2 titleSize = titleFont->CalcTextSizeA(titleFontSize, FLT_MAX, 0.0f, title);
+		ImU32 titleCol = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.75f, 0.3f, 1.0f));
+		dl->AddText(titleFont, titleFontSize, ImVec2(cx - titleSize.x * 0.5f, cy - 130.0f), titleCol, title);
 
 		// Spinner animado (puntos orbitando)
-		ImDrawList* dl = ImGui::GetWindowDrawList();
 		float t = (float)ImGui::GetTime();
 		const int dots = 8;
 		const float radius = 18.0f;
