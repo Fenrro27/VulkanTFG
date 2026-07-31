@@ -78,6 +78,10 @@ private:
 
 	bool pendingResize = false;
 
+	// Fuente grande de alta resolucion para el titulo de la pantalla de carga
+
+	ImFont* bigTitleFont = nullptr;
+
 	/**
 	 * @brief Función mainLoop
 	 */

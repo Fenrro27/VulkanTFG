@@ -307,12 +307,11 @@ void GEApplication::renderLoadingScreen()
 
 	ImGui::Begin("LoadingScreen", nullptr, flags);
 	{
-		// Titulo (grande, dibujado con tamano de fuente escalado)
+		// Titulo (grande, rasterizado a tamano real para que se vea suave)
 		ImDrawList* dl = ImGui::GetWindowDrawList();
 		const char* title = "VULKAN TFG";
-		ImFont* titleFont = ImGui::GetFont();
-		float titleScale = 3.2f;
-		float titleFontSize = titleFont->FontSize * titleScale;
+		ImFont* titleFont = (bigTitleFont != nullptr) ? bigTitleFont : ImGui::GetFont();
+		float titleFontSize = titleFont->FontSize;
 		ImVec2 titleSize = titleFont->CalcTextSizeA(titleFontSize, FLT_MAX, 0.0f, title);
 		ImU32 titleCol = ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 0.75f, 0.3f, 1.0f));
 		dl->AddText(titleFont, titleFontSize, ImVec2(cx - titleSize.x * 0.5f, cy - 130.0f), titleCol, title);
@@ -732,6 +731,19 @@ void GEApplication::inicializarImGui() {
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
+
+	// 3.5 Configurar las fuentes con alto oversampling para que se vean mas suaves
+	ImFontConfig uiCfg;
+	uiCfg.OversampleH = 4;
+	uiCfg.OversampleV = 4;
+	io.Fonts->AddFontDefault(&uiCfg);
+
+	// Fuente grande para el titulo de la pantalla de carga (rasterizada a su tamano real)
+	ImFontConfig titleCfg;
+	titleCfg.SizePixels = 72.0f;
+	titleCfg.OversampleH = 4;
+	titleCfg.OversampleV = 4;
+	bigTitleFont = io.Fonts->AddFontDefault(&titleCfg);
 
 	// 4. Inicializar Binding de GLFW
 	if (!ImGui_ImplGlfw_InitForVulkan(this->window.get(), true)) {
