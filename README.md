@@ -63,11 +63,25 @@ cmake --build --preset macos-debug --target run
 ---
 
 ## Estructura del Proyecto
-- `ProjectTFG/`: Código fuente del motor gráfico.
-- `shaders/`: Código fuente de los GLSL shaders.
-- `textures/`: Texturas del proyecto.
-- `models/`: Modelos 3D (OBJ/TinyObjLoader).
+El código fuente está organizado en subcarpetas por módulo (layout estándar de motores gráficos Vulkan). Los includes entre clases son planos (`#include "GEGraphicsContext.h"`) y se resuelven automáticamente porque el CMake añade todas las subcarpetas a las rutas de inclusión.
+
+```
+ProjectTFG/
+├── main.cpp              # Entry point (GEApplication::run)
+├── resource.h            # IDs de recursos (shaders SPIR-V embebidos)
+├── Core/                 # App, escena, cámara, skybox (GEApplication, GEScene, GECamera, GESkybox, GEWindowPosition, commonDebug)
+├── Render/               # Infraestructura Vulkan: contexto, swapchain, render pass, pipelines, depth (GEGraphicsContext, GEDrawingContext, GECommandContext, GERenderingContext, GEDepthBuffer)
+├── Resources/            # Recursos GPU: texturas, buffers, descriptor sets, pipeline config (GETexture, GEVertexBuffer, GEIndexBuffer, GEUniformBuffer, GEDescriptorSet, GEPipelineConfig)
+├── Geometry/             # Figuras paramétricas (GEFigure + 9 subclases, GEGround)
+├── Objects/              # Objetos compuestos y modelos OBJ (GEObject, GEPiece, GEModel)
+├── Particles/            # Sistemas de partículas y compute shaders (GEParticlesSystem, GEHumo, GEFuego, GEAgua, GEComputeShader, GEParticleBuffer, GEParticle, GEEmitterParams)
+├── Types/                # Structs GPU compartidos (GEVertex, GETransform, GEMaterial, GELight)
+├── shaders/              # Código fuente de los GLSL shaders
+├── textures/             # Texturas del proyecto
+└── models/               # Modelos 3D (OBJ/TinyObjLoader)
+```
 - `out/`: Directorio de salida generado automáticamente (ignorado por Git).
+- Para añadir código nuevo: crea el `.cpp`/`.h` en la subcarpeta correspondiente y CMake lo detecta solo (`GLOB_RECURSE ... CONFIGURE_DEPENDS`); no hay que tocar el CMakeLists.
 
 ## Solución de Problemas Frecuentes
 `Error`: unexpected field 'license', did you mean 'supports'?
@@ -77,3 +91,51 @@ Este error ocurre cuando se utiliza una versión anticuada de la herramienta vcp
 
 ## Notas de Desarrollo
 Para añadir nuevos archivos al proyecto, simplemente inclúyelos en la carpeta `ProjectTFG/` y CMake los detectará automáticamente en la siguiente compilación.
+
+---
+
+## Graphify (Mapa de Conocimiento del Código)
+
+Este repositorio usa **[Graphify](https://github.com/Graphify-Labs/graphify)** para indexar el código en un grafo de conocimiento consultable (`graphify-out/`). Permite a los agentes de IA responder preguntas sobre el proyecto con un subgrafo acotado en lugar de escanear todos los archivos (ahorro de tokens).
+
+> El paquete de PyPI se llama **`graphifyy`** (con doble `y`); el comando CLI es `graphify`.
+
+### Entorno Python (`.venv`)
+Graphify se instala en un entorno virtual aislado en la raíz del proyecto:
+```bash
+python3 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install graphifyy
+```
+En Windows usa `.venv\Scripts\graphify.exe` (o `python -m graphify`).
+
+### Generar / actualizar el grafo
+```bash
+# Extracción completa desde cero (AST local, sin API): .graphifyignore excluye build/ y .venv/
+.venv/bin/graphify extract . --code-only
+
+# Tras un cambio de código (incremental, también sin API):
+.venv/bin/graphify update .
+
+# Generar GRAPH_REPORT.md + graph.html (clustering; --no-label evita llamadas LLM):
+.venv/bin/graphify cluster-only . --no-label
+```
+
+### Consultas útiles
+```bash
+.venv/bin/graphify query "cómo se cargan las partículas en la escena"
+.venv/bin/graphify path "GEApplication" "GEScene"
+.venv/bin/graphify explain "GEParticlesSystem"
+.venv/bin/graphify god-nodes --top 8
+```
+
+### Salida (`graphify-out/`)
+- `graph.json` — grafo completo (nodos, aristas, comunidades).
+- `GRAPH_REPORT.md` — resumen estructural y hubs arquitectónicos.
+- `graph.html` — visualización interactiva (ábrela en el navegador).
+- `manifest.json` / `cache/` — metadatos de extracción incremental.
+
+### Integración con opencode
+El skill y el plugin se instalan por proyecto en `.opencode/` (ver la sección *graphify* de `AGENTS.md`). El plugin recuerda usar `graphify query` antes de hacer grep cuando existe `graphify-out/graph.json`, y tras modificar código conviene ejecutar `graphify update .`.
+
+> `graphify-out/`, `.venv/` y `__pycache__/` están en `.gitignore`; se regeneran con los comandos anteriores.

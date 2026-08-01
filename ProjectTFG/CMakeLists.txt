@@ -46,8 +46,8 @@ if(GLSL_VALIDATOR)
     add_custom_target(compile_shaders ALL DEPENDS ${SPV_OUTPUTS})
 endif()
 
-# 4. Lista de archivos de código
-file(GLOB SRC_FILES "*.cpp" "*.h")
+# 4. Lista de archivos de código (búsqueda recursiva en subcarpetas)
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "*.cpp" "*.h")
 
 # 5. Crear el Ejecutable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SPV_OUTPUTS})
@@ -72,8 +72,16 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     tinyobjloader::tinyobjloader
 )
 
+# Subcarpetas de código fuente (incluidas para resolver includes planos de los headers GE)
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core
+    ${CMAKE_CURRENT_SOURCE_DIR}/Render
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Geometry
+    ${CMAKE_CURRENT_SOURCE_DIR}/Objects
+    ${CMAKE_CURRENT_SOURCE_DIR}/Particles
+    ${CMAKE_CURRENT_SOURCE_DIR}/Types
     ${STB_INCLUDE_DIR}
 )
 

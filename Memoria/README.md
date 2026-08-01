@@ -30,3 +30,15 @@ pdflatex memoria.tex
 
 - `Portada.tex`, `Resumen.tex`, `Abstract.tex` y `Agradecimientos.tex` están en `Secciones/`.
 - El archivo `memoria.tex` importa todas las secciones desde `Secciones/`.
+
+## Graphify (mapa de conocimiento)
+
+El repositorio raíz tiene configurado [Graphify](https://github.com/Graphify-Labs/graphify) (paquete PyPI `graphifyy`), que indexa el código del motor en `graphify-out/`. Para regenerarlo desde la raíz:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install graphifyy
+.venv/bin/graphify extract . --code-only   # desde la raíz del repo
+```
+
+Los diagramas de arquitectura de `Desarrollo.tex` (p. ej. la jerarquía de ejecución en TikZ) pueden consultarse junto con el reporte del grafo (`graphify-out/GRAPH_REPORT.md`).
