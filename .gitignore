@@ -46,3 +46,9 @@ Thumbs.db
 *.res
 
 build_test/
+
+# --- Python / Graphify ---
+.venv/
+graphify-out/
+__pycache__/
+*.pyc

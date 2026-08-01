@@ -1,0 +1,7 @@
+# Exclusión para Graphify (misma sintaxis que .gitignore)
+out/
+build/
+build_test/
+.venv/
+graphify-out/
+.git/
