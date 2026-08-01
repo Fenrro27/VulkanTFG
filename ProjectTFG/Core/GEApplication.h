@@ -82,6 +82,10 @@ private:
 
 	ImFont* bigTitleFont = nullptr;
 
+	// Progreso de carga suavizado (interpolado hacia el objetivo para evitar cortes)
+
+	float loadDisplayProgress = 0.0f;
+
 	/**
 	 * @brief Función mainLoop
 	 */

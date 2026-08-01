@@ -336,8 +336,19 @@ void GEApplication::renderLoadingScreen()
 		ImGui::SetCursorPos(ImVec2(cx - msgSize.x * 0.5f, cy + 40.0f));
 		ImGui::TextColored(ImVec4(0.85f, 0.85f, 0.9f, 1.0f), "%s", msg.c_str());
 
-		// Barra de progreso
-		float progress = scene->getLoadProgress();
+		// Barra de progreso (animacion suave: el valor mostrado se acerca al
+		// objetivo de forma exponencial en lugar de saltar entre pasos de carga)
+		float targetProgress = scene->getLoadProgress();
+		float dt = ImGui::GetIO().DeltaTime;
+		float ease = 1.0f - std::exp(-6.0f * dt);
+		loadDisplayProgress += (targetProgress - loadDisplayProgress) * ease;
+		// Cuando ya esta practicamente al nivel objetivo lo fijamos exactamente
+		// (evita el "cabeceo" exponencial que nunca llega al valor exacto)
+		if (std::fabs(targetProgress - loadDisplayProgress) < 0.005f) {
+			loadDisplayProgress = targetProgress;
+		}
+		float progress = loadDisplayProgress;
+
 		ImVec2 barSize(300.0f, 12.0f);
 		ImGui::SetCursorPos(ImVec2(cx - barSize.x * 0.5f, cy + 70.0f));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0f, 0.72f, 0.3f, 1.0f));
