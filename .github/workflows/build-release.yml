@@ -20,15 +20,17 @@ jobs:
 
       - name: Dependencias de sistema
         run: |
+          set -ex
           sudo apt-get update
           sudo apt-get install -y \
             ninja-build glslang-tools \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
-            libxext-dev libwayland-dev libwayland-protocols libxkbcommon-dev libxcb1-dev
+            libxext-dev libwayland-dev wayland-protocols libxkbcommon-dev libxcb1-dev
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          set -ex
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (linux-release)
@@ -61,25 +63,38 @@ jobs:
   linux-arch:
     name: Linux (Arch)
     runs-on: ubuntu-latest
+    container: archlinux:latest
+    env:
+      VCPKG_ROOT: /tmp/vcpkg
     steps:
+      - name: Preparar herramientas base (git)
+        run: |
+          set -ex
+          pacman -Sy --noconfirm
+          pacman -S --noconfirm --needed git ca-certificates
+
       - uses: actions/checkout@v4
 
-      - name: Compilar (contenedor Arch)
+      - name: Dependencias de compilacion (Arch)
         run: |
-          docker run --rm -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" -w "${GITHUB_WORKSPACE}" archlinux bash -lc '
-            set -e
-            pacman -Syu --noconfirm --needed base-devel git cmake ninja \
-              glslang shaderc curl unzip tar \
-              libx11 libxrandr libxinerama libxcursor libxi libxext \
-              libwayland libxkbcommon wayland-protocols libxcb
+          set -ex
+          pacman -Sy --noconfirm
+          pacman -S --noconfirm --needed \
+            base-devel git cmake ninja glslang shaderc curl unzip tar xz \
+            libx11 libxrandr libxinerama libxcursor libxi libxext \
+            libwayland libwayland-protocols libxkbcommon libxcb
 
-            export VCPKG_ROOT="$HOME/vcpkg"
-            git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+      - name: Clonar y bootstrapar vcpkg
+        run: |
+          set -ex
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
-            cmake --preset linux-release
-            cmake --build --preset linux-release
-          '
+      - name: Configurar (linux-release)
+        run: cmake --preset linux-release
+
+      - name: Compilar
+        run: cmake --build --preset linux-release
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
@@ -91,7 +106,7 @@ jobs:
             out/build/linux-release/bin/textures
             out/build/linux-release/bin/models
 
-      - name: Adjuntar a Release v*
+      - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
@@ -110,15 +125,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Instalar Vulkan SDK y glslang
+      - name: Instalar Vulkan SDK (glslang/glslc)
         run: |
           choco install vulkan-sdk -y --no-progress
-          $sdk = Get-ChildItem "C:\VulkanSDK" -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          $sdk = Get-ChildItem "C:\VulkanSDK" -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 1
           if ($sdk) { "$($sdk.FullName)\Bin" | Out-File -Append $env:GITHUB_PATH -Encoding UTF8 }
+          else { Write-Error "VulkanSDK no encontrado tras instalar con choco" }
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          New-Item -ItemType Directory -Force -Path "$env:VCPKG_ROOT" | Out-Null
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
 
       - name: Configurar (win-release)
@@ -137,7 +154,7 @@ jobs:
             out/build/win-release/bin/textures
             out/build/win-release/bin/models
 
-      - name: Adjuntar a Release v*
+      - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
@@ -158,11 +175,13 @@ jobs:
 
       - name: Dependencias (Homebrew)
         run: |
+          set -ex
           brew install ninja glslang shaderc
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          set -ex
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (macos-release)
@@ -174,14 +193,13 @@ jobs:
       - name: Subir artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProjectTFG-macos
           path: |
             out/build/macos-release/bin/ProjectTFG
             out/build/macos-release/bin/shaders
             out/build/macos-release/bin/textures
             out/build/macos-release/bin/models
 
-      - name: Adjuntar a Release v*
+      - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
