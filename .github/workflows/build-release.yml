@@ -2,6 +2,8 @@ name: Build multi-SO
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -34,10 +36,20 @@ jobs:
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (linux-release)
-        run: cmake --preset linux-release
+        run: |
+          set +e
+          cmake --preset linux-release 2>&1 | tee /tmp/config.log
+          exit "${PIPESTATUS[0]}"
 
       - name: Compilar
         run: cmake --build --preset linux-release
+
+      - name: Subir log de configuracion si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-linux-debian-config
+          path: /tmp/config.log
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
@@ -77,12 +89,21 @@ jobs:
 
       - name: Dependencias de compilacion (Arch)
         run: |
-          set -ex
-          pacman -Sy --noconfirm
-          pacman -S --noconfirm --needed \
+          set +e
+          pacman -Syu --noconfirm --needed \
             base-devel git cmake ninja glslang shaderc curl unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
-            libwayland wayland-protocols libxkbcommon libxcb
+            libwayland wayland-protocols libxkbcommon libxcb > /tmp/pacman.log 2>&1
+          rc=$?
+          tail -n 100 /tmp/pacman.log
+          exit $rc
+
+      - name: Subir log de pacman si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-linux-arch-pacman
+          path: /tmp/pacman.log
 
       - name: Clonar y bootstrapar vcpkg
         run: |
@@ -91,10 +112,20 @@ jobs:
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (linux-release)
-        run: cmake --preset linux-release
+        run: |
+          set +e
+          cmake --preset linux-release 2>&1 | tee /tmp/config.log
+          exit "${PIPESTATUS[0]}"
 
       - name: Compilar
         run: cmake --build --preset linux-release
+
+      - name: Subir log de configuracion si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-linux-arch-config
+          path: /tmp/config.log
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
@@ -139,10 +170,19 @@ jobs:
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
 
       - name: Configurar (win-release)
-        run: cmake --preset win-release
+        run: |
+          cmake --preset win-release 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\config.log"
+          exit $LASTEXITCODE
 
       - name: Compilar
         run: cmake --build --preset win-release --config Release
+
+      - name: Subir log de configuracion si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-windows-config
+          path: ${{ runner.temp }}\config.log
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
@@ -193,6 +233,7 @@ jobs:
       - name: Subir artifact
         uses: actions/upload-artifact@v4
         with:
+          name: ProjectTFG-macos
           path: |
             out/build/macos-release/bin/ProjectTFG
             out/build/macos-release/bin/shaders
