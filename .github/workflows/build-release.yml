@@ -30,7 +30,7 @@ jobs:
       - name: Clonar y bootstrapar vcpkg
         run: |
           set -ex
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (linux-release)
@@ -82,12 +82,12 @@ jobs:
           pacman -S --noconfirm --needed \
             base-devel git cmake ninja glslang shaderc curl unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
-            libwayland libwayland-protocols libxkbcommon libxcb
+            libwayland wayland-protocols libxkbcommon libxcb
 
       - name: Clonar y bootstrapar vcpkg
         run: |
           set -ex
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (linux-release)
@@ -135,7 +135,7 @@ jobs:
       - name: Clonar y bootstrapar vcpkg
         run: |
           New-Item -ItemType Directory -Force -Path "$env:VCPKG_ROOT" | Out-Null
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
 
       - name: Configurar (win-release)
@@ -181,7 +181,7 @@ jobs:
       - name: Clonar y bootstrapar vcpkg
         run: |
           set -ex
-          git clone --depth 1 https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
           "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
       - name: Configurar (macos-release)
