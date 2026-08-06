@@ -39,7 +39,11 @@ jobs:
         run: |
           set +e
           cmake --preset linux-release 2>&1 | tee /tmp/config.log
-          exit "${PIPESTATUS[0]}"
+          rc="${PIPESTATUS[0]}"
+          if [ "$rc" -ne 0 ]; then
+            tail -n 80 /tmp/config.log | while IFS= read -r l; do echo "::error file=config.log::$l"; done
+          fi
+          exit "$rc"
 
       - name: Compilar
         run: cmake --build --preset linux-release
@@ -91,10 +95,13 @@ jobs:
         run: |
           set +e
           pacman -Syu --noconfirm --needed \
-            base-devel git cmake ninja glslang shaderc curl unzip tar xz \
+            archlinux-keyring base-devel git cmake ninja glslang shaderc curl unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
             libwayland wayland-protocols libxkbcommon libxcb > /tmp/pacman.log 2>&1
           rc=$?
+          if [ "$rc" -ne 0 ]; then
+            tail -n 60 /tmp/pacman.log | while IFS= read -r l; do echo "::error::$l"; done
+          fi
           tail -n 100 /tmp/pacman.log
           exit $rc
 
@@ -115,7 +122,11 @@ jobs:
         run: |
           set +e
           cmake --preset linux-release 2>&1 | tee /tmp/config.log
-          exit "${PIPESTATUS[0]}"
+          rc="${PIPESTATUS[0]}"
+          if [ "$rc" -ne 0 ]; then
+            tail -n 80 /tmp/config.log | while IFS= read -r l; do echo "::error file=config.log::$l"; done
+          fi
+          exit "$rc"
 
       - name: Compilar
         run: cmake --build --preset linux-release
@@ -172,6 +183,9 @@ jobs:
       - name: Configurar (win-release)
         run: |
           cmake --preset win-release 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\config.log"
+          if ($LASTEXITCODE -ne 0) {
+            Get-Content "$env:RUNNER_TEMP\config.log" -Tail 60 | ForEach-Object { Write-Host -Object "::error::$_" }
+          }
           exit $LASTEXITCODE
 
       - name: Compilar
