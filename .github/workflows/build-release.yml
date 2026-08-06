@@ -105,7 +105,7 @@ jobs:
         run: |
           set +e
           pacman -Syu --noconfirm --needed \
-            archlinux-keyring base-devel git cmake ninja glslang shaderc curl unzip tar xz \
+            archlinux-keyring base-devel git cmake ninja glslang shaderc curl zip unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
             wayland wayland-protocols libxkbcommon libxcb mesa-libgl > /tmp/pacman.log 2>&1
           rc=$?
