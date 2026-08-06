@@ -14,6 +14,8 @@
 
 #include <fstream>
 
+#include <cstring>
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -250,11 +252,62 @@ void GEGraphicsContext::createInstance()
 
 	uint32_t glfwExtensionCount = 0;
 
-	const char** glfwExtensions;
+	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	std::vector<const char*> instanceExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
 
+
+
+	// MoltenVK (Vulkan sobre Metal en macOS) exige habilitar la enumeración portable
+	uint32_t availableExtensionCount = 0;
+
+	vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(availableExtensionCount);
+
+	vkEnumerateInstanceExtensionProperties(nullptr, &availableExtensionCount, availableExtensions.data());
+
+	bool portabilityEnumerationAvailable = false;
+
+	for (const auto& extension : availableExtensions)
+
+	{
+
+		if (strcmp(extension.extensionName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0)
+
+		{
+
+			portabilityEnumerationAvailable = true;
+
+			break;
+
+		}
+
+	}
+
+	if (portabilityEnumerationAvailable)
+
+	{
+
+		instanceExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+
+	// MoltenVK exige también get_physical_device_properties2 (requisito de portability_subset)
+	for (const auto& extension : availableExtensions)
+	{
+
+		if (strcmp(extension.extensionName, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME) == 0)
+		{
+
+			instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+
+			break;
+
+		}
+
+	}
+
+	}
 
 	VkInstanceCreateInfo createInfo = {};
 
@@ -262,23 +315,62 @@ void GEGraphicsContext::createInstance()
 
 	createInfo.pApplicationInfo = &appInfo;
 
-	createInfo.enabledExtensionCount = glfwExtensionCount;
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 
-	createInfo.ppEnabledExtensionNames = glfwExtensions;
+	createInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
 	createInfo.enabledLayerCount = 0;
 
+	// El flag hace que MoltenVK exponga su dispositivo físico (imprescindible en macOS)
+	if (portabilityEnumerationAvailable)
+
+	{
+
+		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+
+	}
 
 
-    // Añadimos capa de validacion
+
+
+    // Añadimos capa de validación si está disponible
+    uint32_t availableLayerCount = 0;
+
+    vkEnumerateInstanceLayerProperties(&availableLayerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(availableLayerCount);
+
+    vkEnumerateInstanceLayerProperties(&availableLayerCount, availableLayers.data());
 
     const char* validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 
+    bool validationAvailable = false;
 
+    for (const auto& layer : availableLayers)
 
-    createInfo.enabledLayerCount = 1;
+    {
 
-    createInfo.ppEnabledLayerNames = validationLayers;
+        if (strcmp(layer.layerName, validationLayers[0]) == 0)
+
+        {
+
+            validationAvailable = true;
+
+            break;
+
+        }
+
+    }
+
+    if (validationAvailable)
+
+    {
+
+        createInfo.enabledLayerCount = 1;
+
+        createInfo.ppEnabledLayerNames = validationLayers;
+
+    }
 
 
 
@@ -572,21 +664,61 @@ void GEGraphicsContext::createLogicalDevice()
 
 
 
+
+    // MoltenVK descansa sobre Metal: requiere habilitar VK_KHR_portability_subset
+    uint32_t deviceExtensionCount = 0;
+
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableDeviceExtensions(deviceExtensionCount);
+
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount, availableDeviceExtensions.data());
+
+    bool portabilitySubsetAvailable = false;
+
+    for (const auto& extension : availableDeviceExtensions)
+
+    {
+
+        if (strcmp(extension.extensionName, "VK_KHR_portability_subset") == 0)
+
+        {
+
+            portabilitySubsetAvailable = true;
+
+            break;
+
+        }
+
+    }
+
+    if (portabilitySubsetAvailable)
+
+    {
+
+        deviceExtensions.push_back("VK_KHR_portability_subset");
+
+    }
+
+
+
+
     VkPhysicalDeviceFeatures supportedFeatures = {};
 
     VkPhysicalDeviceFeatures requiredFeatures = {};
 
     vkGetPhysicalDeviceFeatures(physicalDevice, &supportedFeatures);
 
-    requiredFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE; // Compute shader
+    // Habilitamos solo las features que el dispositivo soporta (en macOS algunas pueden no estar disponibles)
+    requiredFeatures.shaderTessellationAndGeometryPointSize = supportedFeatures.shaderTessellationAndGeometryPointSize;
 
     requiredFeatures.multiDrawIndirect = supportedFeatures.multiDrawIndirect;
 
-    requiredFeatures.tessellationShader = VK_TRUE;
+    requiredFeatures.tessellationShader = supportedFeatures.tessellationShader;
 
-    requiredFeatures.geometryShader = VK_TRUE;
+    requiredFeatures.geometryShader = supportedFeatures.geometryShader;
 
-    requiredFeatures.samplerAnisotropy = VK_TRUE;
+    requiredFeatures.samplerAnisotropy = supportedFeatures.samplerAnisotropy;
 
     createInfo.pEnabledFeatures = &requiredFeatures;
 
