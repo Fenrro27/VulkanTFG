@@ -41,7 +41,8 @@ jobs:
           cmake --preset linux-release 2>&1 | tee /tmp/config.log
           rc="${PIPESTATUS[0]}"
           if [ "$rc" -ne 0 ]; then
-            tail -n 80 /tmp/config.log | while IFS= read -r l; do echo "::error file=config.log::$l"; done
+            grep -nE "error:|fatal error:|ninja: build stopped|FAILED|undefined reference" /tmp/config.log > /tmp/errl.log || tail -n 80 /tmp/config.log > /tmp/errl.log
+            tail -n 25 /tmp/errl.log | while IFS= read -r l; do echo "::error::CI>$l"; done
           fi
           exit "$rc"
 
@@ -97,10 +98,10 @@ jobs:
           pacman -Syu --noconfirm --needed \
             archlinux-keyring base-devel git cmake ninja glslang shaderc curl unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
-            libwayland wayland-protocols libxkbcommon libxcb > /tmp/pacman.log 2>&1
+            wayland wayland-protocols libxkbcommon libxcb > /tmp/pacman.log 2>&1
           rc=$?
           if [ "$rc" -ne 0 ]; then
-            tail -n 60 /tmp/pacman.log | while IFS= read -r l; do echo "::error::$l"; done
+            tail -n 25 /tmp/pacman.log | while IFS= read -r l; do echo "::error>PAC>$l"; done
           fi
           tail -n 100 /tmp/pacman.log
           exit $rc
@@ -124,7 +125,8 @@ jobs:
           cmake --preset linux-release 2>&1 | tee /tmp/config.log
           rc="${PIPESTATUS[0]}"
           if [ "$rc" -ne 0 ]; then
-            tail -n 80 /tmp/config.log | while IFS= read -r l; do echo "::error file=config.log::$l"; done
+            grep -nE "error:|fatal error:|ninja: build stopped|FAILED|undefined reference" /tmp/config.log > /tmp/errl.log || tail -n 80 /tmp/config.log > /tmp/errl.log
+            tail -n 25 /tmp/errl.log | while IFS= read -r l; do echo "::error::CI>$l"; done
           fi
           exit "$rc"
 
@@ -184,7 +186,8 @@ jobs:
         run: |
           cmake --preset win-release 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\config.log"
           if ($LASTEXITCODE -ne 0) {
-            Get-Content "$env:RUNNER_TEMP\config.log" -Tail 60 | ForEach-Object { Write-Host -Object "::error::$_" }
+            Select-String -Path "$env:RUNNER_TEMP\config.log" -Pattern "error|fatal|FAILED|stopped" | Select-Object -Last 15 | ForEach-Object { Write-Output "::error>WIN>$($_.Line)" }
+            Get-Content "$env:RUNNER_TEMP\config.log" -Tail 15 | ForEach-Object { Write-Output "::error>WIN>$_" }
           }
           exit $LASTEXITCODE
 
