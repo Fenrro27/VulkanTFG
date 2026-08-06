@@ -168,13 +168,13 @@ jobs:
             out/build/linux-release/bin/models
 
       - name: Preparar binario
-        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux-arch"
+        run: cp out/build/linux-release/bin/ProjectTFG ./ProjectTFG-linux-arch
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-linux-debian
+          files: ProjectTFG-linux-arch
           fail_on_unmatched_files: true
 
   windows:
