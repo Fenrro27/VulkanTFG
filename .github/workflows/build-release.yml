@@ -75,16 +75,15 @@ jobs:
             out/build/linux-release/bin/textures
             out/build/linux-release/bin/models
 
+      - name: Preparar binario
+        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux-debian"
+
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/build/linux-release/bin/ProjectTFG
-            out/build/linux-release/bin/shaders
-            out/build/linux-release/bin/textures
-            out/build/linux-release/bin/models
-          fail_on_unmatched_files: false
+          files: ${{ runner.temp }}/release/ProjectTFG-linux-debian
+          fail_on_unmatched_files: true
 
   linux-arch:
     name: Linux (Arch)
@@ -168,16 +167,15 @@ jobs:
             out/build/linux-release/bin/textures
             out/build/linux-release/bin/models
 
+      - name: Preparar binario
+        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux-arch"
+
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/build/linux-release/bin/ProjectTFG
-            out/build/linux-release/bin/shaders
-            out/build/linux-release/bin/textures
-            out/build/linux-release/bin/models
-          fail_on_unmatched_files: false
+          files: ${{ runner.temp }}/release/ProjectTFG-linux-debian
+          fail_on_unmatched_files: true
 
   windows:
     name: Windows
@@ -229,16 +227,15 @@ jobs:
             out/build/win-release/bin/textures
             out/build/win-release/bin/models
 
+      - name: Preparar binario
+        run: mkdir -p "$env:RUNNER_TEMP\release" && Copy-Item out/build/win-release/bin/ProjectTFG.exe "$env:RUNNER_TEMP\release\ProjectTFG-windows.exe"
+
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/build/win-release/bin/ProjectTFG.exe
-            out/build/win-release/bin/shaders
-            out/build/win-release/bin/textures
-            out/build/win-release/bin/models
-          fail_on_unmatched_files: false
+          files: ${{ runner.temp }}/release/ProjectTFG-windows.exe
+          fail_on_unmatched_files: true
 
   macos:
     name: macOS
@@ -284,16 +281,15 @@ jobs:
             out/build/macos-release/bin/textures
             out/build/macos-release/bin/models
 
+      - name: Preparar binario
+        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/macos-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-macos"
+
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            out/build/macos-release/bin/ProjectTFG
-            out/build/macos-release/bin/shaders
-            out/build/macos-release/bin/textures
-            out/build/macos-release/bin/models
-          fail_on_unmatched_files: false
+          files: ${{ runner.temp }}/release/ProjectTFG-macos
+          fail_on_unmatched_files: true
 
   memoria:
     name: Memoria (LaTeX)
