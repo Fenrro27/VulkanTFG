@@ -27,13 +27,22 @@ jobs:
           sudo apt-get install -y \
             ninja-build glslang-tools \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
-            libxext-dev libwayland-dev wayland-protocols libxkbcommon-dev libxcb1-dev
+            libxext-dev libwayland-dev wayland-protocols libxkbcommon-dev libxcb1-dev libgl-dev libegl1-mesa-dev
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          set -ex
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+          set +e
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
+          rc1="${PIPESTATUS[0]}"
+          if [ "$rc1" -eq 0 ]; then
+            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
+            rc1="${PIPESTATUS[0]}"
+          fi
+          if [ "$rc1" -ne 0 ]; then
+            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
+          fi
+          exit "$rc1"
+
 
       - name: Configurar (linux-release)
         run: |
@@ -98,7 +107,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             archlinux-keyring base-devel git cmake ninja glslang shaderc curl unzip tar xz \
             libx11 libxrandr libxinerama libxcursor libxi libxext \
-            wayland wayland-protocols libxkbcommon libxcb > /tmp/pacman.log 2>&1
+            wayland wayland-protocols libxkbcommon libxcb mesa-libgl > /tmp/pacman.log 2>&1
           rc=$?
           if [ "$rc" -ne 0 ]; then
             tail -n 25 /tmp/pacman.log | while IFS= read -r l; do echo "::error>PAC>$l"; done
@@ -115,9 +124,18 @@ jobs:
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          set -ex
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+          set +e
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
+          rc1="${PIPESTATUS[0]}"
+          if [ "$rc1" -eq 0 ]; then
+            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
+            rc1="${PIPESTATUS[0]}"
+          fi
+          if [ "$rc1" -ne 0 ]; then
+            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
+          fi
+          exit "$rc1"
+
 
       - name: Configurar (linux-release)
         run: |
@@ -237,9 +255,18 @@ jobs:
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          set -ex
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
-          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+          set +e
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
+          rc1="${PIPESTATUS[0]}"
+          if [ "$rc1" -eq 0 ]; then
+            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
+            rc1="${PIPESTATUS[0]}"
+          fi
+          if [ "$rc1" -ne 0 ]; then
+            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
+          fi
+          exit "$rc1"
+
 
       - name: Configurar (macos-release)
         run: cmake --preset macos-release
@@ -266,4 +293,63 @@ jobs:
             out/build/macos-release/bin/shaders
             out/build/macos-release/bin/textures
             out/build/macos-release/bin/models
+          fail_on_unmatched_files: false
+
+  memoria:
+    name: Memoria (LaTeX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar TeX Live
+        run: |
+          set -ex
+          sudo apt-get update
+          sudo apt-get install -y \
+            texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended texlive-pictures texlive-bibtex-extra \
+            texlive-lang-spanish biber
+
+      - name: Compilar memoria (pdflatex + biber)
+        working-directory: Memoria
+        run: |
+          set +e
+          rm -f memoria.aux memoria.bcf memoria.bbl memoria.bbl-SAVE-ERROR memoria.run.xml memoria.log
+          pdflatex -interaction=nonstopmode -halt-on-error memoria.tex > /tmp/tex1.log 2>&1
+          r1=$?
+          biber memoria > /tmp/biber.log 2>&1
+          rb=$?
+          pdflatex -interaction=nonstopmode -halt-on-error memoria.tex > /tmp/tex2.log 2>&1
+          r2=$?
+          pdflatex -interaction=nonstopmode -halt-on-error memoria.tex > /tmp/tex3.log 2>&1
+          r3=$?
+          cat /tmp/tex1.log /tmp/biber.log /tmp/tex2.log /tmp/tex3.log > /tmp/tex-all.log
+          if [ "$r1" -ne 0 ] || [ "$rb" -ne 0 ] || [ "$r2" -ne 0 ] || [ "$r3" -ne 0 ]; then
+            grep -nE "error:|Error|Fatal|!" /tmp/tex-all.log > /tmp/tex-err.log || tail -n 60 /tmp/tex-all.log > /tmp/tex-err.log
+            tail -n 25 /tmp/tex-err.log | while IFS= read -r l; do echo "::error>MEM>$l"; done
+            exit 1
+          fi
+          ls -la memoria.pdf
+
+      - name: Subir log de Latex si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-memoria
+          path: |
+            /tmp/tex-all.log
+            /tmp/biber.log
+
+      - name: Subir PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: memoria-pdf
+          path: Memoria/memoria.pdf
+          if-no-files-found: error
+
+      - name: Adjuntar a Release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Memoria/memoria.pdf
           fail_on_unmatched_files: false
