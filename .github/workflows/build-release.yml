@@ -72,9 +72,6 @@ jobs:
           # shellcheck disable=SC2086,SC2016
           mkdir -p AppDir/usr/bin AppDir/usr/lib AppDir/usr/bin/vulkan
           cp -r out/build/linux-release/bin/ProjectTFG AppDir/usr/bin/
-          cp -r out/build/linux-release/bin/shaders AppDir/usr/bin/
-          cp -r out/build/linux-release/bin/textures AppDir/usr/bin/
-          cp -r out/build/linux-release/bin/models AppDir/usr/bin/
           cp out/build/linux-release/bin/imgui.ini AppDir/usr/bin/ 2>/dev/null || true
           # Driver por software (lavapipe) empaquetado
           cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/lib/
@@ -201,9 +198,6 @@ jobs:
           APP=dist/ProjectTFG.app
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Resources/vulkan/icd.d"
           cp out/build/macos-release/bin/ProjectTFG "$APP/Contents/MacOS/"
-          cp -r out/build/macos-release/bin/shaders "$APP/Contents/Resources/"
-          cp -r out/build/macos-release/bin/textures "$APP/Contents/Resources/"
-          cp -r out/build/macos-release/bin/models "$APP/Contents/Resources/"
           cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$APP/Contents/Frameworks/"
           VK_DYLIB=""
           for f in out/build/macos-release/vcpkg_installed/arm64-osx/lib/libvulkan.*.dylib; do
@@ -300,15 +294,15 @@ jobs:
           if (-not (Test-Path $exe)) { Write-Error "No existe $exe"; exit 1 }
           $bin = "out\build\win-release\bin"
           $entries = @()
-          Get-ChildItem "$bin\shaders" -Recurse -File | ForEach-Object {
+          Get-ChildItem "$bin\shaders" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
             $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
             $entries += @("--entry", $rel, $_.FullName)
           }
-          Get-ChildItem "$bin\textures" -Recurse -File | ForEach-Object {
+          Get-ChildItem "$bin\textures" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
             $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
             $entries += @("--entry", $rel, $_.FullName)
           }
-          Get-ChildItem "$bin\models" -Recurse -File | ForEach-Object {
+          Get-ChildItem "$bin\models" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
             $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
             $entries += @("--entry", $rel, $_.FullName)
           }
