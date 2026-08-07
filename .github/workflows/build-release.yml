@@ -74,7 +74,9 @@ jobs:
           cp -r out/build/linux-release/bin/ProjectTFG AppDir/usr/bin/
           cp out/build/linux-release/bin/imgui.ini AppDir/usr/bin/ 2>/dev/null || true
           # Driver por software (lavapipe) empaquetado
-          # El loader resuelve library_path relativo al mismo dir del json ICD
+          # En usr/lib para que el loader lo encuentre via LD_LIBRARY_PATH,
+          # y junto al json ICD para los loaders que resuelven relativo al json.
+          cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/lib/
           cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/bin/vulkan/
           cp /usr/share/vulkan/icd.d/lvp_icd.x86_64.json AppDir/usr/bin/vulkan/lvp_icd.x86_64.json
           sed -i 's|"library_path".*|"library_path": "libvulkan_lvp.so",|' AppDir/usr/bin/vulkan/lvp_icd.x86_64.json
@@ -107,7 +109,7 @@ jobs:
           PY
           cp AppDir/usr/share/icons/hicolor/256x256/apps/ProjectTFG.png AppDir/ProjectTFG.png
           # shellcheck disable=SC2016
-          printf '#!/bin/sh\nAPPDIR="$(dirname "$0")"\ncd "$APPDIR/usr/bin" 2>/dev/null || true\nexport LD_LIBRARY_PATH="$APPDIR/usr/lib:$LD_LIBRARY_PATH"\nexec ./ProjectTFG "$@"\n' > AppDir/AppRun
+          printf '#!/bin/sh\nAPPDIR="$(dirname "$0")"\nexport LD_LIBRARY_PATH="$APPDIR/usr/lib:$APPDIR/usr/bin/vulkan:$LD_LIBRARY_PATH"\ncd "$APPDIR/usr/bin" 2>/dev/null || true\nexec ./ProjectTFG "$@"\n' > AppDir/AppRun
           # Lanzador
           chmod +x AppDir/AppRun
           cat > AppDir/ProjectTFG.desktop <<'EOF'
@@ -174,7 +176,7 @@ jobs:
           set -ex
           chmod +x ProjectTFG-linux.AppImage
           set +e
-          APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a timeout 25 ./ProjectTFG-linux.AppImage > /tmp/run.log 2>&1
+          VK_LOADER_DEBUG=error APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a timeout 25 ./ProjectTFG-linux.AppImage > /tmp/run.log 2>&1
           rc=$?
           set -e
           echo "rc=$rc"
