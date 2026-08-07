@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstring>
 #include "resource.h"
+#include "GEAssets.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -233,31 +234,7 @@ void GEComputeShader::destroy(GEGraphicsContext* gc) {
  * @brief Función GEComputeShader::getFileFromResource
  */
 std::vector<char> GEComputeShader::getFileFromResource(int resource) {
-    std::string fileName;
-    switch (resource) {
-        case IDR_VERT_SCENE: fileName = "shaders/scene_shader_vert.spv"; break;
-        case IDR_FRAG_SCENE: fileName = "shaders/scene_shader_frag.spv"; break;
-        case IDR_COMPUTE_HUMO: fileName = "shaders/smoke_comp.spv"; break;
-        case IDR_COMPUTE_FUEGO: fileName = "shaders/fire_comp.spv"; break;
-        case IDR_COMPUTE_AGUA: fileName = "shaders/water_comp.spv"; break;
-        case IDR_VERT_PARTICLES: fileName = "shaders/particles_shader_vert.spv"; break;
-        case IDR_FRAG_PARTICLES: fileName = "shaders/particles_shader_frag.spv"; break;
-        case IDR_VERT_SKYBOX: fileName = "shaders/skybox_shader_vert.spv"; break;
-        case IDR_FRAG_SKYBOX: fileName = "shaders/skybox_shader_frag.spv"; break;
-        default: throw std::runtime_error("Unknown shader resource ID");
-    }
-
-    std::ifstream file(fileName, std::ios::ate | std::ios::binary);
-    if (!file.is_open()) {
-        throw std::runtime_error("failed to open shader file: " + fileName);
-    }
-
-    size_t fileSize = (size_t)file.tellg();
-    std::vector<char> buffer(fileSize);
-    file.seekg(0);
-    file.read(buffer.data(), fileSize);
-    file.close();
-    return buffer;
+    return GEAssets::getShaderBytes(resource);
 }
 
 /**

@@ -11,9 +11,55 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <filesystem>
+#include <sstream>
+#include <algorithm>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 #include "commonDebug.h"
+#include "GEAssets.h"
+
+
+// Reader de materiales que obtiene el .mtl desde los recursos del motor
+// (incrustados o de disco) y lo parsea desde memoria.
+
+class GEMaterialReader : public tinyobj::MaterialReader
+{
+
+public:
+
+	explicit GEMaterialReader(const std::string& baseDir) : m_baseDir(baseDir) {}
+
+	bool operator()(const std::string& matId, std::vector<tinyobj::material_t>* materials,
+
+		std::map<std::string, int>* matMap, std::string* warn, std::string* err) override
+	{
+
+		std::string key = m_baseDir + matId;
+
+		std::replace(key.begin(), key.end(), '\\', '/');
+
+		try
+		{
+
+			std::vector<char> data = GEAssets::getFileVector(key);
+
+			std::istringstream mtlStream(std::string(data.begin(), data.end()));
+
+			tinyobj::LoadMtl(matMap, materials, &mtlStream, warn, err);
+
+			return true;
+		}
+
+		catch (...)
+		{
+			return false;
+		}
+	}
+
+private:
+
+	std::string m_baseDir;
+};
 
 
 
@@ -62,7 +108,20 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
     // Obtenemos el directorio base para buscar el archivo .mtl y las texturas
     std::string directory = std::filesystem::path(path).parent_path().string() + "/";
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), directory.c_str(), true)) {
+    std::replace(directory.begin(), directory.end(), '\\', '/');
+
+    std::string normPath = path;
+
+    std::replace(normPath.begin(), normPath.end(), '\\', '/');
+
+    // Cargamos el OBJ desde los recursos del motor (incrustados o de disco)
+    std::vector<char> objData = GEAssets::getFileVector(normPath);
+
+    std::istringstream objStream(std::string(objData.begin(), objData.end()));
+
+    GEMaterialReader matReader(directory);
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, &objStream, &matReader, true)) {
         /**
          * @brief Función std::runtime_error
          */
@@ -82,6 +141,8 @@ GEModel::GEModel(GEGraphicsContext* gc, const std::string& path, float scale) {
         if (!mat.diffuse_texname.empty()) {
 
             std::string texPath = directory + mat.diffuse_texname;
+
+            std::replace(texPath.begin(), texPath.end(), '\\', '/');
 
             try {
 
