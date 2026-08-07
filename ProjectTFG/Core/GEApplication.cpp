@@ -7,6 +7,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include "GEVulkanRuntime.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -37,6 +39,10 @@
  */
 void GEApplication::run()
 {
+	// Preparamos el entorno Vulkan (directorio de recursos y driver empaquetado)
+	// antes de crear la ventana y el contexto grafico.
+	GEVulkanRuntime::setup();
+
 	// Usamos reset para que el unique_ptr tome el control del puntero devuelto
 	this->window.reset(initWindow());
 	this->windowPos = initWindowPos();

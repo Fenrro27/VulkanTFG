@@ -13,80 +13,240 @@ permissions:
 
 jobs:
   linux:
-    name: Linux
+    name: Linux (AppImage)
     runs-on: ubuntu-latest
+    container: ubuntu:20.04
     env:
       VCPKG_ROOT: /tmp/vcpkg
     steps:
+      - name: Preparar herramientas base
+        run: |
+          set -ex
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y git curl zip unzip tar ca-certificates
+          python3 -m pip install --upgrade pip cmake ninja
+
       - uses: actions/checkout@v4
 
       - name: Dependencias de sistema
         run: |
           set -ex
-          sudo apt-get update
-          sudo apt-get install -y \
-            ninja-build glslang-tools \
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get install -y \
+            pkg-config build-essential \
             libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev \
-            libxext-dev libwayland-dev wayland-protocols libxkbcommon-dev libxcb1-dev libgl-dev libegl1-mesa-dev
+            libxext-dev libwayland-dev wayland-protocols libxkbcommon-dev libxcb1-dev \
+            libgl-dev libegl1-mesa-dev mesa-vulkan-drivers \
+            xvfb file
+
+      - name: glslang moderno (SDK LunarG)
+        run: |
+          set -ex
+          # shellcheck disable=SC2086,SC2016
+          curl -sL -o /tmp/sdk.tar.xz \
+            https://sdk.lunarg.com/sdk/download/1.4.309.0/linux/vulkansdk-linux-x86_64-1.4.309.0.tar.xz
+          tar -xJf /tmp/sdk.tar.xz -C /opt
+          if ! /opt/vulkansdk/1.4.309.0/x86_64/bin/glslangValidator --version >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get install -y glslang-tools
+          else
+            echo "/opt/vulkansdk/1.4.309.0/x86_64/bin" >> "$GITHUB_PATH"
+          fi
 
       - name: Clonar y bootstrapar vcpkg
         run: |
-          set +e
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
-          rc1="${PIPESTATUS[0]}"
-          if [ "$rc1" -eq 0 ]; then
-            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
-            rc1="${PIPESTATUS[0]}"
-          fi
-          if [ "$rc1" -ne 0 ]; then
-            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
-          fi
-          exit "$rc1"
+          set -ex
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
 
-      - name: Configurar (linux-release)
+      - name: Configurar y compilar
         run: |
-          set +e
-          cmake --preset linux-release 2>&1 | tee /tmp/config.log
-          rc="${PIPESTATUS[0]}"
-          if [ "$rc" -ne 0 ]; then
-            grep -nE "error:|fatal error:|ninja: build stopped|FAILED|undefined reference" /tmp/config.log > /tmp/errl.log || tail -n 80 /tmp/config.log > /tmp/errl.log
-            tail -n 25 /tmp/errl.log | while IFS= read -r l; do echo "::error::CI>$l"; done
-          fi
-          exit "$rc"
+          set -ex
+          cmake --preset linux-release
+          cmake --build --preset linux-release
 
-      - name: Compilar
-        run: cmake --build --preset linux-release
+      - name: Preparar AppDir
+        run: |
+          set -ex
+          # shellcheck disable=SC2086,SC2016
+          mkdir -p AppDir/usr/bin AppDir/usr/lib AppDir/usr/bin/vulkan
+          cp -r out/build/linux-release/bin/ProjectTFG AppDir/usr/bin/
+          cp -r out/build/linux-release/bin/shaders AppDir/usr/bin/
+          cp -r out/build/linux-release/bin/textures AppDir/usr/bin/
+          cp -r out/build/linux-release/bin/models AppDir/usr/bin/
+          cp out/build/linux-release/bin/imgui.ini AppDir/usr/bin/ 2>/dev/null || true
+          # Driver por software (lavapipe) empaquetado
+          cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/lib/
+          cp /usr/share/vulkan/icd.d/lvp_icd.x86_64.json AppDir/usr/bin/vulkan/
+          sed -i 's|"library_path".*|"library_path": "libvulkan_lvp.so",|' AppDir/usr/bin/vulkan/lvp_icd.x86_64.json
+          # Dependencias dinamicas del ejecutable y de lavapipe (sin glibc/libstdc++/libgcc)
+          cp_ldd() {
+            ldd "$1" | awk '/=> \// {print $3}' | while read -r lib; do
+              case "$lib" in
+                *libc.so*|*libm.so*|*libdl.so*|*libpthread.so*|*librt.so*|*libstdc++*|*libgcc_s*|*ld-linux*|*linux-vdso*) ;;
+                *) cp -Ln "$lib" AppDir/usr/lib/ 2>/dev/null || true ;;
+              esac
+            done
+          }
+          cp_ldd out/build/linux-release/bin/ProjectTFG
+          cp_ldd /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+          # shellcheck disable=SC2016
+          printf '#!/bin/sh\nAPPDIR="$(dirname "$0")"\ncd "$APPDIR/usr/bin" 2>/dev/null || true\nexport LD_LIBRARY_PATH="$APPDIR/usr/lib:$LD_LIBRARY_PATH"\nexec ./ProjectTFG "$@"\n' > AppDir/AppRun
+          # Lanzador
+          chmod +x AppDir/AppRun
+          cat > AppDir/ProjectTFG.desktop <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=ProjectTFG
+          Exec=ProjectTFG
+          Icon=utilities-terminal
+          Categories=Game;
+          EOF
 
-      - name: Subir log de configuracion si falla
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: log-linux-config
-          path: /tmp/config.log
+      - name: Generar AppImage
+        run: |
+          set -ex
+          curl -sL -o /tmp/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x /tmp/appimagetool
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 /tmp/appimagetool AppDir ProjectTFG-linux.AppImage
+          chmod +x ProjectTFG-linux.AppImage
+          ls -la ProjectTFG-linux.AppImage
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProjectTFG-linux
-          path: |
-            out/build/linux-release/bin/ProjectTFG
-            out/build/linux-release/bin/shaders
-            out/build/linux-release/bin/textures
-            out/build/linux-release/bin/models
-
-      - name: Preparar binario
-        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux.elf"
+          name: ProjectTFG-linux.AppImage
+          path: ProjectTFG-linux.AppImage
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-linux.elf
+          files: ProjectTFG-linux.AppImage
           fail_on_unmatched_files: true
 
+  smoke-linux:
+    name: Smoke Linux (${{ matrix.container }})
+    needs: linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [debian:12, archlinux]
+    container: ${{ matrix.container }}
+    steps:
+      - name: Preparar herramientas base
+        run: |
+          set -ex
+          if [ -f /etc/arch-release ]; then
+            pacman -Sy --noconfirm
+            pacman -S --noconfirm --needed curl tar xz xorg-server-xvfb
+          else
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y curl tar xvfb
+          fi
+
+      - name: Descargar AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: ProjectTFG-linux.AppImage
+
+      - name: Ejecutar con lavapipe empaquetado (sin Vulkan en el sistema)
+        run: |
+          set -ex
+          chmod +x ProjectTFG-linux.AppImage
+          APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a timeout 25 ./ProjectTFG-linux.AppImage > /tmp/run.log 2>&1
+          rc=$?
+          echo "rc=$rc"
+          grep -E "GEVulkanRuntime|ERROR FATAL|error" /tmp/run.log || true
+          if [ "$rc" -eq 124 ]; then
+            echo "La aplicacion arranco y siguio viva 25s (OK)"
+            exit 0
+          fi
+          tail -n 40 /tmp/run.log
+          exit 1
+
+  macos:
+    name: macOS (DMG)
+    runs-on: macos-latest
+    env:
+      VCPKG_ROOT: /tmp/vcpkg
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias (Homebrew)
+        run: |
+          set -ex
+          brew install ninja glslang shaderc molten-vk
+
+      - name: Clonar y bootstrapar vcpkg
+        run: |
+          set -ex
+          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT"
+          "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics
+
+      - name: Configurar y compilar
+        run: |
+          set -ex
+          cmake --preset macos-release
+          cmake --build --preset macos-release
+
+      - name: Empaquetar .app y DMG
+        run: |
+          set -ex
+          # shellcheck disable=SC2010,SC2012,SC2086
+          APP=dist/ProjectTFG.app
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Resources/vulkan/icd.d"
+          cp out/build/macos-release/bin/ProjectTFG "$APP/Contents/MacOS/"
+          cp -r out/build/macos-release/bin/shaders "$APP/Contents/Resources/"
+          cp -r out/build/macos-release/bin/textures "$APP/Contents/Resources/"
+          cp -r out/build/macos-release/bin/models "$APP/Contents/Resources/"
+          cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$APP/Contents/Frameworks/"
+          VK_DYLIB=""
+          for f in out/build/macos-release/vcpkg_installed/arm64-osx/lib/libvulkan.*.dylib; do
+            [ -f "$f" ] || continue
+            VK_DYLIB="$f"
+          done
+          if [ -z "$VK_DYLIB" ]; then
+            echo "No se encontro libvulkan" >&2
+            exit 1
+          fi
+          cp "$VK_DYLIB" "$APP/Contents/Frameworks/"
+          ln -sf "$(basename "$VK_DYLIB")" "$APP/Contents/Frameworks/libvulkan.dylib"
+          install_name_tool -add_rpath @executable_path/../Frameworks "$APP/Contents/MacOS/ProjectTFG"
+          cat > "$APP/Contents/Resources/vulkan/icd.d/MoltenVK_icd.json" <<'EOF'
+          {
+              "file_format_version": "1.0.0",
+              "ICD": {
+                  "library_path": "../../../Frameworks/libMoltenVK.dylib",
+                  "api_version": "1.3.0",
+                  "is_portability_driver": true
+              }
+          }
+          EOF
+          cp ProjectTFG/macos/Info.plist "$APP/Contents/Info.plist"
+          codesign --force --deep -s - "$APP"
+          hdiutil create -volname ProjectTFG -srcfolder dist -ov -format UDZO ProjectTFG-macos.dmg
+          ls -la ProjectTFG-macos.dmg
+
+      - name: Subir artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProjectTFG-macos.dmg
+          path: ProjectTFG-macos.dmg
+
+      - name: Adjuntar a Release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ProjectTFG-macos.dmg
+          fail_on_unmatched_files: true
 
   windows:
-    name: Windows
+    name: Windows (exe unico)
     runs-on: windows-latest
     env:
       VCPKG_ROOT: C:\vt\vcpkg
@@ -106,104 +266,75 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
           & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
 
-      - name: Configurar (win-release)
+      - name: Configurar y compilar (estatico)
         run: |
           cmake --preset win-release 2>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\config.log"
           if ($LASTEXITCODE -ne 0) {
-            Select-String -Path "$env:RUNNER_TEMP\config.log" -Pattern "error|fatal|FAILED|stopped" | Select-Object -Last 15 | ForEach-Object { Write-Output "::error>WIN>$($_.Line)" }
-            Get-Content "$env:RUNNER_TEMP\config.log" -Tail 15 | ForEach-Object { Write-Output "::error>WIN>$_" }
+            Get-Content "$env:RUNNER_TEMP\config.log" -Tail 60 | ForEach-Object { Write-Output "::error::$_" }
+            exit $LASTEXITCODE
           }
-          exit $LASTEXITCODE
+          cmake --build --preset win-release --config Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Compilar
-        run: cmake --build --preset win-release --config Release
+      - name: Descargar driver Vulkan por software (mesa llvmpipe)
+        run: |
+          curl.exe -sL -o "$env:RUNNER_TEMP\mesa.7z" `
+            https://github.com/pal1000/mesa-dist-win/releases/download/26.1.6/mesa3d-26.1.6-release-msvc.7z
+          & "C:\Program Files\7-Zip\7z.exe" x "$env:RUNNER_TEMP\mesa.7z" -o"$env:RUNNER_TEMP\mesa" -y | Out-Null
+          $json = Get-ChildItem "$env:RUNNER_TEMP\mesa" -Recurse -Filter *.json |
+            Where-Object { (Get-Content $_.FullName -Raw) -match 'lvp|llvmpipe|swiftshader' } |
+            Select-Object -First 1
+          if (-not $json) { Write-Error "No se encontro el ICD json de mesa"; exit 1 }
+          $dll = Select-String -Path $json.FullName -Pattern '"library_path"\s*:\s*"([^"]+)"' |
+            ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -First 1
+          $dllFile = Get-ChildItem $json.Directory -Recurse -Filter (Split-Path $dll -Leaf) | Select-Object -First 1
+          if (-not $dllFile) { Write-Error "No se encontro la dll del ICD: $dll"; exit 1 }
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\stage\vulkan" | Out-Null
+          Copy-Item $json.FullName "$env:RUNNER_TEMP\stage\vulkan\vk_swiftshader_icd.json"
+          Copy-Item $dllFile.FullName "$env:RUNNER_TEMP\stage\vulkan\$($dllFile.Name)"
+          Write-Output "dll ICD: $($dllFile.Name)"
 
-      - name: Subir log de configuracion si falla
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: log-windows-config
-          path: ${{ runner.temp }}\config.log
+      - name: Incrustar todo en un solo .exe
+        run: |
+          $exe = "out\build\win-release\bin\ProjectTFG.exe"
+          if (-not (Test-Path $exe)) { Write-Error "No existe $exe"; exit 1 }
+          $bin = "out\build\win-release\bin"
+          $entries = @()
+          Get-ChildItem "$bin\shaders" -Recurse -File | ForEach-Object {
+            $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
+            $entries += @("--entry", $rel, $_.FullName)
+          }
+          Get-ChildItem "$bin\textures" -Recurse -File | ForEach-Object {
+            $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
+            $entries += @("--entry", $rel, $_.FullName)
+          }
+          Get-ChildItem "$bin\models" -Recurse -File | ForEach-Object {
+            $rel = $_.FullName.Substring($bin.Length + 1) -replace '\\', '/'
+            $entries += @("--entry", $rel, $_.FullName)
+          }
+          if (Test-Path "$bin\imgui.ini") {
+            $entries += @("--entry", "imgui.ini", "$bin\imgui.ini")
+          }
+          Get-ChildItem "$env:RUNNER_TEMP\stage" -Recurse -File | ForEach-Object {
+            $rel = $_.FullName.Substring("$env:RUNNER_TEMP\stage".Length + 1) -replace '\\', '/'
+            $entries += @("--entry", $rel, $_.FullName)
+          }
+          python Tools/embed_payload.py $exe @entries
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item $exe "ProjectTFG-windows.exe"
+          Get-Item "ProjectTFG-windows.exe" | Select-Object Name, Length
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProjectTFG-windows
-          path: |
-            out/build/win-release/bin/ProjectTFG.exe
-            out/build/win-release/bin/shaders
-            out/build/win-release/bin/textures
-            out/build/win-release/bin/models
-
-      - name: Preparar binario
-        run: mkdir -p "$env:RUNNER_TEMP\release" && Copy-Item out/build/win-release/bin/ProjectTFG.exe "$env:RUNNER_TEMP\release\ProjectTFG-windows.exe"
+          name: ProjectTFG-windows.exe
+          path: ProjectTFG-windows.exe
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-windows.exe
-          fail_on_unmatched_files: true
-
-  macos:
-    name: macOS
-    runs-on: macos-latest
-    env:
-      VCPKG_ROOT: /tmp/vcpkg
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Dependencias (Homebrew)
-        run: |
-          set -ex
-          brew install ninja glslang shaderc
-
-      - name: Clonar y bootstrapar vcpkg
-        run: |
-          set +e
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
-          rc1="${PIPESTATUS[0]}"
-          if [ "$rc1" -eq 0 ]; then
-            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
-            rc1="${PIPESTATUS[0]}"
-          fi
-          if [ "$rc1" -ne 0 ]; then
-            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
-          fi
-          exit "$rc1"
-
-
-      - name: Configurar (macos-release)
-        run: cmake --preset macos-release
-
-      - name: Compilar
-        run: cmake --build --preset macos-release
-
-      - name: Subir artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ProjectTFG-macos
-          path: |
-            out/build/macos-release/bin/ProjectTFG
-            out/build/macos-release/bin/shaders
-            out/build/macos-release/bin/textures
-            out/build/macos-release/bin/models
-
-      - name: Empaquetar como .app
-        run: |
-          set -ex
-          APP="$RUNNER_TEMP/ProjectTFG.app/Contents"
-          mkdir -p "$APP/MacOS"
-          cp out/build/macos-release/bin/ProjectTFG "$APP/MacOS/ProjectTFG"
-          cp ProjectTFG/macos/Info.plist "$APP/Info.plist"
-          mkdir -p "$RUNNER_TEMP/release"
-          (cd "$RUNNER_TEMP" && zip -r -y "release/ProjectTFG-macos.app.zip" ProjectTFG.app)
-
-      - name: Adjuntar a Release (tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ runner.temp }}/release/ProjectTFG-macos.app.zip
+          files: ProjectTFG-windows.exe
           fail_on_unmatched_files: true
 
   memoria:

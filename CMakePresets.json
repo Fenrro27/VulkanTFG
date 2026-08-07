@@ -13,7 +13,11 @@
       "name": "windows-base",
       "hidden": true,
       "inherits": ["base"],
-      "architecture": "x64"
+      "architecture": "x64",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_HOST_TRIPLET": "x64-windows"
+      }
     },
     {
       "name": "linux-base",
