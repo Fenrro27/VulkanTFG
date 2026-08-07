@@ -24,7 +24,7 @@ jobs:
           set -ex
           export DEBIAN_FRONTEND=noninteractive
           apt-get update
-          apt-get install -y git curl zip unzip tar ca-certificates
+          apt-get install -y git curl zip unzip tar ca-certificates python3-pip
           python3 -m pip install --upgrade pip cmake ninja
 
       - uses: actions/checkout@v4
