@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 jobs:
-  linux-debian:
-    name: Linux (Debian/Ubuntu)
+  linux:
+    name: Linux
     runs-on: ubuntu-latest
     env:
       VCPKG_ROOT: /tmp/vcpkg
@@ -43,7 +43,6 @@ jobs:
           fi
           exit "$rc1"
 
-
       - name: Configurar (linux-release)
         run: |
           set +e
@@ -62,13 +61,13 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: log-linux-debian-config
+          name: log-linux-config
           path: /tmp/config.log
 
       - name: Subir artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ProjectTFG-linux-debian
+          name: ProjectTFG-linux
           path: |
             out/build/linux-release/bin/ProjectTFG
             out/build/linux-release/bin/shaders
@@ -76,106 +75,15 @@ jobs:
             out/build/linux-release/bin/models
 
       - name: Preparar binario
-        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux-debian"
+        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/linux-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-linux.elf"
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-linux-debian
+          files: ${{ runner.temp }}/release/ProjectTFG-linux.elf
           fail_on_unmatched_files: true
 
-  linux-arch:
-    name: Linux (Arch)
-    runs-on: ubuntu-latest
-    container: archlinux:latest
-    env:
-      VCPKG_ROOT: /tmp/vcpkg
-    steps:
-      - name: Preparar herramientas base (git)
-        run: |
-          set -ex
-          pacman -Sy --noconfirm
-          pacman -S --noconfirm --needed git ca-certificates
-
-      - uses: actions/checkout@v4
-
-      - name: Dependencias de compilacion (Arch)
-        run: |
-          set +e
-          pacman -Syu --noconfirm --needed \
-            archlinux-keyring base-devel git cmake ninja glslang shaderc curl zip unzip tar xz \
-            libx11 libxrandr libxinerama libxcursor libxi libxext \
-            wayland wayland-protocols libxkbcommon libxcb mesa-libgl > /tmp/pacman.log 2>&1
-          rc=$?
-          if [ "$rc" -ne 0 ]; then
-            tail -n 25 /tmp/pacman.log | while IFS= read -r l; do echo "::error>PAC>$l"; done
-          fi
-          tail -n 100 /tmp/pacman.log
-          exit $rc
-
-      - name: Subir log de pacman si falla
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: log-linux-arch-pacman
-          path: /tmp/pacman.log
-
-      - name: Clonar y bootstrapar vcpkg
-        run: |
-          set +e
-          git clone https://github.com/microsoft/vcpkg.git "$VCPKG_ROOT" 2>&1 | tee /tmp/vcpkg.log
-          rc1="${PIPESTATUS[0]}"
-          if [ "$rc1" -eq 0 ]; then
-            "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics 2>&1 | tee -a /tmp/vcpkg.log
-            rc1="${PIPESTATUS[0]}"
-          fi
-          if [ "$rc1" -ne 0 ]; then
-            tail -n 30 /tmp/vcpkg.log | while IFS= read -r l; do echo "::error>VCPKG>$l"; done
-          fi
-          exit "$rc1"
-
-
-      - name: Configurar (linux-release)
-        run: |
-          set +e
-          cmake --preset linux-release 2>&1 | tee /tmp/config.log
-          rc="${PIPESTATUS[0]}"
-          if [ "$rc" -ne 0 ]; then
-            grep -nE "error:|fatal error:|ninja: build stopped|FAILED|undefined reference" /tmp/config.log > /tmp/errl.log || tail -n 80 /tmp/config.log > /tmp/errl.log
-            tail -n 25 /tmp/errl.log | while IFS= read -r l; do echo "::error::CI>$l"; done
-          fi
-          exit "$rc"
-
-      - name: Compilar
-        run: cmake --build --preset linux-release
-
-      - name: Subir log de configuracion si falla
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: log-linux-arch-config
-          path: /tmp/config.log
-
-      - name: Subir artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ProjectTFG-linux-arch
-          path: |
-            out/build/linux-release/bin/ProjectTFG
-            out/build/linux-release/bin/shaders
-            out/build/linux-release/bin/textures
-            out/build/linux-release/bin/models
-
-      - name: Preparar binario
-        run: cp out/build/linux-release/bin/ProjectTFG ./ProjectTFG-linux-arch
-
-      - name: Adjuntar a Release (tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ProjectTFG-linux-arch
-          fail_on_unmatched_files: true
 
   windows:
     name: Windows
@@ -282,13 +190,13 @@ jobs:
             out/build/macos-release/bin/models
 
       - name: Preparar binario
-        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/macos-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-macos"
+        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/macos-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-macos.app"
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-macos
+          files: ${{ runner.temp }}/release/ProjectTFG-macos.app
           fail_on_unmatched_files: true
 
   memoria:
