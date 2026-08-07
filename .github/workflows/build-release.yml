@@ -189,14 +189,21 @@ jobs:
             out/build/macos-release/bin/textures
             out/build/macos-release/bin/models
 
-      - name: Preparar binario
-        run: mkdir -p "$RUNNER_TEMP/release" && cp out/build/macos-release/bin/ProjectTFG "$RUNNER_TEMP/release/ProjectTFG-macos.app"
+      - name: Empaquetar como .app
+        run: |
+          set -ex
+          APP="$RUNNER_TEMP/ProjectTFG.app/Contents"
+          mkdir -p "$APP/MacOS"
+          cp out/build/macos-release/bin/ProjectTFG "$APP/MacOS/ProjectTFG"
+          cp ProjectTFG/macos/Info.plist "$APP/Info.plist"
+          mkdir -p "$RUNNER_TEMP/release"
+          (cd "$RUNNER_TEMP" && zip -r -y "release/ProjectTFG-macos.app.zip" ProjectTFG.app)
 
       - name: Adjuntar a Release (tags v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/release/ProjectTFG-macos.app
+          files: ${{ runner.temp }}/release/ProjectTFG-macos.app.zip
           fail_on_unmatched_files: true
 
   memoria:
