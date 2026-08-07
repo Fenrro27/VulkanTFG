@@ -88,6 +88,22 @@ jobs:
           }
           cp_ldd out/build/linux-release/bin/ProjectTFG
           cp_ldd /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+          # Icono de la app (appimagetool exige el icono dentro del AppDir)
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          python3 - <<'PY'
+          import struct, zlib
+
+          def png(path, w=256, h=256, rgb=(0x41, 0x6F, 0xFF)):
+              raw = b''.join(b'\x00' + bytes(rgb) * w for _ in range(h))
+              def chunk(t, d):
+                  return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+              with open(path, 'wb') as f:
+                  f.write(b'\x89PNG\r\n\x1a\n')
+                  f.write(chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)))
+                  f.write(chunk(b'IDAT', zlib.compress(raw)))
+                  f.write(chunk(b'IEND', b''))
+          png('AppDir/usr/share/icons/hicolor/256x256/apps/ProjectTFG.png')
+          PY
           # shellcheck disable=SC2016
           printf '#!/bin/sh\nAPPDIR="$(dirname "$0")"\ncd "$APPDIR/usr/bin" 2>/dev/null || true\nexport LD_LIBRARY_PATH="$APPDIR/usr/lib:$LD_LIBRARY_PATH"\nexec ./ProjectTFG "$@"\n' > AppDir/AppRun
           # Lanzador
@@ -97,7 +113,7 @@ jobs:
           Type=Application
           Name=ProjectTFG
           Exec=ProjectTFG
-          Icon=utilities-terminal
+          Icon=ProjectTFG
           Categories=Game;
           EOF
 
@@ -199,17 +215,22 @@ jobs:
           mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Resources/vulkan/icd.d"
           cp out/build/macos-release/bin/ProjectTFG "$APP/Contents/MacOS/"
           cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$APP/Contents/Frameworks/"
-          VK_DYLIB=""
-          for f in out/build/macos-release/vcpkg_installed/arm64-osx/lib/libvulkan.*.dylib; do
-            [ -f "$f" ] || continue
-            VK_DYLIB="$f"
-          done
-          if [ -z "$VK_DYLIB" ]; then
-            echo "No se encontro libvulkan" >&2
+          # Nombre EXACTO del dylib de vulkan-loader que el binario busca via @rpath
+          LOADER_FILE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}')
+          if [ -z "$LOADER_FILE" ]; then
+            echo "No se encontro la referencia @rpath/libvulkan en el binario" >&2
             exit 1
           fi
-          cp "$VK_DYLIB" "$APP/Contents/Frameworks/"
-          ln -sf "$(basename "$VK_DYLIB")" "$APP/Contents/Frameworks/libvulkan.dylib"
+          VK_DYLIB=""
+          for f in out/build/macos-release/vcpkg_installed/arm64-osx/lib/libvulkan.*.dylib; do
+            [ "$LOADER_FILE" = "@rpath/$(basename "$f")" ] && VK_DYLIB="$f"
+          done
+          if [ -z "$VK_DYLIB" ]; then
+            echo "No existe $LOADER_FILE en vcpkg_installed" >&2
+            exit 1
+          fi
+          cp "$VK_DYLIB" "$APP/Contents/Frameworks/$(basename "$LOADER_FILE")"
+          ln -sf "$(basename "$LOADER_FILE")" "$APP/Contents/Frameworks/libvulkan.dylib"
           install_name_tool -add_rpath @executable_path/../Frameworks "$APP/Contents/MacOS/ProjectTFG"
           cat > "$APP/Contents/Resources/vulkan/icd.d/MoltenVK_icd.json" <<'EOF'
           {
