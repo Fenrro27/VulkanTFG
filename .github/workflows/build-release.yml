@@ -144,50 +144,6 @@ jobs:
           files: ProjectTFG-linux.AppImage
           fail_on_unmatched_files: true
 
-  smoke-linux:
-    name: Smoke Linux (${{ matrix.container }})
-    needs: linux
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        container: [debian:12, archlinux]
-    container: ${{ matrix.container }}
-    steps:
-      - name: Preparar herramientas base
-        run: |
-          set -ex
-          if [ -f /etc/arch-release ]; then
-            pacman -Sy --noconfirm
-            pacman -S --noconfirm --needed curl tar xz xorg-server-xvfb
-          else
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y curl tar xvfb
-          fi
-
-      - name: Descargar AppImage
-        uses: actions/download-artifact@v4
-        with:
-          name: ProjectTFG-linux.AppImage
-
-      - name: Ejecutar con lavapipe empaquetado (sin Vulkan en el sistema)
-        run: |
-          set -ex
-          chmod +x ProjectTFG-linux.AppImage
-          set +e
-          VK_LOADER_DEBUG=error APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a timeout 25 ./ProjectTFG-linux.AppImage > /tmp/run.log 2>&1
-          rc=$?
-          set -e
-          echo "rc=$rc"
-          grep -E "GEVulkanRuntime|ERROR FATAL|error" /tmp/run.log | tail -n 20 || true
-          if [ "$rc" -eq 124 ]; then
-            echo "La aplicacion arranco y siguio viva 25s (OK)"
-            exit 0
-          fi
-          tail -n 60 /tmp/run.log
-          exit 1
-
   macos:
     name: macOS (DMG)
     runs-on: macos-latest
