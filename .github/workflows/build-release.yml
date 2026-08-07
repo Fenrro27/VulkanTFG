@@ -104,6 +104,7 @@ jobs:
                   f.write(chunk(b'IEND', b''))
           png('AppDir/usr/share/icons/hicolor/256x256/apps/ProjectTFG.png')
           PY
+          cp AppDir/usr/share/icons/hicolor/256x256/apps/ProjectTFG.png AppDir/ProjectTFG.png
           # shellcheck disable=SC2016
           printf '#!/bin/sh\nAPPDIR="$(dirname "$0")"\ncd "$APPDIR/usr/bin" 2>/dev/null || true\nexport LD_LIBRARY_PATH="$APPDIR/usr/lib:$LD_LIBRARY_PATH"\nexec ./ProjectTFG "$@"\n' > AppDir/AppRun
           # Lanzador
