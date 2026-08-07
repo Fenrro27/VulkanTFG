@@ -74,8 +74,9 @@ jobs:
           cp -r out/build/linux-release/bin/ProjectTFG AppDir/usr/bin/
           cp out/build/linux-release/bin/imgui.ini AppDir/usr/bin/ 2>/dev/null || true
           # Driver por software (lavapipe) empaquetado
-          cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/lib/
-          cp /usr/share/vulkan/icd.d/lvp_icd.x86_64.json AppDir/usr/bin/vulkan/
+          # El loader resuelve library_path relativo al mismo dir del json ICD
+          cp /usr/lib/x86_64-linux-gnu/libvulkan_lvp.so AppDir/usr/bin/vulkan/
+          cp /usr/share/vulkan/icd.d/lvp_icd.x86_64.json AppDir/usr/bin/vulkan/lvp_icd.x86_64.json
           sed -i 's|"library_path".*|"library_path": "libvulkan_lvp.so",|' AppDir/usr/bin/vulkan/lvp_icd.x86_64.json
           # Dependencias dinamicas del ejecutable y de lavapipe (sin glibc/libstdc++/libgcc)
           cp_ldd() {
@@ -172,15 +173,17 @@ jobs:
         run: |
           set -ex
           chmod +x ProjectTFG-linux.AppImage
+          set +e
           APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run -a timeout 25 ./ProjectTFG-linux.AppImage > /tmp/run.log 2>&1
           rc=$?
+          set -e
           echo "rc=$rc"
-          grep -E "GEVulkanRuntime|ERROR FATAL|error" /tmp/run.log || true
+          grep -E "GEVulkanRuntime|ERROR FATAL|error" /tmp/run.log | tail -n 20 || true
           if [ "$rc" -eq 124 ]; then
             echo "La aplicacion arranco y siguio viva 25s (OK)"
             exit 0
           fi
-          tail -n 40 /tmp/run.log
+          tail -n 60 /tmp/run.log
           exit 1
 
   macos:
