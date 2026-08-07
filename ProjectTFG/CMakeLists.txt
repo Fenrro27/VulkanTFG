@@ -49,6 +49,111 @@ endif()
 # 4. Lista de archivos de código (búsqueda recursiva en subcarpetas)
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS "*.cpp" "*.h")
 
+# --------------------------------------------------------------------
+# 4.bis RECURSOS INCRUSTADOS EN EL EJECUTABLE
+# --------------------------------------------------------------------
+# GE_EMBED_RESOURCES=ON  -> incrusta shaders, texturas y modelos dentro del
+#                           ejecutable (autónomo, sin carpetas adjuntas).
+# GE_EMBED_RESOURCES=OFF -> comportamiento clásico: se leen en tiempo de
+#                           ejecución desde las carpetas copiadas junto al exe.
+option(GE_EMBED_RESOURCES "Incrustar shaders, texturas y modelos dentro del ejecutable" ON)
+
+set(EMBED_GEN_SRC "${CMAKE_CURRENT_BINARY_DIR}/embedded_resources.cpp")
+
+if(GE_EMBED_RESOURCES)
+    set(EMBED_MANIFEST "${CMAKE_CURRENT_BINARY_DIR}/embedded_manifest.txt")
+    set(EMBED_FILES "")
+
+    file(WRITE "${EMBED_MANIFEST}" "")
+
+    # Shaders compilados (.spv)
+    foreach(SPV ${SPV_OUTPUTS})
+        get_filename_component(SPV_NAME ${SPV} NAME)
+        file(APPEND "${EMBED_MANIFEST}" "shaders/${SPV_NAME}\t${SPV}\n")
+        list(APPEND EMBED_FILES ${SPV})
+    endforeach()
+
+    # Texturas usadas por la escena
+    foreach(TEX
+        "textures/wood.jpg"
+        "textures/moon.jpg"
+        "textures/smoke.png"
+        "textures/fire.png"
+        "textures/pngwing.com (1).png"
+        "textures/posx.jpg"
+        "textures/posy.jpg"
+        "textures/posz.jpg"
+        "textures/negx.jpg"
+        "textures/negy.jpg"
+        "textures/negz.jpg"
+    )
+        set(TEX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${TEX}")
+        file(APPEND "${EMBED_MANIFEST}" "${TEX}\t${TEX_PATH}\n")
+        list(APPEND EMBED_FILES "${TEX_PATH}")
+    endforeach()
+
+    # Modelos usados por la escena (OBJ + MTL + texturas referenciadas)
+    foreach(MOD
+        "models/newFountain/fountain.obj"
+        "models/newFountain/fountainobj.mtl"
+        "models/newFountain/fountain 1_diffuse.jpg"
+        "models/newFountain/fountain 2_diffuse.jpg"
+        "models/newFountain/fountain 3_diffuse.jpg"
+        "models/newFountain/fountain 4_diffuse.jpg"
+        "models/newFountain/fountain 5_diffuse.jpg"
+        "models/newFountain/fountain_ground.jpg"
+        "models/newFountain/Water.jpg"
+        "models/campfire/campfire.obj"
+        "models/campfire/campfire.mtl"
+        "models/campfire/Bark_Material.png"
+        "models/campfire/Material.001.png"
+        "models/train/sketchfabpreview.obj"
+        "models/train/sketchfabpreview.mtl"
+        "models/train/textures/boiler.png"
+        "models/train/textures/cab.png"
+        "models/train/textures/coal.png"
+        "models/train/textures/gauges.png"
+        "models/train/textures/lubricators.png"
+        "models/train/textures/mainshaded.jpeg"
+        "models/train/textures/metallicshaded.jpeg"
+        "models/train/textures/plates.png"
+        "models/train/textures/shinyshaded.jpeg"
+        "models/train/textures/sightglass.png"
+    )
+        set(MOD_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${MOD}")
+        file(APPEND "${EMBED_MANIFEST}" "${MOD}\t${MOD_PATH}\n")
+        list(APPEND EMBED_FILES "${MOD_PATH}")
+    endforeach()
+
+    # Genera embedded_resources.cpp en build time (se regenera si cambian recursos)
+    add_custom_command(
+        OUTPUT ${EMBED_GEN_SRC}
+        COMMAND ${CMAKE_COMMAND}
+            -DGE_MANIFEST_FILE=${EMBED_MANIFEST}
+            -DGE_OUTPUT_CPP=${EMBED_GEN_SRC}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_embedded.cmake
+        DEPENDS ${EMBED_MANIFEST} ${EMBED_FILES}
+                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_embedded.cmake
+        COMMENT "Incrustando recursos en el ejecutable..."
+        VERBATIM
+    )
+
+    list(APPEND SRC_FILES ${EMBED_GEN_SRC})
+
+    message(STATUS ">= Recursos incrustables: GE_EMBED_RESOURCES=ON")
+else()
+    # Modo clásico: tabla de recursos vacía; los cargadores leerán de las
+    # carpetas copiadas junto al ejecutable (POST_BUILD).
+    file(WRITE "${EMBED_GEN_SRC}"
+        "#include \"GEAssets.h\"\n\n"
+        "extern const EmbeddedResource kEmbeddedResources[] = {};\n"
+        "extern const size_t kEmbeddedResourcesCount = 0;\n"
+    )
+    list(APPEND SRC_FILES ${EMBED_GEN_SRC})
+
+    message(STATUS ">= Recursos incrustables: GE_EMBED_RESOURCES=OFF (lectura desde disco)")
+endif()
+
 # 5. Crear el Ejecutable
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SPV_OUTPUTS})
 
@@ -86,7 +191,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # 7. POST-BUILD: Copiar TODO a la carpeta del ejecutable
-# Ahora sí podemos usar $<TARGET_FILE_DIR> porque el target ya existe
+# (solo en modo clásico GE_EMBED_RESOURCES=OFF; con recursos incrustados no hace falta)
+if(NOT GE_EMBED_RESOURCES)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders"
     COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/textures"
@@ -104,3 +210,4 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         
     COMMENT "Desplegando shaders y recursos al directorio del ejecutable..."
 )
+endif()

@@ -10,6 +10,8 @@
 
 #include "commonDebug.h"
 
+#include "GEAssets.h"
+
 
 
 //
@@ -30,17 +32,13 @@ GETexture::GETexture(GEGraphicsContext* gc, const char** filename)
 
 	stbi_uc* pixels[6];
 
-	pixels[0] = stbi_load(filename[0], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
+	for (int i = 0; i < 6; i++) {
 
-	pixels[1] = stbi_load(filename[1], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
+		std::vector<char> fileData = GEAssets::getFileVector(filename[i]);
 
-	pixels[2] = stbi_load(filename[2], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
+		pixels[i] = stbi_load_from_memory((const stbi_uc*)fileData.data(), (int)fileData.size(), &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
 
-	pixels[3] = stbi_load(filename[3], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
-
-	pixels[4] = stbi_load(filename[4], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
-
-	pixels[5] = stbi_load(filename[5], &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
+	}
 
 	VkDeviceSize layerSize = textureWidth * textureHeight * 4;
 
@@ -118,9 +116,9 @@ GETexture::GETexture(GEGraphicsContext* gc, const char* filename)
 
 	GE_DEBUG_WARN("Intentando cargar textura: " << filename );
 
-	stbi_uc* pixels = stbi_load(filename, &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
+	std::vector<char> fileData = GEAssets::getFileVector(filename);
 
-	VkDeviceSize imageSize = textureWidth * textureHeight * 4;
+	stbi_uc* pixels = stbi_load_from_memory((const stbi_uc*)fileData.data(), (int)fileData.size(), &textureWidth, &textureHeight, &texChannels, STBI_rgb_alpha);
 
 
 
@@ -131,6 +129,8 @@ GETexture::GETexture(GEGraphicsContext* gc, const char* filename)
 		throw std::runtime_error("failed to load texture image!");
 
 	}
+
+	VkDeviceSize imageSize = textureWidth * textureHeight * 4;
 
 
 
