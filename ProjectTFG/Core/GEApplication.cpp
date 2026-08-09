@@ -747,6 +747,7 @@ void GEApplication::inicializarImGui() {
 	}
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.IniFilename = nullptr; // Desactivar la creación del archivo imgui.ini en disco
 	ImGui::StyleColorsDark();
 
 	// 3.5 Configurar las fuentes con alto oversampling para que se vean mas suaves

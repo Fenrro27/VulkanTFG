@@ -118,6 +118,7 @@ jobs:
           Name=ProjectTFG
           Exec=ProjectTFG
           Icon=ProjectTFG
+          Terminal=false
           Categories=Game;
           EOF
 
