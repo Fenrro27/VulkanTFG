@@ -178,21 +178,23 @@ jobs:
           cp out/build/macos-release/bin/ProjectTFG "$APP/Contents/MacOS/"
           cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$APP/Contents/Frameworks/"
           # Nombre EXACTO del dylib de vulkan-loader que el binario busca via @rpath
-          LOADER_FILE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}')
-          if [ -z "$LOADER_FILE" ]; then
+          LOADER_BASE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}' | sed 's|@rpath/||')
+          if [ -z "$LOADER_BASE" ]; then
             echo "No se encontro la referencia @rpath/libvulkan en el binario" >&2
             exit 1
           fi
-          VK_DYLIB=""
-          for f in out/build/macos-release/vcpkg_installed/arm64-osx/lib/libvulkan.*.dylib; do
-            [ "$LOADER_FILE" = "@rpath/$(basename "$f")" ] && VK_DYLIB="$f"
-          done
+          # dylib REAL de vcpkg_installed (ignora symlinks: find -type f)
+          VK_DYLIB=$(find out/build/macos-release/vcpkg_installed/arm64-osx/lib -maxdepth 1 \
+            -name 'libvulkan*.dylib' -type f | head -n 1)
           if [ -z "$VK_DYLIB" ]; then
-            echo "No existe $LOADER_FILE en vcpkg_installed" >&2
+            echo "No hay libvulkan*.dylib real en vcpkg_installed" >&2
             exit 1
           fi
-          cp "$VK_DYLIB" "$APP/Contents/Frameworks/$(basename "$LOADER_FILE")"
-          ln -sf "$(basename "$LOADER_FILE")" "$APP/Contents/Frameworks/libvulkan.dylib"
+          # Se copia con TODOS los nombres de version que el binario pueda pedir
+          cp "$VK_DYLIB" "$APP/Contents/Frameworks/$LOADER_BASE"
+          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.dylib"
+          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.1.dylib"
+          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.1.4.309.dylib"
           install_name_tool -add_rpath @executable_path/../Frameworks "$APP/Contents/MacOS/ProjectTFG"
           cat > "$APP/Contents/Resources/vulkan/icd.d/MoltenVK_icd.json" <<'EOF'
           {
@@ -206,6 +208,27 @@ jobs:
           EOF
           cp ProjectTFG/macos/Info.plist "$APP/Contents/Info.plist"
           codesign --force --deep -s - "$APP"
+
+      - name: Smoke test de arranque (macOS)
+        run: |
+          set -ex
+          APP="$(pwd)/dist/ProjectTFG.app"
+          "$APP/Contents/MacOS/ProjectTFG" > /tmp/smoke.log 2>&1 &
+          PID=$!
+          sleep 8
+          if ! kill -0 "$PID" 2>/dev/null; then
+            wait "$PID" || true
+            echo "El binario murio al arrancar (dyld/GPU):" >&2
+            cat /tmp/smoke.log >&2
+            exit 1
+          fi
+          kill -9 "$PID" 2>/dev/null || true
+          grep -q "ImGui inicializado" /tmp/smoke.log || { echo "Smoke: no se inicializo ImGui"; exit 1; }
+
+      - name: Generar DMG
+        run: |
+          set -ex
+          APP=dist/ProjectTFG.app
           hdiutil create -volname ProjectTFG -srcfolder dist -ov -format UDZO ProjectTFG-macos.dmg
           ls -la ProjectTFG-macos.dmg
 
