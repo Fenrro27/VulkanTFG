@@ -178,11 +178,12 @@ jobs:
           cp out/build/macos-release/bin/ProjectTFG "$APP/Contents/MacOS/"
           cp "$(brew --prefix molten-vk)/lib/libMoltenVK.dylib" "$APP/Contents/Frameworks/"
           # Nombre EXACTO del dylib de vulkan-loader que el binario busca via @rpath
-          LOADER_BASE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}' | sed 's|@rpath/||')
-          if [ -z "$LOADER_BASE" ]; then
+          LOADER_FILE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}')
+          if [ -z "$LOADER_FILE" ]; then
             echo "No se encontro la referencia @rpath/libvulkan en el binario" >&2
             exit 1
           fi
+          LOADER_BASE=${LOADER_FILE#@rpath/}
           # dylib REAL de vcpkg_installed (ignora symlinks: find -type f)
           VK_DYLIB=$(find out/build/macos-release/vcpkg_installed/arm64-osx/lib -maxdepth 1 \
             -name 'libvulkan*.dylib' -type f | head -n 1)
@@ -190,11 +191,19 @@ jobs:
             echo "No hay libvulkan*.dylib real en vcpkg_installed" >&2
             exit 1
           fi
-          # Se copia con TODOS los nombres de version que el binario pueda pedir
+          # Copias REALES (sin symlinks: robusto ante dyld y App Translocation)
           cp "$VK_DYLIB" "$APP/Contents/Frameworks/$LOADER_BASE"
-          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.dylib"
-          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.1.dylib"
-          ln -sf "$LOADER_BASE" "$APP/Contents/Frameworks/libvulkan.1.4.309.dylib"
+          chmod +x "$APP/Contents/Frameworks/$LOADER_BASE"
+          for NAME in libvulkan.dylib libvulkan.1.dylib libvulkan.1.4.309.dylib; do
+            if [ "$NAME" != "$LOADER_BASE" ]; then
+              cp "$VK_DYLIB" "$APP/Contents/Frameworks/$NAME"
+            fi
+          done
+          # Quitar el rpath del runner: dyld solo debe resolver via el bundle
+          RUNNER_RPATH=$(otool -l "$APP/Contents/MacOS/ProjectTFG" | awk '/path \/Users\/runner/ {print $2; exit}')
+          if [ -n "$RUNNER_RPATH" ]; then
+            install_name_tool -delete_rpath "$RUNNER_RPATH" "$APP/Contents/MacOS/ProjectTFG"
+          fi
           install_name_tool -add_rpath @executable_path/../Frameworks "$APP/Contents/MacOS/ProjectTFG"
           cat > "$APP/Contents/Resources/vulkan/icd.d/MoltenVK_icd.json" <<'EOF'
           {
@@ -213,6 +222,12 @@ jobs:
         run: |
           set -ex
           APP="$(pwd)/dist/ProjectTFG.app"
+          # Verificar que el dylib que pide el binario existe REAL en Frameworks
+          LOADER_BASE=$(otool -L "$APP/Contents/MacOS/ProjectTFG" | awk '/@rpath\/libvulkan/ {print $1; exit}' | sed 's|@rpath/||')
+          if [ ! -f "$APP/Contents/Frameworks/$LOADER_BASE" ] || [ -L "$APP/Contents/Frameworks/$LOADER_BASE" ]; then
+            echo "Frameworks/$LOADER_BASE no es un fichero real" >&2
+            exit 1
+          fi
           "$APP/Contents/MacOS/ProjectTFG" > /tmp/smoke.log 2>&1 &
           PID=$!
           sleep 8
